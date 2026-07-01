@@ -347,6 +347,7 @@ class LaunchPadX : public MIDISurface
 	void pad_release (Pad&);
 
 	void trigger_property_change (PBD::PropertyChange, ARDOUR::Trigger*);
+	void trigger_arm_changed (ARDOUR::Trigger const *);
 	PBD::ScopedConnectionList trigger_connections;
 
 	void display_session_layout ();
@@ -355,6 +356,7 @@ class LaunchPadX : public MIDISurface
 
 	void map_triggers ();
 	void map_triggerbox (int col);
+	int  pad_y_for_cue_row (int cue_row) const;
 
 	void viewport_changed ();
 	void route_property_change (PBD::PropertyChange const &, int x);

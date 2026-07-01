@@ -82,6 +82,18 @@ using namespace Gtkmm2ext;
 
 #include "pbd/abstract_ui.inc.cc" // instantiate template
 
+/* The top two rows of the 8x8 grid are repurposed as a per-track strip:
+ *   pad.y == 0 (top physical row)    -> solid per-track color (display only)
+ *   pad.y == 1 (second physical row) -> per-track cue-record arm state / button
+ * Clip slots occupy pad.y 2..7 (cue rows 2..7). Cue rows 0/1 are no longer on
+ * the grid but remain launchable from the right-hand scene buttons.
+ */
+static const int lp_track_color_row = 0;
+static const int lp_track_arm_row   = 1;
+static const int lp_first_clip_row  = 2; /* clip grid starts here; cue row 0 == this physical row */
+static const int lp_arm_on_color    = 0x05; /* Novation bright red: armed */
+static const int lp_arm_off_color   = 0x01; /* dim grey: disarmed but pressable */
+
 #define NOVATION     0x1235
 
 #ifdef LAUNCHPAD_MINI
@@ -175,6 +187,7 @@ LaunchPadX::LaunchPadX (ARDOUR::Session& s)
 	build_pad_map ();
 
 	Trigger::TriggerPropertyChange.connect (trigger_connections, invalidator (*this), std::bind (&LaunchPadX::trigger_property_change, this, _1, _2), this);
+	Trigger::TriggerArmChanged.connect (trigger_connections, invalidator (*this), std::bind (&LaunchPadX::trigger_arm_changed, this, _1), this);
 
 	session->RecordStateChanged.connect (session_connections, invalidator(*this), std::bind (&LaunchPadX::record_state_changed, this), this);
 	session->TransportStateChange.connect (session_connections, invalidator(*this), std::bind (&LaunchPadX::transport_state_changed, this), this);
@@ -679,7 +692,6 @@ LaunchPadX::handle_midi_note_on_message (MIDI::Parser& parser, MIDI::EventTwoByt
 		handle_midi_note_off_message (parser, ev);
 		return;
 	}
-
 
 	if (&parser != _daw_in_port->parser()) {
 		/* we don't process CC messages from the regular port */
@@ -1213,9 +1225,60 @@ LaunchPadX::pad_press (Pad& pad, int velocity)
 
 	if (pending_mixer_op != PendingNone && pad.y == 7) {
 		handle_pending_mixer_op (pad.x);
+		return;
+	}
+
+	if (pad.y == lp_track_color_row) {
+		/* top row is a passive per-track colour display; ignore presses */
+		return;
+	}
+
+	if (pad.y == lp_track_arm_row) {
+		/* second row toggles cue-record arm for this column's track */
+		std::shared_ptr<Route> r = session->get_remote_nth_route (scroll_x_offset + pad.x);
+		if (r) {
+			std::shared_ptr<TriggerBox> tb = r->triggerbox();
+			if (tb) {
+				tb->set_record_enabled (!tb->rec_enabled());
+			}
+		}
+		return;
+	}
+
+	/* Clip rows: a single press does everything, no hold required.
+	 *   empty slot   -> punch in (arm the track's cue record + this slot)
+	 *   stopped clip -> launch it
+	 *   playing clip -> stop it
+	 */
+	int col = scroll_x_offset + pad.x;
+	int cue_row = (pad.y - lp_first_clip_row) + scroll_y_offset;
+	TriggerPtr t = session->trigger_at (col, cue_row);
+
+	if (!t) {
+		return;
+	}
+
+	if (!t->the_region()) {
+
+		/* empty -> start recording */
+		std::shared_ptr<Route> r = session->get_remote_nth_route (col);
+		if (r) {
+			std::shared_ptr<TriggerBox> tb = r->triggerbox();
+			if (tb) {
+				tb->set_record_enabled (true);
+			}
+		}
+		t->arm ();
+
+	} else if (t->state() != Trigger::Stopped) {
+
+		/* playing or queued -> stop at the next quantize point */
+		t->stop_quantized ();
+
 	} else {
-		session->bang_trigger_at (pad.x, pad.y, velocity / 127.0f);
-		start_press_timeout (pad);
+
+		/* stopped -> launch */
+		t->bang (velocity / 127.0f);
 	}
 }
 
@@ -1223,13 +1286,26 @@ void
 LaunchPadX::pad_long_press (Pad& pad)
 {
 	DEBUG_TRACE (DEBUG::Launchpad, string_compose ("pad long press on %1, %2 => %3\n", pad.x, pad.y, pad.id));
+
+	/* Long-press is intentionally a no-op: a single short press now handles
+	 * record / launch / stop directly (see pad_press), so no hold gesture is
+	 * needed to arm a slot. Kept as a valid target for the dispatcher's
+	 * long-press timer.
+	 */
 }
 
 void
 LaunchPadX::pad_release (Pad& pad)
 {
         DEBUG_TRACE (DEBUG::Launchpad, string_compose ("pad release on %1, %2 => %3\n", pad.x, pad.y, pad.id));
-        session->unbang_trigger_at(pad.x, pad.y);
+        /* Release is intentionally a no-op. In our press-driven model pad_press
+         * fully decides start / stop / record, so no note-off is needed. Sending
+         * unbang here was actively harmful: because the clip grid is offset by
+         * lp_first_clip_row, the raw pad.y addressed the wrong (often empty) slot,
+         * and TriggerBox::unbang_trigger_at() on an empty slot calls
+         * stop_all_quantized() -> it stopped the whole track's playing clip on
+         * every pad release. It also gated Gate/Repeat clips. Do nothing.
+         */
 }
 
 void
@@ -1258,7 +1334,12 @@ LaunchPadX::trigger_property_change (PropertyChange pc, Trigger* t)
 
 	if (pc.contains (our_interests)) {
 
-		int pid = (11 + ((7 - y) * 10)) + x;
+		int pad_y = pad_y_for_cue_row (y);
+		if (pad_y < 0) {
+			/* clip row scrolled out of the visible grid */
+			return;
+		}
+		int pid = (11 + ((7 - pad_y) * 10)) + x;
 		MidiByteArray msg;
 		std::shared_ptr<Route> r = session->get_remote_nth_route (scroll_x_offset + x);
 
@@ -1304,6 +1385,41 @@ LaunchPadX::trigger_property_change (PropertyChange pc, Trigger* t)
 }
 
 void
+LaunchPadX::trigger_arm_changed (Trigger const * t)
+{
+	int x = t->box().order();
+	int y = t->index();
+
+	if (y > scroll_y_offset + 7) {
+		/* not visible at present */
+		return;
+	}
+
+	if (x > scroll_x_offset + 7) {
+		/* not visible at present */
+		return;
+	}
+
+	if (t->armed()) {
+		int pad_y = pad_y_for_cue_row (y);
+		if (pad_y < 0) {
+			return;
+		}
+		int pid = (11 + ((7 - pad_y) * 10)) + x;
+		MidiByteArray msg;
+		msg.push_back (0x92);  /* channel 3 => pulsing */
+		msg.push_back (pid);
+		msg.push_back (0x05);  /* red (tweak palette index to taste) */
+		daw_write (msg);
+	} else {
+		/* slot was disarmed (manually, or because recording finished):
+		 * restore its normal Stopped/playable appearance.
+		 */
+		map_triggerbox (x - scroll_x_offset);
+	}
+}
+
+void
 LaunchPadX::map_triggers ()
 {
 	for (int x = 0; x < 8; ++x) {
@@ -1311,13 +1427,23 @@ LaunchPadX::map_triggers ()
 	}
 }
 
+int
+LaunchPadX::pad_y_for_cue_row (int cue_row) const
+{
+	/* Clip rows live below the colour/arm strip: cue row 0 is the first clip
+	 * row (physical row lp_first_clip_row). Returns -1 if the row is scrolled
+	 * out of the visible clip area.
+	 */
+	int pad_y = (cue_row - scroll_y_offset) + lp_first_clip_row;
+	if (pad_y < lp_first_clip_row || pad_y > 7) {
+		return -1;
+	}
+	return pad_y;
+}
+
 void
 LaunchPadX::map_triggerbox (int x)
 {
-	MIDI::byte msg[3];
-
-	msg[0] = 0x90;
-
 	std::shared_ptr<Route> r = session->get_remote_nth_route (scroll_x_offset + x);
 	int palette_index;
 
@@ -1327,23 +1453,56 @@ LaunchPadX::map_triggerbox (int x)
 		palette_index = 0x0;
 	}
 
+	std::shared_ptr<TriggerBox> tb = r ? r->triggerbox() : std::shared_ptr<TriggerBox> ();
+
 	for (int y = 0; y < 8; ++y) {
 
-		int xp = x + scroll_x_offset;
-		int yp = y + scroll_y_offset;
-
 		int pid = (11 + ((7 - y) * 10)) + x;
-		msg[1] = pid;
+		int color = 0x0;
+		int mode = 0;
 
-		TriggerPtr t = session->trigger_at (xp, yp);
+		if (y == lp_track_color_row) {
 
-		if (!t || !t->playable()) {
-			msg[2] = 0x0;
+			/* top row: solid per-track color (blank if no track) */
+			color = r ? palette_index : 0x0;
+
+		} else if (y == lp_track_arm_row) {
+
+			/* second row: cue-record arm state for this track */
+			if (tb) {
+				switch (tb->record_enabled()) {
+				case ARDOUR::Recording:
+					color = lp_arm_on_color;
+					mode = 2; /* pulsing */
+					break;
+				case ARDOUR::Enabled:
+					color = lp_arm_on_color;
+					mode = 0; /* solid: armed, waiting */
+					break;
+				default:
+					color = lp_arm_off_color; /* dim: disarmed but pressable */
+					mode = 0;
+					break;
+				}
+			} else {
+				color = 0x0;
+			}
+
 		} else {
-			msg[2] = palette_index;
+
+			/* clip rows: physical row y maps to cue row (y - lp_first_clip_row) */
+			int xp = x + scroll_x_offset;
+			int yp = (y - lp_first_clip_row) + scroll_y_offset;
+			TriggerPtr t = session->trigger_at (xp, yp);
+
+			if (!t || !t->playable()) {
+				color = 0x0;
+			} else {
+				color = palette_index;
+			}
 		}
 
-		daw_write (msg, 3);
+		light_pad (pid, color, mode);
 	}
 }
 
@@ -1555,6 +1714,11 @@ LaunchPadX::viewport_changed ()
 		if (r) {
 			r->DropReferences.connect (route_connections, invalidator (*this), std::bind (&LaunchPadX::viewport_changed, this), this);
 			r->presentation_info().PropertyChanged.connect (route_connections, invalidator (*this), std::bind (&LaunchPadX::route_property_change, this, _1, n), this);
+			std::shared_ptr<TriggerBox> tb = r->triggerbox();
+			if (tb) {
+				/* redraw this column's arm row when its cue-record state changes */
+				tb->RecEnableChanged.connect (route_connections, invalidator (*this), std::bind (&LaunchPadX::map_triggerbox, this, n), this);
+			}
 		} else {
 			if (n == 0) {
 				/* not even the first stripable ... so do nothing */

@@ -189,6 +189,17 @@ CueEditor::initialize_region_ui_settings (RegionUISettings& rus)
 	rus.x_origin = _leftmost_sample;
 	rus.snap_mode = snap_mode ();
 
+	/* Capture the slot's current cue-record length so it survives a
+	 * round-trip through RegionUISettings. Without this, recording_length
+	 * keeps its ctor default and set_from_rsu() later forces
+	 * capture_duration back to that default (clobbering e.g. our 4-bar
+	 * default the moment a region's UI settings are re-applied, such as
+	 * when a clip is cleared/deleted).
+	 */
+	if (ref.trigger()) {
+		rus.recording_length = ref.trigger()->capture_duration ();
+	}
+
 	/* If we're inside an ArdourWindow, get it's geometry */
 	Gtk::Widget* toplevel = contents().get_toplevel ();
 	ArdourWindow* aw = dynamic_cast<ArdourWindow*> (toplevel);

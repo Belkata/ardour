@@ -176,14 +176,14 @@ class LIBARDOUR_API Trigger : public PBD::Stateful {
 	struct UIState {
 		std::atomic<unsigned int> generation; /* used for CAS */
 
-		LaunchStyle launch_style = OneShot;
+		LaunchStyle launch_style = Toggle;
 		FollowAction follow_action0 = FollowAction (FollowAction::Again);
 		FollowAction follow_action1 = FollowAction (FollowAction::Stop);
 		int follow_action_probability = 0;
 		uint32_t follow_count = 1;
 		Temporal::BBT_Offset quantization = Temporal::BBT_Offset (1, 0, 0);
 		Temporal::BBT_Offset follow_length = Temporal::BBT_Offset (1, 0, 0);
-		Temporal::BBT_Offset capture_duration = Temporal::BBT_Offset (1, 0, 0);
+		Temporal::BBT_Offset capture_duration = Temporal::BBT_Offset (4, 0, 0); /* default cue-record length: 4 bars */
 		bool use_follow_length = false;
 		bool legato = false;
 		gain_t gain = 1.0;

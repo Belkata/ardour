@@ -218,14 +218,14 @@ PBD::Signal<void(PropertyChange,Trigger*)> Trigger::TriggerPropertyChange;
 PBD::Signal<void(Trigger const *)> Trigger::TriggerArmChanged;
 
 Trigger::Trigger (uint32_t n, TriggerBox& b)
-	: _launch_style (Properties::launch_style, OneShot)
+	: _launch_style (Properties::launch_style, Toggle)
 	, _follow_action0 (Properties::follow_action0, FollowAction (FollowAction::Again))
 	, _follow_action1 (Properties::follow_action1, FollowAction (FollowAction::Stop))
 	, _follow_action_probability (Properties::follow_action_probability, 0)
 	, _follow_count (Properties::follow_count, 1)
 	, _quantization (Properties::quantization, Temporal::BBT_Offset (1, 0, 0))
 	, _follow_length (Properties::follow_length, Temporal::BBT_Offset (1, 0, 0))
-	, _capture_duration (Properties::capture_duration, Temporal::BBT_Offset (1, 0, 0))
+	, _capture_duration (Properties::capture_duration, Temporal::BBT_Offset (4, 0, 0)) /* default cue-record length: 4 bars */
 	, _use_follow_length (Properties::use_follow_length, false)
 	, _legato (Properties::legato, false)
 	, _gain (Properties::gain, 1.0)
@@ -1811,7 +1811,11 @@ AudioTrigger::set_region_in_worker_thread_internal (std::shared_ptr<Region> r, b
 			_follow_action0 = FollowAction (FollowAction::None);
 			_quantization = Temporal::BBT_Offset (-1, 0, 0);
 		} else {
-			_stretchable = true;
+			/* default new/recorded loop clips to NO time-stretch: realtime
+			 * RubberBand smears sharp transients (e.g. a hit on beat one) at
+			 * the loop start and crackles. Looping + 1-bar quantize kept; the
+			 * per-clip Stretch toggle still re-enables it when wanted. */
+			_stretchable = false;
 			_quantization = Temporal::BBT_Offset (1, 0, 0);
 			_follow_action0 = FollowAction (FollowAction::Again);
 		}
@@ -2122,6 +2126,19 @@ AudioTrigger::audio_run (BufferSet& bufs, samplepos_t start_sample, samplepos_t 
 		}
 	}
 
+	/* Loop-seam crossfade length (de-click). Cue clips loop by playing to
+	 * the end then retriggering from the top -- a hard butt-splice that
+	 * clicks at the seam. We ramp the tail of each iteration down and the
+	 * head of the next one up so the join passes through zero. Only for
+	 * clips that actually loop/advance (will_follow()); ~5 ms, clamped so a
+	 * very short loop never overlaps its own fades.
+	 */
+	samplecnt_t loop_xfade_len = 0;
+	if (will_follow() && final_process_index > 0) {
+		loop_xfade_len = _box.session().sample_rate() / 200; /* ~5 ms */
+		loop_xfade_len = std::min (loop_xfade_len, (samplecnt_t) (final_process_index / 2));
+	}
+
 	while (nframes && !_playout) {
 
 		pframes_t to_stretcher;
@@ -2239,6 +2256,36 @@ AudioTrigger::audio_run (BufferSet& bufs, samplepos_t start_sample, samplepos_t 
 
 		if (in_process_context) { /* constexpr, will be handled at compile time */
 
+			/* Loop-seam crossfade envelope for the block about to be
+			 * written, i.e. output positions [process_index,
+			 * process_index + from_stretcher). Channel-independent, so
+			 * compute it once here; env == 1.0 outside the fade zones.
+			 */
+			gain_t env_start = 1.0f;
+			gain_t env_end   = 1.0f;
+
+			if (loop_xfade_len > 0) {
+				const samplecnt_t p0 = process_index;
+				const samplecnt_t p1 = process_index + from_stretcher;
+
+				/* fade-in: skipped on the first pass (_loop_cnt == 0) so a
+				 * freshly launched clip keeps its natural attack; on later
+				 * iterations it ramps up to match the prior tail's fade-out.
+				 */
+				if (_loop_cnt > 0) {
+					if (p0 < loop_xfade_len) { env_start = std::min (env_start, (gain_t) p0 / loop_xfade_len); }
+					if (p1 < loop_xfade_len) { env_end   = std::min (env_end,   (gain_t) p1 / loop_xfade_len); }
+				}
+
+				/* fade-out over the last loop_xfade_len samples of the iteration */
+				const samplecnt_t fo = final_process_index - loop_xfade_len;
+				if (p0 > fo) { env_start = std::min (env_start, (gain_t) (final_process_index - p0) / loop_xfade_len); }
+				if (p1 > fo) { env_end   = std::min (env_end,   (gain_t) (final_process_index - p1) / loop_xfade_len); }
+
+				env_start = std::max (0.0f, std::min (1.0f, env_start));
+				env_end   = std::max (0.0f, std::min (1.0f, env_end));
+			}
+
 			for (uint32_t chn = 0; chn < bufs.count().n_audio(); ++chn) {
 
 				uint32_t channel = chn %  data.size();
@@ -2253,7 +2300,9 @@ AudioTrigger::audio_run (BufferSet& bufs, samplepos_t start_sample, samplepos_t 
 					gain = _gain;
 				}
 
-				if (gain != 1.0f) {
+				if (env_start != 1.0f || env_end != 1.0f) {
+					buf.accumulate_with_ramped_gain_from (src, from_stretcher, gain * env_start, gain * env_end, dest_offset);
+				} else if (gain != 1.0f) {
 					buf.accumulate_with_gain_from (src, from_stretcher, gain, dest_offset);
 				} else {
 					buf.accumulate_from (src, from_stretcher, dest_offset);
@@ -3836,7 +3885,15 @@ TriggerBox::finish_recording ()
 
 	/* XXX this should likely be dependent on what the post-record action is */
 
-	_record_state = Disabled;
+	/* Keep the track in cue-record mode (Enabled) rather than dropping it
+	 * out (Disabled) when a clip finishes recording. This lets you arm the
+	 * next slot and keep recording without re-clicking the track's cue-rec
+	 * button. The just-recorded slot still disarms itself (via
+	 * Trigger::captured -> disarm), so nothing keeps capturing until you
+	 * explicitly arm another slot. Click the track cue-rec button off to
+	 * leave record mode.
+	 */
+	_record_state = Enabled;
 	RecEnableChanged (); /* EMIT SIGNAL */
 }
 
@@ -3913,6 +3970,16 @@ TriggerBox::maybe_capture (BufferSet& bufs, samplepos_t start_sample, samplepos_
 		_record_state = Recording;
 		did_start_recording = true;
 		RecEnableChanged(); /* EMIT SIGNAL */
+
+		/* stop whatever loop was playing on this track the instant the
+		 * new recording punches in. Per-track playback is exclusive, so
+		 * _currently_playing is the only "other clip" on this track.
+		 * jump_stop() is immediate (no wait for quantization) at the
+		 * punch-in sample, which is already a launch-quantize boundary.
+		 */
+		if (_currently_playing) {
+			_currently_playing->jump_stop (bufs, offset);
+		}
 		// std::cerr << "Hit start @ " << ai->start_samples << " within " << start_sample << " ... " << end_sample << " offset will be " << offset << " nf " << nframes << std::endl;
 	}
 
