@@ -77,3 +77,9 @@ Scope agreed: colors + layout, with Inter as the UI font.
 | Clips page: follow actions as words | Partly | options read "Play next clip", "Play again", ...; the panel is relabelled ("When the clip ends", "Then act after"), not rebuilt as one sentence |
 | Clips page: column headers in track color | Already in Ardour | |
 | Clips page: named scenes, library BPM/length | Not done | scenes keep their letters; library unchanged |
+
+## Screenshots and handoff
+
+- `screenshots/before/` – stock Ardour (this repo, before the redesign), captured with
+  `tools/ui-qa/screenshots/shoot.sh . before`. Put the redesign's shots in `screenshots/after/`.
+- `HANDOFF.md` – status, decisions, next steps for continuing in a new session.
