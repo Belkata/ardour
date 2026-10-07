@@ -31,13 +31,23 @@ Our changes are almost entirely in `gtk2_ardour` (plus one file in
 | `smoke.sh <tree> <out>` | yes | headless launch (Xvfb); creates a session from `qa_session.lua` (import, bus, every edit tool, every page, Quick Add), types a name into Quick Add, saves; then `check_session.py` asserts: imported track, bus, Quick Add track (armed), default rulers, no "Color … not found", no CRITICAL, rc file found |
 | `smoke.sh <tree> <out> compat <session>` | yes | opens an existing session, e.g. one saved by stock Ardour, or ours in stock Ardour |
 | `visual_diff.sh <base> <new>` | – | pixel diff of screenshots against approved baselines |
+| `check_i18n.py` | no | user-visible strings *added on this branch* are wrapped in `_()`/`S_()`/`P_()` (or deliberately `X_()`) |
+| `check_screenshot_colors.py <png>…` | – | every large area of a screenshot is a `modern` palette color (or a declared-alpha composite over a background), and none looks like the old `dark` theme – i.e. the theme reaches every widget. Verified to fail on stock screenshots. |
+| `screenshots/shoot.sh <tree> <label>` | yes | editor/mixer/cue page screenshots of a reproducible demo session (5 stems, a bus, 19 clips); `UI_SCALE=150` for HiDPI |
+| `run_gui.sh [tree] [out]` | yes | smoke test + screenshots + color check + 150 % screenshots |
 
 Run before every push that touches `gtk2_ardour`:
 
 ```sh
-tools/ui-qa/run_static.sh
-./waf && tools/ui-qa/smoke.sh . /tmp/ui-qa
+tools/ui-qa/run_static.sh          # seconds, no build
+./waf && tools/ui-qa/run_gui.sh    # ~6 minutes, headless
 ```
+
+Things learned while building the GUI harness (Xvfb, no window manager):
+the Audio/MIDI dialog needs Return even with Autostart; window titles gain a
+`*` when the session is modified; Alt+E is *Export* (no editor shortcut); Lua
+`print()` doesn't reach stdout in the GUI; `nil` route groups in Lua segfault;
+RulerVisibility is only saved after the user changes a ruler.
 
 Library regressions (not expected from UI work, but cheap insurance before a
 release):
