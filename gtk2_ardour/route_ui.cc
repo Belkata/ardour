@@ -380,7 +380,10 @@ RouteUI::set_route (std::shared_ptr<Route> rp)
 	}
 
 	if (set_color_from_route()) {
-		if (_route->is_track() && UIConfiguration::instance().get_use_palette_for_new_track ()) {
+		if (_route->is_master () || _route->is_monitor ()) {
+			/* neutral, and don't use up a palette color: tracks get the distinct hues */
+			set_color (UIConfiguration::instance().color ("neutral:midground"));
+		} else if (_route->is_track() && UIConfiguration::instance().get_use_palette_for_new_track ()) {
 			set_color (gdk_color_to_rgba (AxisView::round_robin_palette_color ()));
 		} else if (!_route->is_track() && UIConfiguration::instance().get_use_palette_for_new_bus ()) {
 			set_color (gdk_color_to_rgba (AxisView::round_robin_palette_color ()));

@@ -3,7 +3,8 @@
 # using a reproducible demo session. Used for before/after comparisons.
 #
 # usage: [UI_SCALE=150] tools/ui-qa/screenshots/shoot.sh <ardour-tree> <label> [out-root]
-#   writes <out-root>/<label>/{editor,mixer,cues}.png   (out-root default: /tmp/ardour-shots)
+#   writes <out-root>/<label>/{editor,mixer,cues,cues-playing,cues-queued}.png
+#   (out-root default: /tmp/ardour-shots)
 #
 # Steps:
 #   1. creates a session from demo_session.lua (imports 5 synthetic stems, adds a bus)
@@ -36,7 +37,8 @@ trap 'kill $XPID 2>/dev/null' EXIT
 sleep 2
 export DISPLAY=$DISP
 
-snap () { import -window root "$OUT/$1.png"; }
+# park the pointer in a corner first: no hover highlights or tooltips in the shots
+snap () { xdotool mousemove $((SW - 1)) $((SH - 1)) 2>/dev/null; sleep 1; import -window root "$OUT/$1.png"; }
 main_win () { xdotool search --name "$LABEL" 2>/dev/null | head -1; }
 focus_main () { local w=$(main_win); [ -n "$w" ] && xdotool windowfocus --sync $w 2>/dev/null; }
 
@@ -76,6 +78,11 @@ WID=$(main_win)
 focus_main; snap editor
 focus_main; xdotool key alt+m; sleep 4; snap mixer
 focus_main; xdotool key alt+c; sleep 4; snap cues
+# clip states: launch scene B (F2) and roll, then queue scene C (F3) while it plays
+# (the Dummy backend can run well below real time in containers: wait for the bar)
+focus_main; xdotool key F2; sleep 0.5; xdotool key space; sleep 10; snap cues-playing
+focus_main; xdotool key F3; sleep 0.3; snap cues-queued
+focus_main; xdotool key space
 
 kill $APID 2>/dev/null; sleep 2; kill -9 $APID 2>/dev/null
 echo "done: $OUT"
