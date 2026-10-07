@@ -68,7 +68,7 @@ using namespace std;
 TriggerPage::TriggerPage ()
 	: Tabbable (_("Cues"), X_("trigger"), NULL, true, Tabbable::PaneLayout (Tabbable::PaneRight | Tabbable::AttBottom))
 	, _cue_area_frame (0.5, 0, 1.0, 0)
-	, _cue_box (16, 16 * TriggerBox::default_triggers_per_box)
+	, _cue_box (16, TriggerBoxUI::slot_height * TriggerBox::default_triggers_per_box)
 	, _master_widget (16, 16)
 	, _master (_master_widget.root ())
 	, _show_bottom_pane (false)

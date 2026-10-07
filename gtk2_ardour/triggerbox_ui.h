@@ -125,6 +125,9 @@ public:
 	TriggerBoxUI (ArdourCanvas::Item* parent, TriggerStrip&, ARDOUR::TriggerBox&);
 	~TriggerBoxUI ();
 
+	/** height of one clip slot (and of one scene row on the cue page), in px */
+	static constexpr float slot_height = 22.f;
+
 	void _size_allocate (ArdourCanvas::Rect const&);
 
 	TriggerStrip& strip() const { return _strip; }

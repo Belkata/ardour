@@ -1,5 +1,5 @@
 #!/bin/bash
-# usage: preseed_config.sh <XDG_CONFIG_HOME>
+# usage: preseed_config.sh <XDG_CONFIG_HOME> [ui-scale-percent]
 # Fresh Ardour config that skips the first-run wizard and auto-starts the
 # Dummy audio backend (no sound hardware in CI/containers).
 mkdir -p "$1/ardour9"
@@ -23,3 +23,11 @@ cat > "$1/ardour9/config" <<'XML'
   </Extra>
 </Ardour>
 XML
+
+# optional GUI scale (Preferences > Appearance > GUI and font scaling), e.g. 150
+if [ -n "${2:-}" ]; then
+	cat > "$1/ardour9/ui_config" <<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<Ardour><UI><Option name="font-scale" value="$(( ${2} * 1024 ))"/></UI></Ardour>
+XML
+fi

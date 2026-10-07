@@ -52,9 +52,9 @@ snap () { import -window root "$OUT/$1.png" 2>/dev/null; }
 alive () { kill -0 $APID 2>/dev/null; }
 
 # Xvfb has no window manager: find windows by title, focus them explicitly
-win () { xdotool search --name "$1" 2>/dev/null | head -1; }
+win () { xdotool search --onlyvisible --name "$1" 2>/dev/null | head -1; }   # hidden windows share titles
 focus () { local w=$(win "$1"); [ -n "$w" ] && xdotool windowfocus --sync $w 2>/dev/null; }
-MAIN_TITLE=${MAIN_TITLE:-qa}
+MAIN_TITLE=${MAIN_TITLE:-"qa - Ardour"}   # a modified session gets a "*" prefix
 wait_for_main () {
 	for i in $(seq 1 20); do
 		sleep 4
@@ -71,7 +71,7 @@ cd $TREE/gtk2_ardour
 FAIL=0
 
 if [ "$MODE" = compat ]; then
-	MAIN_TITLE=$(basename "$EXISTING" .ardour)
+	MAIN_TITLE="$(basename "$EXISTING" .ardour) - Ardour"
 	./ardev --no-splash "$EXISTING" > $OUT/ardour.log 2>&1 &
 	APID=$!
 	if wait_for_main && sleep 8 && alive; then
@@ -98,13 +98,19 @@ if ! wait_for_main; then
 fi
 
 # the Lua script ends with the Quick Add popover open and its name field focused
+# (Lua print() output doesn't reach stdout in the GUI, so wait for the window)
 for i in $(seq 1 12); do
-	grep -q "QA: script done" $OUT/ardour.log && break
+	[ -n "$(win "^Add Track$")" ] && break
 	sleep 2
 done
 sleep 3
 snap quick-add
-focus "Add Track"
+if [ -n "$(win "^Add Track$")" ]; then
+	echo "QA-SMOKE: quick-add window shown" >> $OUT/ardour.log
+else
+	echo "[FAIL] Quick Add window did not open"; FAIL=1
+fi
+focus "^Add Track$"
 xdotool key ctrl+a; xdotool type --delay 30 "QA Track"; xdotool key Return
 sleep 4
 snap after-quick-add
@@ -112,13 +118,14 @@ snap after-quick-add
 alive || { echo "[FAIL] Ardour exited during the test"; FAIL=1; }
 
 # keyboard page switches after the session is up
-for k in alt+m alt+c alt+e; do
+# Alt+M mixer, Alt+C cue page, Alt+R recorder (Alt+E is *export*, not "editor")
+for k in alt+m alt+c alt+r; do
 	focus "$MAIN_TITLE"; xdotool key $k; sleep 2
 	alive || { echo "[FAIL] Ardour exited after $k"; FAIL=1; break; }
 done
 snap final
 
-focus "$MAIN_TITLE"; xdotool key ctrl+s; sleep 4
+focus "$MAIN_TITLE"; xdotool key Escape; xdotool key ctrl+s; sleep 4
 kill $APID 2>/dev/null; sleep 3; kill -9 $APID 2>/dev/null
 
 python3 $HERE/check_session.py "$SESS/qa.ardour" $OUT/ardour.log --expect-quick-add || FAIL=1

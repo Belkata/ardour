@@ -49,7 +49,9 @@ There is no sound card and no window manager in the container:
   path (e.g. `$XDG_CONFIG_HOME/ardour9/scripts/`), not a file path.
 - In Lua, pass `ARDOUR.RouteGroup ()` instead of `nil` for route-group arguments —
   `nil` segfaults Ardour.
-- Shortcuts: Alt+E editor, Alt+M mixer, Alt+C cue page; Ctrl+S save.
+- Shortcuts: Alt+M mixer, Alt+C cue page, Alt+R recorder, Ctrl+S save. **Alt+E is "Export"**,
+  not the editor (there is no show-editor shortcut). A modified session's window title
+  gains a `*` prefix (`*name - Ardour`).
 
 ## QA (tools/ui-qa, see QA.md)
 

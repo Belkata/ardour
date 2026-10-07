@@ -67,7 +67,7 @@ TriggerStrip::TriggerStrip (Session* s, std::shared_ptr<ARDOUR::Route> rt)
 	, input_button (true)
 	, output_button (false)
 	, _processor_box (s, std::bind (&TriggerStrip::plugin_selector, this), _pb_selection, 0)
-	, _trigger_display (*this, -1., TriggerBox::default_triggers_per_box * 16.)
+	, _trigger_display (*this, -1., TriggerBox::default_triggers_per_box * TriggerBoxUI::slot_height)
 	, _panners (s)
 	, _level_meter (s)
 {

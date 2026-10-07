@@ -524,6 +524,11 @@ TriggerEntry::render (ArdourCanvas::Rect const& area, Cairo::RefPtr<Cairo::Conte
 		context->fill ();
 	}
 
+	/* thin separator between stacked tiles */
+	set_source_rgba (context, UIConfiguration::instance ().color ("neutral:backgroundest"));
+	context->rectangle (self.x0, self.y1 - scale, width, scale);
+	context->fill ();
+
 	/* state outline (drawn on top of the child buttons) */
 	if (_has_state_outline) {
 		const double lw = 2. * scale;

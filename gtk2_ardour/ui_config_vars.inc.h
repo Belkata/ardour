@@ -34,7 +34,7 @@ UI_CONFIG_VARIABLE (bool, floating_monitor_section, "floating-monitor-section", 
 UI_CONFIG_VARIABLE (bool, transients_follow_front, "transients-follow-front", false)
 UI_CONFIG_VARIABLE (bool, allow_to_resize_init_dialog, "allow-to-resize-init-dialog", false)
 UI_CONFIG_VARIABLE (bool, color_regions_using_track_color, "color-regions-using-track-color", false)
-UI_CONFIG_VARIABLE (bool, use_route_color_widely, "use-route-color-widely", false)
+UI_CONFIG_VARIABLE (bool, use_route_color_widely, "use-route-color-widely", true)
 UI_CONFIG_VARIABLE (uint32_t, vertical_region_gap, "vertical-region-gap", 0)
 UI_CONFIG_VARIABLE (bool, editor_stereo_only_meters, "editor-stereo-only-meters", true)
 UI_CONFIG_VARIABLE (bool, show_waveform_clipping, "show-waveform-clipping", true)

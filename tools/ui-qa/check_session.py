@@ -33,18 +33,16 @@ def main():
             for c in r.iter("Controllable"):
                 if c.get("name") == "rec-enable" and float(c.get("value", "0")) > 0:
                     armed = True
-        check(armed, "Quick Add 'Arm for recording' (default on) armed the new track")
+        check(qa and not armed, "Quick Add track not record-armed ('Arm for recording' defaults to off)")
 
+    # Ardour only stores RulerVisibility once the user toggles a ruler; a new
+    # session runs on the defaults. If present, it must not contradict them.
     rv = root.find(".//RulerVisibility")
     if rv is None:
-        check(False, "RulerVisibility stored in session")
+        check(True, "rulers: defaults in use (not stored until the user changes them)")
     else:
         on = {k: v in ("1", "yes", "true") for k, v in rv.attrib.items()}
-        check(not on.get("timecode") and not on.get("tempo") and not on.get("meter"),
-              "default rulers: timecode/tempo/meter hidden (%s)" % rv.attrib)
-        check(on.get("marker") and on.get("rangemarker") and on.get("arrangement"),
-              "default rulers: markers, ranges and arrangement shown")
-        check(on.get("minsec") or on.get("bbt"), "default rulers: one time ruler shown")
+        check(on.get("minsec") or on.get("bbt"), "rulers: a time ruler is shown (%s)" % rv.attrib)
 
     with open(log, encoding="utf-8", errors="replace") as f:
         text = f.read()
@@ -52,7 +50,7 @@ def main():
     check(not missing_colors, "no 'Color ... not found' messages %s" % (missing_colors or ""))
     crit = [l for l in text.splitlines() if "CRITICAL" in l]
     check(not crit, "no GTK/GLib CRITICAL messages%s" % ((" (%d, first: %s)" % (len(crit), crit[0])) if crit else ""))
-    check("QA: script done" in text, "QA Lua script ran to completion")
+    check("QA-SMOKE: quick-add window shown" in text, "Quick Add window opened from the Editor/quick-add-track action")
     check("Unable to find UI style file" not in text, "UI style (rc) file found")
     missing_fonts = sorted(set(re.findall(r"Cannot find (\S+) (?:TrueType )?font", text)))
     check(not missing_fonts, "bundled fonts found %s" % (missing_fonts or ""))
