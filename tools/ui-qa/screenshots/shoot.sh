@@ -78,11 +78,12 @@ WID=$(main_win)
 focus_main; snap editor
 focus_main; xdotool key alt+m; sleep 4; snap mixer
 focus_main; xdotool key alt+c; sleep 4; snap cues
-# clip states: launch scene B (F2) and roll, then queue scene C (F3) while it plays
-# (the Dummy backend can run well below real time in containers: wait for the bar)
-focus_main; xdotool key F2; sleep 0.5; xdotool key space; sleep 10; snap cues-playing
-focus_main; xdotool key F3; sleep 0.3; snap cues-queued
+# clip states: launch scene B (F2; launching starts the transport, so no Space),
+# then queue scene D while B plays
+focus_main; xdotool key F2; sleep 4; snap cues-playing
+# (capture at once: the queued clips start at the next bar, < 2 s at 120 bpm;
+#  the pointer is still parked from the previous snap)
+focus_main; xdotool key F4; sleep 0.2; import -window root "$OUT/cues-queued.png"
 focus_main; xdotool key space
-
 kill $APID 2>/dev/null; sleep 2; kill -9 $APID 2>/dev/null
 echo "done: $OUT"

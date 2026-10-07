@@ -661,8 +661,9 @@ TriggerEntry::set_widget_colors (TriggerEntry::EnteredState es)
 	name_text->set_fill_color (UIConfiguration::instance ().color ("neutral:midground"));
 
 	/* state outline around the whole tile: playing = clip color,
-	 * queued = amber, selected = bright */
-	const bool queued = !trigger ()->active () && trigger ()->box ().currently_playing () == trigger ();
+	 * queued = amber, selected = bright. A clip launched while another one
+	 * on the track plays waits in the box's explicit queue. */
+	const bool queued = !trigger ()->active () && (trigger ()->box ().currently_playing () == trigger () || trigger ()->box ().peek_next_trigger () == trigger ());
 	_has_state_outline = true;
 	if (PublicEditor::instance ().get_selection ().selected (this)) {
 		_state_outline = UIConfiguration::instance ().color ("neutral:foregroundest");

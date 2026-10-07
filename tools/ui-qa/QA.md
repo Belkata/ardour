@@ -33,6 +33,7 @@ Our changes are almost entirely in `gtk2_ardour` (plus one file in
 | `visual_diff.sh <base> <new>` | – | pixel diff of screenshots against approved baselines |
 | `check_i18n.py` | no | user-visible strings *added on this branch* are wrapped in `_()`/`S_()`/`P_()` (or deliberately `X_()`) |
 | `check_screenshot_colors.py <png>…` | – | every large area of a screenshot is a `modern` palette color (or a declared-alpha composite over a background), and none looks like the old `dark` theme – i.e. the theme reaches every widget. Verified to fail on stock screenshots. |
+| `check_cue_states.py <shots-dir>` | – | the Clips page shows clip states: green launch icons while scene B plays, an amber outline on **every** queued clip of scene D (also on tracks whose current clip is still playing), no amber when nothing is queued. Counts theme-colored pixels in the cue grid of `cues*.png` from `shoot.sh`. Verified to fail on the round-3 shots (transport stopped by an extra Space; queued outline missing behind playing clips). |
 | `screenshots/shoot.sh <tree> <label>` | yes | editor/mixer/cue page screenshots of a reproducible demo session (5 stems, a bus, 19 clips); `UI_SCALE=150` for HiDPI |
 | `run_gui.sh [tree] [out]` | yes | smoke test + screenshots + color check + 150 % screenshots |
 
