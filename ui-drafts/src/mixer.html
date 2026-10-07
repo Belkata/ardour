@@ -1,0 +1,149 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+body { width: 1680px; height: 1000px; overflow: hidden; display: grid; grid-template-rows: 26px 60px 1fr 26px; grid-template-columns: minmax(0,1fr); position: relative; }
+.menubar { background: var(--surf2); display: flex; align-items: center; gap: 2px; padding: 0 8px; color: var(--fg2); border-bottom: 1px solid var(--bg0); }
+.menubar span { padding: 3px 9px; }
+.menubar .title { margin-left: auto; color: var(--fg3); }
+.toolbar { background: var(--surf2); display: flex; align-items: center; gap: 12px; padding: 0 14px; border-bottom: 1px solid var(--bg0); }
+.tbtn { width: 36px; height: 36px; border-radius: 8px; background: var(--widget); display: flex; align-items: center; justify-content: center; color: var(--fg2); }
+.tbtn svg { width: 18px; height: 18px; }
+.tbtn.play { background: #2f4a37; color: var(--solo); }
+.clock { background: var(--bg1); border-radius: 10px; height: 46px; padding: 0 14px; display: flex; align-items: center; gap: 16px; }
+.clock .big { font-size: 24px; color: var(--clock); }
+.clock .sub { white-space: nowrap; font-size: 11px; color: var(--fg3); display: flex; flex-direction: column; gap: 2px; }
+.clock .sub b { color: var(--fg2); font-weight: 500; }
+.pages { margin-left: auto; }
+.pages .seg > div { padding: 0 14px; }
+
+.main { display: grid; grid-template-columns: 200px minmax(0,1fr) auto; min-height: 0; background: var(--bg1); }
+.side { background: var(--surf); border-right: 1px solid var(--bg0); }
+.side h4 { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; color: var(--fg4); padding: 14px 14px 6px; font-weight: 600; }
+.side .item { display: flex; align-items: center; gap: 8px; padding: 6px 10px; margin: 0 6px; border-radius: 6px; color: var(--fg2); }
+.side .item .meta { margin-left: auto; color: var(--fg4); font-size: 11px; }
+.side .sw { width: 10px; height: 10px; border-radius: 3px; }
+.search { margin: 10px; height: 30px; border-radius: 7px; background: var(--bg1); display: flex; align-items: center; gap: 8px; padding: 0 10px; color: var(--fg4); }
+
+.strips { display: flex; gap: 5px; padding: 8px; overflow: hidden; }
+.right { display: flex; gap: 6px; padding: 8px; border-left: 1px solid var(--bg0); background: #15161a; }
+.strip { width: 110px; background: var(--surf); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; }
+.strip.sel { box-shadow: 0 0 0 2px var(--accent); }
+.strip.bus { background: #262a33; }
+.strip.master { width: 150px; background: #2a2b31; }
+.strip.vca { width: 84px; background: #282a30; }
+.hdr { white-space: nowrap; overflow: hidden; height: 34px; background: var(--tc); color: #121316; font-weight: 700; display: flex; align-items: center; padding: 0 8px; gap: 6px; font-size: 12px; }
+.hdr small { margin-left: auto; font-weight: 600; font-size: 9.5px; opacity: .65; text-transform: uppercase; }
+.sec { padding: 6px 7px; display: flex; flex-direction: column; gap: 4px; border-bottom: 1px solid var(--bg0); }
+.route { height: 22px; border-radius: 5px; background: var(--bg1); color: var(--fg2); font-size: 11px; display: flex; align-items: center; padding: 0 7px; gap: 5px; white-space: nowrap; overflow: hidden; }
+.route .k { color: var(--fg4); font-size: 10px; }
+.trio { display: flex; gap: 3px; }
+.trio b { flex: 1; height: 22px; border-radius: 5px; background: var(--widget); color: var(--fg3); font-size: 10.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.trio b.ron { background: var(--rec); color: #fff; }
+.trio b.mon { background: var(--mute); color: #222; }
+.trio b.son { background: var(--solo); color: #102012; }
+.procs { flex: 0 0 172px; overflow: hidden; }
+.plug { height: 22px; border-radius: 5px; background: #33374a; color: var(--fg); font-size: 11px; display: flex; align-items: center; padding: 0 6px; gap: 6px; }
+.plug i { width: 7px; height: 7px; border-radius: 50%; background: var(--solo); flex-shrink: 0; }
+.plug.off { background: #2a2c31; color: var(--fg4); }
+.plug.off i { background: var(--fg4); }
+.plug.fader { background: transparent; border: 1px dashed #464a54; color: var(--fg3); justify-content: center; font-size: 10px; height: 18px; }
+.send { height: 22px; border-radius: 5px; background: #2b3a36; font-size: 11px; color: var(--fg2); position: relative; overflow: hidden; display: flex; align-items: center; padding: 0 6px; }
+.send u { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(76,196,106,.25); }
+.send span { position: relative; }
+.addp { color: var(--fg4); font-size: 11px; text-align: center; padding: 2px 0; }
+.pan { height: 22px; border-radius: 5px; background: var(--bg1); position: relative; font-size: 10px; color: var(--fg3); display: flex; align-items: center; justify-content: center; }
+.pan u { position: absolute; top: 3px; bottom: 3px; width: 3px; border-radius: 2px; background: var(--accent); }
+.pan::before { content: ""; position: absolute; left: 50%; top: 3px; bottom: 3px; width: 1px; background: #444; }
+.fz { flex: 1; display: flex; gap: 6px; padding: 8px 7px 6px; min-height: 0; }
+.scale { display: flex; flex-direction: column; justify-content: space-between; font-size: 9px; color: var(--fg4); text-align: right; width: 18px; padding: 2px 0; }
+.track { position: relative; width: 6px; border-radius: 3px; background: var(--bg0); }
+.knob { position: absolute; left: -11px; width: 28px; height: 40px; border-radius: 5px; background: linear-gradient(#5a5f6b, #464a54); box-shadow: 0 2px 4px rgba(0,0,0,.4); }
+.knob::after { content: ""; position: absolute; left: 4px; right: 4px; top: 19px; height: 2px; background: var(--fg); }
+.meters { display: flex; gap: 2px; margin-left: auto; }
+.m { width: 6px; border-radius: 2px; background: var(--bg0); position: relative; overflow: hidden; }
+.m i { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(to top, #37a556 0%, #4cd16c 60%, #ecd84a 82%, #ec4b55 100%); }
+.foot { padding: 6px 7px 8px; display: flex; gap: 4px; align-items: center; }
+.db { flex: 1; height: 22px; border-radius: 5px; background: var(--bg1); font-size: 11px; color: var(--fg); display: flex; align-items: center; justify-content: center; }
+.pk { height: 22px; padding: 0 5px; border-radius: 5px; background: var(--bg1); font-size: 10.5px; color: var(--fg3); display: flex; align-items: center; }
+.pk.hot { background: #5a2328; color: #ff9da3; }
+.status { background: var(--surf2); border-top: 1px solid var(--bg0); display: flex; align-items: center; gap: 18px; padding: 0 14px; color: var(--fg3); font-size: 11px; }
+.status .r { margin-left: auto; display: flex; gap: 8px; }
+</style></head>
+<body>
+<div class="menubar"><span>Session</span><span>Transport</span><span>Edit</span><span>Region</span><span>Track</span><span>View</span><span>Window</span><span>Help</span><span class="title">Night Drive — Ardour</span></div>
+<div class="toolbar">
+  <div class="tbtn"><svg class="i" viewBox="0 0 24 24"><path d="M6 5v14M18 6l-9 6 9 6z"/></svg></div>
+  <div class="tbtn"><svg class="i" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></div>
+  <div class="tbtn play"><svg class="i" viewBox="0 0 24 24" style="fill:currentColor"><path d="M8 5l11 7-11 7z"/></svg></div>
+  <div class="tbtn" style="color:var(--rec)"><svg class="i" viewBox="0 0 24 24" style="fill:currentColor"><circle cx="12" cy="12" r="6"/></svg></div>
+  <div class="clock"><div class="big mono">017 | 3 | 0240</div><div class="sub"><div class="mono"><b>00:01:12.480</b></div><div><b>120</b> BPM · <b>4/4</b></div></div></div>
+  <div class="pages"><div class="seg"><div>Record</div><div>Edit</div><div class="on">Mix</div><div>Clips</div></div></div>
+</div>
+
+<div class="main">
+  <div class="side">
+    <div class="search"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4"/></svg>Search plugins</div>
+    <h4>Favorite plugins</h4>
+    <div class="item">ACE EQ<span class="meta">EQ</span></div>
+    <div class="item">ACE Compressor<span class="meta">Dyn</span></div>
+    <div class="item">ACE Reverb<span class="meta">FX</span></div>
+    <div class="item">x42 Limiter<span class="meta">Dyn</span></div>
+    <div class="item" style="color:var(--fg4)">Drag onto a strip to add</div>
+    <h4>Strips</h4>
+    <div id="slist"></div>
+    <h4>Groups</h4>
+    <div class="item"><span class="sw" style="background:var(--t1)"></span>Drums<span class="meta">3</span></div>
+    <div class="item"><span class="sw" style="background:var(--t6)"></span>Music<span class="meta">3</span></div>
+  </div>
+  <div class="strips" id="strips"></div>
+  <div class="right" id="right"></div>
+</div>
+
+<div class="status"><span>Ready</span><span>48 kHz · 24-bit WAV</span><span>Buffer 256 (5.3 ms)</span><div class="r"><span class="pill"><span class="dot"></span>DSP 12%</span><span class="pill"><span class="dot"></span>0 xruns</span></div></div>
+
+<script>
+const S = [
+  { n: 'Kick', c: 't1', in: 'In 1', p: [['ACE EQ', 1], ['ACE Comp', 1]], s: [['Drum bus', .8]], pan: .5, f: .32, db: '-2.1', pk: '-6.4', l: [.62, .62] },
+  { n: 'Snare', c: 't2', in: 'In 2', p: [['ACE EQ', 1], ['ACE Gate', 0]], s: [['Drum bus', .8], ['Plate', .35]], pan: .45, f: .38, db: '-4.0', pk: '-8.1', l: [.55, .55] },
+  { n: 'Overheads', c: 't3', in: 'In 3+4', p: [['ACE EQ', 1]], s: [['Drum bus', .7]], pan: .5, f: .45, db: '-6.5', pk: '-11', l: [0, 0], m: 1 },
+  { n: 'Bass', c: 't4', in: 'In 5', p: [['ACE Comp', 1], ['Amp sim', 1]], s: [], pan: .5, f: .34, db: '-3.2', pk: '-5.0', l: [.7, .7] },
+  { n: 'Keys', c: 't6', in: 'MIDI 1', p: [['Rhodes', 1], ['ACE Chorus', 1]], s: [['Plate', .5]], pan: .38, f: .42, db: '-5.0', pk: '-9.3', l: [.5, .46], so: 1 },
+  { n: 'Vocal', c: 't8', in: 'In 6', p: [['ACE EQ', 1], ['ACE Comp', 1], ['De-esser', 1]], s: [['Plate', .55], ['Delay', .3]], pan: .5, f: .28, db: '-1.0', pk: '-0.4', hot: 1, l: [.82, .82], r: 1, sel: 1 },
+  { n: 'Gtr dbl', c: 't5', in: 'In 7', p: [['ACE EQ', 1]], s: [['Plate', .25]], pan: .2, f: .4, db: '-4.8', pk: '-10', l: [.4, .4] },
+  { n: 'Drum bus', c: 't1', bus: 1, in: '3 sources', p: [['Glue comp', 1], ['Tape sat', 1]], s: [], pan: .5, f: .36, db: '-3.0', pk: '-4.2', l: [.68, .68] },
+  { n: 'Plate', c: 't7', bus: 1, in: '4 sends', p: [['ACE Reverb', 1]], s: [], pan: .5, f: .5, db: '-8.0', pk: '-14', l: [.3, .34] },
+  { n: 'Delay', c: 't7', bus: 1, in: '1 send', p: [['a-Delay', 1]], s: [], pan: .5, f: .55, db: '-10', pk: '-18', l: [.2, .22] },
+];
+function strip(t, cls = '') {
+  const tag = t.bus ? 'Bus' : (t.in.startsWith('MIDI') ? 'MIDI' : 'Audio');
+  let procs = t.p.map(([n, on]) => `<div class="plug ${on ? '' : 'off'}"><i></i>${n}</div>`).join('');
+  procs += `<div class="plug fader">fader</div>`;
+  procs += t.s.map(([n, v]) => `<div class="send"><u style="width:${v * 100}%"></u><span>→ ${n}</span></div>`).join('');
+  procs += `<div class="addp">+ plugin / send</div>`;
+  const marks = ['+6', '0', '-6', '-12', '-24', '-48', '-∞'];
+  return `<div class="strip ${t.bus ? 'bus' : ''} ${t.sel ? 'sel' : ''} ${cls}" style="--tc:var(--${t.c})">
+    <div class="hdr">${t.n}<small>${tag}</small></div>
+    <div class="sec"><div class="route"><span class="k">IN</span>${t.in}</div>
+      ${t.bus ? '<div style="height:22px"></div>' : `<div class="trio"><b class="${t.r ? 'ron' : ''}">●</b><b>In</b><b>Disk</b></div>`}</div>
+    <div class="sec procs">${procs}</div>
+    <div class="sec"><div class="pan"><u style="left:calc(${t.pan * 100}% - 1px)"></u></div>
+      <div class="trio"><b class="${t.m ? 'mon' : ''}">M</b><b class="${t.so ? 'son' : ''}">S</b><b>Ø</b></div></div>
+    <div class="fz">
+      <div class="scale">${marks.map(m => `<span>${m}</span>`).join('')}</div>
+      <div class="track"><div class="knob" style="top:calc(${t.f * 100}% - 20px)"></div></div>
+      <div class="meters">${t.l.map(l => `<div class="m"><i style="height:${l * 100}%"></i></div>`).join('')}</div>
+    </div>
+    <div class="foot"><div class="db mono">${t.db}</div><div class="pk mono ${t.hot ? 'hot' : ''}">${t.pk}</div></div>
+    <div class="sec" style="border-bottom:0;border-top:1px solid var(--bg0)"><div class="route"><span class="k">OUT</span>${t.bus ? 'Master' : (['Kick','Snare','Overheads'].includes(t.n) ? 'Drum bus' : 'Master')}</div></div>
+  </div>`;
+}
+document.getElementById('strips').innerHTML = S.map(t => strip(t)).join('');
+document.getElementById('slist').innerHTML = S.slice(0, 7).map(t => `<div class="item"><span class="sw" style="background:var(--${t.c})"></span>${t.n}</div>`).join('');
+document.getElementById('right').innerHTML =
+  `<div class="strip vca" style="--tc:#9aa0ab"><div class="hdr">VCA 1</div><div class="sec"><div class="route" style="justify-content:center">Drums</div></div>
+     <div class="sec"><div class="trio"><b>M</b><b>S</b></div></div>
+     <div class="fz"><div class="track" style="margin:0 auto"><div class="knob" style="top:calc(30% - 20px)"></div></div></div>
+     <div class="foot"><div class="db mono">0.0</div></div></div>` +
+  strip({ n: 'Master', c: 'fg2', bus: 1, in: 'All tracks', p: [['x42 Limiter', 1], ['Loudness', 1]], s: [], pan: .5, f: .3, db: '0.0', pk: '-1.0', l: [.78, .76] }, 'master');
+</script>
+</body></html>

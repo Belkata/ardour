@@ -1,0 +1,75 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+body { width: 1680px; height: 660px; overflow: hidden; background: #0d0e10; padding: 28px 36px; }
+h1 { font-size: 20px; font-weight: 600; }
+.lead { color: var(--fg3); margin: 6px 0 22px; font-size: 13px; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.col { border-radius: 12px; padding: 18px 20px; }
+.col h2 { font-size: 13px; font-weight: 600; margin-bottom: 14px; display: flex; gap: 10px; align-items: baseline; }
+.col h2 span { color: var(--fg3); font-weight: 400; font-size: 11.5px; }
+.grp { margin-bottom: 14px; }
+.grp h5 { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; color: #8a8f99; margin-bottom: 6px; font-weight: 600; }
+.sw { display: flex; gap: 6px; flex-wrap: wrap; }
+.c { width: 88px; }
+.c i { display: block; height: 38px; border-radius: 6px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+.c b { display: block; font-size: 10px; font-weight: 500; color: #c5c9d0; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.c code { font: 9.5px "DejaVu Sans Mono"; color: #7d828d; }
+.demo { margin-top: 6px; border-radius: 8px; padding: 12px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+/* old look: gradient + black outline */
+.old .b { height: 24px; padding: 0 10px; border-radius: 4px; display: flex; align-items: center; font-size: 11px; color: #e5e5e5; border: 1px solid #000; background: linear-gradient(#5a5858, #4F4D4D 50%, #444242); }
+.old .b.m { background: linear-gradient(#f0f033, #e0e000 50%, #c4c400); color: #000; }
+.old .b.s { background: linear-gradient(#55dd63, #3dcc4c 50%, #31a83e); color: #000; }
+.old .b.r { background: linear-gradient(#d23c3c, #bb2828 50%, #9a1f1f); }
+.old .clk { font: 18px "DejaVu Sans Mono"; color: #78cd2f; background: #000; padding: 3px 10px; border: 1px solid #333; }
+.new .b { height: 24px; padding: 0 10px; border-radius: 5px; display: flex; align-items: center; font-size: 11px; font-weight: 500; color: #b6bbc4; background: #3b3f47; }
+.new .b.m { background: #e8cf4a; color: #222; }
+.new .b.s { background: #4cc46a; color: #102012; }
+.new .b.r { background: #ec4b55; color: #fff; }
+.new .clk { font: 18px "DejaVu Sans Mono"; color: #8ed9a4; background: #17181c; padding: 3px 10px; border-radius: 6px; }
+.mtr { width: 160px; height: 8px; border-radius: 2px; }
+.notes { margin-top: 18px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.note { background: #1a1b1f; border-radius: 10px; padding: 12px 14px; color: var(--fg2); font-size: 11.5px; line-height: 1.45; }
+.note b { display: block; color: var(--fg); margin-bottom: 4px; font-size: 12px; }
+</style></head>
+<body>
+<h1>Color direction: current "dark" theme → proposed "modern" theme</h1>
+<p class="lead">Same structure (Ardour's 56 palette colors + 431 aliases); only palette values change. State colors stay instantly recognizable, but stop being pure neon primaries.</p>
+<div class="cols">
+  <div class="col old" style="background:#3d3d3d">
+    <h2>Current <span>gtk2_ardour/themes/dark-ardour.colors</span></h2>
+    <div id="o"></div>
+    <div class="demo" style="background:#202020">
+      <div class="b">Grab</div><div class="b">Range</div><div class="b m">M</div><div class="b s">S</div><div class="b r">●</div>
+      <div class="clk">017|03|0240</div>
+      <div class="mtr" style="background:linear-gradient(90deg,#008800,#00ff00 60%,#fff000 78%,#ff8800 88%,#ff0000)"></div>
+    </div>
+  </div>
+  <div class="col new" style="background:#2c2f35">
+    <h2>Proposed <span>gtk2_ardour/themes/modern-ardour.colors (draft)</span></h2>
+    <div id="n"></div>
+    <div class="demo" style="background:#1d1f23">
+      <div class="b">Grab</div><div class="b">Range</div><div class="b m">M</div><div class="b s">S</div><div class="b r">●</div>
+      <div class="clk">017|03|0240</div>
+      <div class="mtr" style="background:linear-gradient(90deg,#2b8a46,#4cd16c 60%,#ecd84a 78%,#f0913a 88%,#ec4b55)"></div>
+    </div>
+  </div>
+</div>
+<div class="notes">
+  <div class="note"><b>Layered surfaces, no pure black</b>Borders go from #000 to a near-black cool gray, so panels separate by tone instead of hard outlines.</div>
+  <div class="note"><b>Flat buttons by default</b>Drops the convex/concave gradients (the existing "flat-buttons" option becomes the default).</div>
+  <div class="note"><b>One accent color</b>Selection, loop range and focus share a single blue, instead of teal selection next to unrelated blues.</div>
+  <div class="note"><b>Safer state colors</b>Red/yellow/green keep their meaning (rec/mute/solo, meter zones) but are tuned to read well on dark gray and to differ in lightness, not just hue.</div>
+</div>
+<script>
+const G = [
+  ['Surfaces', [['window', 'theme:bg', '3d3d3d', '2c2f35'], ['panels', 'theme:bg1', '373737', '272a2f'], ['track lanes', 'neutral:background', '202020', '1d1f23'], ['rulers', 'theme:bg2', '101010', '17181c'], ['borders', 'neutral:backgroundest', '000000', '111215'], ['buttons', 'widget:bg', '4F4D4D', '3b3f47']]],
+  ['Text', [['text', 'neutral:foreground', 'e5e5e5', 'e4e6ea'], ['secondary', 'neutral:midground', '7f7f7f', '6c717c'], ['clock', 'theme:contrasting clock', '78cd2f', '8ed9a4'], ['clock alt', 'theme:contrasting alt', 'CCA336', 'e3b34f']]],
+  ['State & accents', [['record', 'alert:ruddy', 'bb2828', 'c43c46'], ['playhead', 'theme:contrasting', 'f10000', 'ff5c63'], ['mute', 'alert:yellow', 'e0e000', 'e8cf4a'], ['solo / play', 'alert:green', '3dcc4c', '4cc46a'], ['selection', 'theme:contrasting selection', '5da3c1', '5b8def'], ['plugin', 'widget:blue', '526d94', '4b6ea8']]],
+];
+function render(el, k) {
+  el.innerHTML = G.map(([t, cs]) => `<div class="grp"><h5>${t}</h5><div class="sw">${cs.map(c => `<div class="c"><i style="background:#${c[k]}"></i><b>${c[0]}</b><code>#${c[k].toLowerCase()}</code></div>`).join('')}</div></div>`).join('');
+}
+render(document.getElementById('o'), 2); render(document.getElementById('n'), 3);
+</script>
+</body></html>
