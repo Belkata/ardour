@@ -180,6 +180,18 @@ RouteTimeAxisView::set_route (std::shared_ptr<Route> rt)
 	playlist_button.set_name ("route button");
 	automation_button.set_name ("route button");
 
+	/* track color along the left edge of the header */
+	_color_stripe.set_size_request (4, -1);
+	_color_stripe.set_name ("TrackColorStripe");
+	_color_stripe.show ();
+	time_axis_hbox.pack_start (_color_stripe, false, false);
+	time_axis_hbox.reorder_child (_color_stripe, 0);
+
+	/* icons instead of the cryptic G/P/A letters; tooltips name them */
+	route_group_button.set_icon (ArdourIcon::TrackGroup);
+	playlist_button.set_icon (ArdourIcon::TrackPlaylist);
+	automation_button.set_icon (ArdourIcon::TrackAutomation);
+
 	route_group_button.signal_button_press_event().connect (sigc::mem_fun(*this, &RouteTimeAxisView::route_group_click), false);
 	playlist_button.signal_button_press_event().connect (sigc::mem_fun(*this, &RouteTimeAxisView::playlist_click), false);
 	automation_button.signal_button_press_event().connect (sigc::mem_fun(*this, &RouteTimeAxisView::automation_click), false);
@@ -1126,6 +1138,7 @@ RouteTimeAxisView::route_color_changed ()
 		_view->apply_color (color(), StreamView::RegionColor);
 	}
 	number_label.set_fixed_colors (gdk_color_to_rgba (color()), gdk_color_to_rgba (color()));
+	_color_stripe.modify_bg (Gtk::STATE_NORMAL, color ());
 
 	if (!is_master() && UIConfiguration::instance().get_use_route_color_widely()) {
 		gm.set_fader_fg (gdk_color_to_rgba (route_color_tint ()));

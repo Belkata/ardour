@@ -34,6 +34,7 @@
 #include "pbd/epa.h"
 #include "pbd/search_path.h"
 #include "pbd/pathexpand.h"
+#include "pbd/compose.h"
 #include "pbd/file_utils.h"
 
 #include "ardour_http.h"
@@ -140,6 +141,16 @@ load_custom_fonts()
 		FcBool ret = FcConfigAppFontAddFile(config, reinterpret_cast<const FcChar8*>(font_file.c_str()));
 		if (ret == FcFalse) {
 			cerr << _("Cannot load ArdourSans TrueType font.") << endl;
+		}
+	}
+
+	/* Inter (SIL OFL 1.1), the default UI font */
+	const char* inter_fonts[] = { "Inter-Regular.otf", "Inter-Medium.otf", "Inter-SemiBold.otf", "Inter-Bold.otf" };
+	for (size_t i = 0; i < sizeof (inter_fonts) / sizeof (inter_fonts[0]); ++i) {
+		if (!find_file (ardour_data_search_path(), inter_fonts[i], font_file)) {
+			cerr << string_compose (_("Cannot find %1 font"), inter_fonts[i]) << endl;
+		} else if (FcFalse == FcConfigAppFontAddFile(config, reinterpret_cast<const FcChar8*>(font_file.c_str()))) {
+			cerr << string_compose (_("Cannot load %1 font."), inter_fonts[i]) << endl;
 		}
 	}
 

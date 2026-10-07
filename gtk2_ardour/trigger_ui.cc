@@ -697,12 +697,13 @@ std::string
 TriggerUI::launch_style_to_string (Trigger::LaunchStyle ls)
 {
 	switch (ls) {
+	/* user-facing names describe what the launch button does */
 	case Trigger::OneShot:
-		return _("Trigger");
+		return _("Play");
 	case Trigger::ReTrigger:
 		return _("Retrigger");
 	case Trigger::Gate:
-		return _("Gate");
+		return _("Hold");
 	case Trigger::Toggle:
 		return _("Toggle");
 	case Trigger::Repeat:
@@ -749,20 +750,21 @@ std::string
 TriggerUI::follow_action_to_string (FollowAction const & fa, bool with_targets)
 {
 	switch (fa.type) {
+	/* phrased so the settings read as "then: <action>" */
 	case FollowAction::None:
-		return _("None");
+		return _("Keep playing");
 	case FollowAction::Stop:
 		return _("Stop");
 	case FollowAction::Again:
-		return _("Again");
+		return _("Play again");
 	case FollowAction::ForwardTrigger:
-		return _("Forward");
+		return _("Play next clip");
 	case FollowAction::ReverseTrigger:
-		return _("Reverse");
+		return _("Play previous clip");
 	case FollowAction::FirstTrigger:
-		return _("First");
+		return _("Play first clip");
 	case FollowAction::LastTrigger:
-		return _("Last");
+		return _("Play last clip");
 	case FollowAction::JumpTrigger:
 		if (!with_targets) {
 			return _("Jump");
@@ -773,11 +775,11 @@ TriggerUI::follow_action_to_string (FollowAction const & fa, bool with_targets)
 	if ( fa.targets.count() == 1 ) {  //jump to a specific row
 		for (int i = 0; i < TriggerBox::default_triggers_per_box; i++) {
 			if (fa.targets.test(i)) {
-				return string_compose (_("Jump to: %1"), cue_marker_name (i));
+				return string_compose (_("Jump to %1"), cue_marker_name (i));
 			}
 		}
 	} else {
-		return _("Jump: Multi");
+		return _("Jump to one of several");
 	}
 
 	/* should never be reached */

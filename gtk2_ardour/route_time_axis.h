@@ -30,6 +30,7 @@
 #include <ytkmm/table.h>
 #include <ytkmm/button.h>
 #include <ytkmm/box.h>
+#include <ytkmm/eventbox.h>
 #include <ytkmm/menu.h>
 #include <ytkmm/menuitem.h>
 #include <ytkmm/radiomenuitem.h>
@@ -249,6 +250,7 @@ protected:
 	Gtk::HBox   other_button_hbox;
 	Gtk::Table  button_table;
 	ArdourWidgets::ArdourButton route_group_button;
+	Gtk::EventBox               _color_stripe; ///< track color along the left edge of the header
 	ArdourWidgets::ArdourButton playlist_button;
 	ArdourWidgets::ArdourButton automation_button;
 	ArdourWidgets::ArdourButton number_label;

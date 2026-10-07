@@ -1067,6 +1067,8 @@ MixerStrip::route_color_changed ()
 	name_button.modify_bg (STATE_NORMAL, color());
 	Gtkmm2ext::Color c (gdk_color_to_rgba (color()));
 	number_label.set_fixed_colors (c, c);
+	/* strip header in the track's color, so strips are easy to tell apart */
+	name_button.set_fixed_colors (c, c);
 	reset_strip_style ();
 }
 

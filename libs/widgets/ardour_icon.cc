@@ -1972,6 +1972,70 @@ icon_cues_triggers (cairo_t* cr, const int width, const int height, const uint32
 
 
 /*****************************************************************************
+ * Track header icons
+ */
+
+/** stacked takes (playlist) */
+static void
+icon_track_playlist (cairo_t* cr, const int width, const int height, const uint32_t fg_color)
+{
+	const double wh = std::min (width, height);
+	const double x0 = rint ((width - wh) * .5 + wh * .2);
+	const double y0 = rint ((height - wh) * .5 + wh * .3);
+	const double lw = std::max (1., rint (wh * .09));
+	const double dy = rint (wh * .2);
+
+	for (int i = 0; i < 3; ++i) {
+		const double y = y0 + i * dy + (((int)lw) & 1 ? .5 : 0);
+		cairo_move_to (cr, x0, y);
+		cairo_line_to (cr, x0 + wh * (.6 - .15 * i), y);
+	}
+	VECTORICONSTROKE (lw, fg_color);
+}
+
+/** an envelope with breakpoints (automation) */
+static void
+icon_track_automation (cairo_t* cr, const int width, const int height, const uint32_t fg_color)
+{
+	const double wh = std::min (width, height);
+	const double x0 = (width - wh) * .5;
+	const double y0 = (height - wh) * .5;
+	const double lw = std::max (1., rint (wh * .08));
+
+	const double px[] = { .18, .4, .6, .82 };
+	const double py[] = { .7, .38, .55, .28 };
+
+	cairo_move_to (cr, x0 + wh * px[0], y0 + wh * py[0]);
+	for (int i = 1; i < 4; ++i) {
+		cairo_line_to (cr, x0 + wh * px[i], y0 + wh * py[i]);
+	}
+	VECTORICONSTROKE (lw, fg_color);
+
+	for (int i = 0; i < 4; ++i) {
+		cairo_arc (cr, x0 + wh * px[i], y0 + wh * py[i], lw * 1.2, 0, 2 * M_PI);
+		Gtkmm2ext::set_source_rgba (cr, fg_color);
+		cairo_fill (cr);
+	}
+}
+
+/** two linked boxes (route group) */
+static void
+icon_track_group (cairo_t* cr, const int width, const int height, const uint32_t fg_color)
+{
+	const double wh = std::min (width, height);
+	const double x0 = (width - wh) * .5;
+	const double y0 = (height - wh) * .5;
+	const double lw = std::max (1., rint (wh * .08));
+	const double bs = wh * .26;
+
+	cairo_rectangle (cr, x0 + wh * .18, y0 + wh * .22, bs, bs);
+	cairo_rectangle (cr, x0 + wh * .56, y0 + wh * .52, bs, bs);
+	cairo_move_to (cr, x0 + wh * .18 + bs, y0 + wh * .22 + bs);
+	cairo_line_to (cr, x0 + wh * .56, y0 + wh * .52);
+	VECTORICONSTROKE (lw, fg_color);
+}
+
+/*****************************************************************************
  * Attachment pane icons
  */
 
@@ -2319,6 +2383,15 @@ ArdourWidgets::ArdourIcon::render (cairo_t*                                   cr
 			break;
 		case CuesNTriggers:
 			icon_cues_triggers (cr, width, height, fg_color);
+			break;
+		case TrackPlaylist:
+			icon_track_playlist (cr, width, height, fg_color);
+			break;
+		case TrackAutomation:
+			icon_track_automation (cr, width, height, fg_color);
+			break;
+		case TrackGroup:
+			icon_track_group (cr, width, height, fg_color);
 			break;
 		case NoIcon:
 			rv = false;

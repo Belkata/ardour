@@ -47,3 +47,33 @@ Nobody has published a fork that restyles or reorganizes the GTK UI itself, so t
 | Status bar with plain-language info | status bar already exists in `ardour_ui.cc` | Small–medium |
 | Mixer restyle (headers, plugin cards, routing pills) | `mixer_strip.cc`, `processor_box.cc`; IN/OUT buttons (`io_button.cc`) already exist | Medium–large |
 | Font (Inter) | `ui-font-family` setting exists; bundling a font is extra work | Small–medium |
+
+## Implementation status
+
+Scope agreed: colors + layout, with Inter as the UI font.
+
+| Draft item | Status | Notes |
+|---|---|---|
+| Modern palette as default theme | Done | `color-file` defaults to `modern`; selection uses one blue accent; selected page/tool/tab use a neutral highlight instead of green |
+| Flat buttons | Done | `flat-buttons` defaults to on |
+| Inter UI font | Done | Inter 4.0 (OFL) bundled in `gtk2_ardour/fonts`, registered on Linux/macOS, `clearlooks.inter.rc` style; falls back to the system sans font where Inter is unavailable |
+| 1 Transport | Mostly existing | Ardour's transport already groups and color-codes these |
+| 2 One clock | Done | secondary clock off by default (still available) |
+| 3 Tools: label on active tool | Done | icon for all tools, name on the active one |
+| 4 Labelled edit mode / snap | Done | "Edit: Slide"; Snap already had a label |
+| 5 Page switcher | Done | single row: Record · Edit · Mix · Clips |
+| 6 Fewer rulers | Done | default: one time ruler, sections, markers, loop/punch ranges |
+| 7 Track header | Done | color stripe; P/A/G letters replaced by icons |
+| 8 Inline "Add track" + quick popover | Done | full dialog still one click away ("More options…") |
+| 9 Sidebar tabs | Already in Ardour 9 | horizontal tab buttons at the top of the editor list |
+| 10 Plain-language status | Done | e.g. "DSP 12% · 3 xruns", "Record time left: 9 h" |
+| Mixer: colored strip headers | Done | name button in track color |
+| Mixer: quieter plugin colors | Done | pre/post-fader distinction kept, softened |
+| Quick-add "Record from" input picker | Not done | inputs follow the auto-connect preference; use "More options…" |
+| Clips page: clip tiles tinted by clip color | Done | stronger tint while playing, readable white names |
+| Clips page: play / queued / selected states | Done | outline in clip color / amber / white; green launch icon while playing |
+| Clips page: progress bar on playing clip | Done | thin bar along the bottom of the tile |
+| Clips page: plain-language launch options | Done | "Play / Retrigger / Hold / Toggle / Repeat", "Start on", tooltips explain each |
+| Clips page: follow actions as words | Partly | options read "Play next clip", "Play again", ...; the panel is relabelled ("When the clip ends", "Then act after"), not rebuilt as one sentence |
+| Clips page: column headers in track color | Already in Ardour | |
+| Clips page: named scenes, library BPM/length | Not done | scenes keep their letters; library unchanged |

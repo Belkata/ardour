@@ -93,6 +93,10 @@ private:
 	bool _drag_active;
 	bool  rec_blink_on;
 
+	/* playing / queued / selected outline, computed in set_widget_colors () */
+	Gtkmm2ext::Color _state_outline;
+	bool             _has_state_outline;
+
 	bool event (GdkEvent*);
 	void drag_begin (Glib::RefPtr<Gdk::DragContext> const&);
 	void drag_end (Glib::RefPtr<Gdk::DragContext> const&);

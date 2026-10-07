@@ -73,7 +73,7 @@ VCATimeAxisView::VCATimeAxisView (PublicEditor& ed, Session* s, ArdourCanvas::Ca
 	drop_button.set_can_focus (false);
 
 	automation_button.set_name ("route button");
-	automation_button.set_text (S_("RTAV|A"));
+	automation_button.set_icon (ArdourIcon::TrackAutomation);
 	set_tooltip (automation_button, _("Automation"));
 	automation_button.signal_button_press_event().connect (sigc::mem_fun (*this, &VCATimeAxisView::automation_click), false);
 	automation_button.set_can_focus (false);

@@ -836,7 +836,8 @@ UIConfiguration::load_rc_file (bool themechange, bool allow_own)
 	string basename = ui_rc_file.get();
 	std::string rc_file_path;
 
-	if (!find_file (ardour_config_search_path(), basename, rc_file_path)) {
+	if (!find_file (ardour_config_search_path(), basename, rc_file_path)
+	    && !find_file (ardour_config_search_path(), X_("clearlooks.rc"), rc_file_path)) {
 		warning << string_compose (_("Unable to find UI style file %1 in search path %2. %3 will look strange"),
                                            basename, ardour_config_search_path().to_string(), PROGRAM_NAME)
 				<< endmsg;

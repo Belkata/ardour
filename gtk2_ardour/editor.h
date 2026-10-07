@@ -128,6 +128,7 @@ class EditorRoutes;
 class EditorRouteGroups;
 class EditorSnapshots;
 class EditorSummary;
+class QuickAddRouteWindow;
 class EditorVSummary;
 class GUIObjectState;
 class ArdourMarker;
@@ -1028,6 +1029,11 @@ private:
 
 	Gtk::VBox           track_canvas_vbox;
 	Gtk::VBox           edit_controls_vbox;
+
+	/* "+ Add track" row below the last track header, and its popover */
+	ArdourWidgets::ArdourButton _add_track_row_button;
+	QuickAddRouteWindow*        _quick_add_route = nullptr;
+	void add_track_row_clicked ();
 	Gtk::HBox           edit_controls_hbox;
 
 	TriggerClipPicker    _trigger_clip_picker;

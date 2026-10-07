@@ -239,23 +239,29 @@ ARDOUR_UI::setup_transport ()
 	button_height_size_group->add_widget (mixer_visibility_button);
 	button_height_size_group->add_widget (prefs_visibility_button);
 
-	/* and the main table layout */
-	int vpadding = 3;
-	int hpadding = 3;
-	int col = 0;
-#define TCOL col, col + 1
+	/* and the main table layout: a single-row segmented page switcher,
+	 * ordered by workflow: Record | Edit | Mix | Clips (cue page)
+	 */
+	ArdourButton* pages[] = {
+		&recorder_visibility_button,
+		&editor_visibility_button,
+		&mixer_visibility_button,
+		&trigger_page_visibility_button
+	};
+	const int n_pages = sizeof (pages) / sizeof (pages[0]);
+	const int vpadding = 3;
 
-	tabbables_table.attach (recorder_visibility_button,     TCOL, 0, 1 , FILL, FILL, hpadding, vpadding);
-	tabbables_table.attach (trigger_page_visibility_button, TCOL, 1, 2 , FILL, FILL, hpadding, vpadding);
-	++col;
-	tabbables_table.attach (editor_visibility_button,       TCOL, 0, 1 , FILL, FILL, hpadding, vpadding);
-	tabbables_table.attach (mixer_visibility_button,        TCOL, 1, 2 , FILL, FILL, hpadding, vpadding);
-	++col;
+	for (int col = 0; col < n_pages; ++col) {
+		ArdourButton* b = pages[col];
+		b->set_corner_mask (col == 0 ? ArdourButton::LEFT : (col == n_pages - 1 ? ArdourButton::RIGHT : ArdourButton::NONE));
+		b->set_sizing_text (S_("Window|Record"));
+		tabbables_table.attach (*b, col, col + 1, 0, 1, FILL, FILL, 0, vpadding);
+	}
+	tabbables_table.set_col_spacings (1);
 
 	tabbables_table.show_all ();
 }
 #undef PX_SCALE
-#undef TCOL
 
 bool
 ARDOUR_UI::error_alert_press (GdkEventButton* ev)

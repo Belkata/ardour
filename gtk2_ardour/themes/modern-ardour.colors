@@ -47,6 +47,8 @@
     <Color name="theme:contrasting clock" value="8ed9a4ff"/>  <!--clock: text-->
     <Color name="theme:contrasting less" value="4fb87aff"/>
     <Color name="theme:contrasting selection" value="5b8defff"/>  <!--gtk_bg_selected-->
+    <Color name="theme:selected header" value="2d3549ff"/>  <!--selected track header-->
+    <Color name="theme:selected region" value="34497aff"/>  <!--selected region-->
     <Color name="widget:bg" value="3b3f47ff"/>    <!--generic button-->
     <Color name="widget:bg active" value="565b67ff"/>  <!--selected page/tool/tab-->
     <Color name="widget:blue" value="4b6ea8ff"/>  <!--processor fader: fill-->
@@ -56,6 +58,8 @@
     <Color name="widget:green" value="557a5eff"/>  <!--gtk processor postfader,  gtk_midi_track-->
     <Color name="widget:green darker" value="2c3530ff"/>  <!--midi track base-->
     <Color name="widget:orange" value="b0581fff"/>  <!--tempo marker-->
+    <Color name="widget:plugin post" value="3a4b43ff"/>  <!--post-fader plugin-->
+    <Color name="widget:plugin pre" value="3c4562ff"/>  <!--pre-fader plugin-->
     <Color name="widget:ruddy" value="8a3d45ff"/>  <!--processor prefader-->
     <Color name="widget:yellow" value="e8c66aff"/> <!-- VU meter outline -->
   </Colors>
@@ -177,7 +181,7 @@
     <ColorAlias name="gtk_somewhat_bright_indicator" alias="theme:contrasting alt"/>
     <ColorAlias name="gtk_texts" alias="neutral:foreground"/>
     <ColorAlias name="gtk_track_header_inactive" alias="theme:bg"/>
-    <ColorAlias name="gtk_track_header_selected" alias="widget:ruddy"/>
+    <ColorAlias name="gtk_track_header_selected" alias="theme:selected header"/>
     <ColorAlias name="inactive crossfade" alias="theme:contrasting"/>
     <ColorAlias name="inactive fade handle" alias="neutral:foreground2"/>
     <ColorAlias name="inactive group tab" alias="theme:bg"/>
@@ -243,8 +247,8 @@
     <ColorAlias name="midi meter color8" alias="midi meter 56"/>
     <ColorAlias name="midi meter color9" alias="midi meter 56"/>
     <ColorAlias name="midi note inactive channel" alias="neutral:backgroundest"/>
-    <ColorAlias name="midi note selected" alias="widget:ruddy"/>
-    <ColorAlias name="midi note selected outline" alias="alert:red"/>
+    <ColorAlias name="midi note selected" alias="widget:blue lighter"/>
+    <ColorAlias name="midi note selected outline" alias="neutral:foregroundest"/>
     <ColorAlias name="midi note velocity text" alias="theme:contrasting"/>
     <ColorAlias name="midi patch change fill" alias="theme:contrasting selection"/>
     <ColorAlias name="midi patch change outline" alias="neutral:foreground"/>
@@ -336,14 +340,14 @@
     <ColorAlias name="processor control knob" alias="theme:bg"/>
     <ColorAlias name="processor control knob: arc end" alias="widget:blue"/>
     <ColorAlias name="processor control knob: arc start" alias="widget:blue"/>
-    <ColorAlias name="processor fader: fill" alias="widget:blue"/>
-    <ColorAlias name="processor fader: fill active" alias="widget:blue"/>
+    <ColorAlias name="processor fader: fill" alias="widget:bg active"/>
+    <ColorAlias name="processor fader: fill active" alias="widget:bg active"/>
     <ColorAlias name="processor fader: led active" alias="alert:green"/>
-    <ColorAlias name="processor postfader: fill" alias="widget:green"/>
-    <ColorAlias name="processor postfader: fill active" alias="widget:green"/>
+    <ColorAlias name="processor postfader: fill" alias="widget:plugin post"/>
+    <ColorAlias name="processor postfader: fill active" alias="widget:plugin post"/>
     <ColorAlias name="processor postfader: led active" alias="alert:green"/>
-    <ColorAlias name="processor prefader: fill" alias="widget:ruddy"/>
-    <ColorAlias name="processor prefader: fill active" alias="widget:ruddy"/>
+    <ColorAlias name="processor prefader: fill" alias="widget:plugin pre"/>
+    <ColorAlias name="processor prefader: fill active" alias="widget:plugin pre"/>
     <ColorAlias name="processor prefader: led active" alias="alert:green"/>
     <ColorAlias name="processor sidechain: fill" alias="alert:orange"/>
     <ColorAlias name="processor sidechain: led active" alias="alert:green"/>
@@ -396,9 +400,9 @@
     <ColorAlias name="secondary delta clock: cursor" alias="theme:contrasting alt"/>
     <ColorAlias name="secondary delta clock: edited text" alias="theme:contrasting alt"/>
     <ColorAlias name="secondary delta clock: text" alias="theme:contrasting alt"/>
-    <ColorAlias name="selected region base" alias="alert:ruddy"/>
-    <ColorAlias name="selected time axis frame" alias="alert:ruddy"/>
-    <ColorAlias name="selected waveform fill" alias="alert:orange"/>
+    <ColorAlias name="selected region base" alias="theme:selected region"/>
+    <ColorAlias name="selected time axis frame" alias="theme:contrasting selection"/>
+    <ColorAlias name="selected waveform fill" alias="neutral:foreground"/>
     <ColorAlias name="selected waveform outline" alias="theme:bg2"/>
     <ColorAlias name="selection" alias="alert:red"/>
     <ColorAlias name="selection clock: background" alias="theme:bg2"/>

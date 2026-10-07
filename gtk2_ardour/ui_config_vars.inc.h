@@ -20,10 +20,10 @@
  */
 
 UI_CONFIG_VARIABLE (std::string, icon_set, "icon-set", "default")
-UI_CONFIG_VARIABLE (std::string, ui_rc_file, "ui-rc-file", "clearlooks.rc")
-UI_CONFIG_VARIABLE (std::string, ui_font_family, "ui-font-family", "Sans")
-UI_CONFIG_VARIABLE (std::string, color_file, "color-file", "dark")
-UI_CONFIG_VARIABLE (bool, flat_buttons, "flat-buttons", false)
+UI_CONFIG_VARIABLE (std::string, ui_rc_file, "ui-rc-file", "clearlooks.inter.rc")
+UI_CONFIG_VARIABLE (std::string, ui_font_family, "ui-font-family", "Inter")
+UI_CONFIG_VARIABLE (std::string, color_file, "color-file", "modern")
+UI_CONFIG_VARIABLE (bool, flat_buttons, "flat-buttons", true)
 UI_CONFIG_VARIABLE (bool, boxy_buttons, "boxy-buttons", false)
 UI_CONFIG_VARIABLE (bool, blink_rec_arm, "blink-rec-arm", false)
 UI_CONFIG_VARIABLE (bool, blink_alert_indicators, "blink-alert-indicators", true)
@@ -108,7 +108,7 @@ UI_CONFIG_VARIABLE (bool, show_toolbar_latency, "show-toolbar-latency", false)
 UI_CONFIG_VARIABLE (bool, show_toolbar_cuectrl, "show-toolbar-cuectrl", false)
 UI_CONFIG_VARIABLE (bool, show_toolbar_monitor_info, "show-toolbar-monitor-info", false)
 UI_CONFIG_VARIABLE (bool, show_mini_timeline, "show-mini-timeline", false)
-UI_CONFIG_VARIABLE (bool, show_secondary_clock, "show-secondary-clock", true)
+UI_CONFIG_VARIABLE (bool, show_secondary_clock, "show-secondary-clock", false)
 UI_CONFIG_VARIABLE (double, waveform_clip_level, "waveform-clip-level", -0.0933967) /* units of dB */
 UI_CONFIG_VARIABLE (bool, buggy_gradients, "buggy-gradients", false)
 UI_CONFIG_VARIABLE (bool, cairo_image_surface, "cairo-image-surface", false)

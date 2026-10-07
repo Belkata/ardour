@@ -284,11 +284,11 @@ SlotPropertyTable::SlotPropertyTable ()
 	_launch_table.attach(_vel_sense_label,       0, 1, row, row+1, Gtk::FILL, Gtk::SHRINK );
 	_launch_table.attach(_velocity_slider,       1, 3, row, row+1, Gtk::FILL, Gtk::SHRINK ); row++;
 
-	_launch_style_label.set_text(_("Launch Style:"));  _launch_style_label.set_alignment(1.0, 0.5);
+	_launch_style_label.set_text(_("When launched:"));  _launch_style_label.set_alignment(1.0, 0.5);
 	_launch_table.attach(_launch_style_label,    0, 1, row, row+1, Gtk::FILL, Gtk::SHRINK );
 	_launch_table.attach(_launch_style_button,   1, 3, row, row+1, Gtk::FILL, Gtk::SHRINK ); row++;
 
-	_launch_quant_label.set_text(_("Launch Quantize:"));  _launch_quant_label.set_alignment(1.0, 0.5);
+	_launch_quant_label.set_text(_("Start on:"));  _launch_quant_label.set_alignment(1.0, 0.5);
 	_launch_table.attach(_launch_quant_label, 0, 1, row, row+1, Gtk::FILL, Gtk::SHRINK );
 	_launch_table.attach(_quantize_button,    1, 3, row, row+1, Gtk::FILL, Gtk::SHRINK ); row++;
 
@@ -296,7 +296,7 @@ SlotPropertyTable::SlotPropertyTable ()
 	_launch_table.attach(_legato_label,   0, 1, row, row+1, Gtk::FILL, Gtk::SHRINK );
 	_launch_table.attach(_legato_button,  1, 3, row, row+1, Gtk::FILL, Gtk::SHRINK ); row++;
 
-	_isolate_label.set_text(_("Cue Isolate:"));  _isolate_label.set_alignment(1.0, 0.5);
+	_isolate_label.set_text(_("Ignore scenes:"));  _isolate_label.set_alignment(1.0, 0.5);
 	_launch_table.attach(_isolate_label,   0, 1, row, row+1, Gtk::FILL, Gtk::SHRINK );
 	_launch_table.attach(_isolate_button,  1, 3, row, row+1, Gtk::FILL, Gtk::SHRINK ); row++;
 
@@ -324,14 +324,14 @@ SlotPropertyTable::SlotPropertyTable ()
 	fol_table->set_spacings(2);
 	fol_table->set_border_width(4);
 
-	_follow_count_label.set_text(_("Follow Count:"));
+	_follow_count_label.set_text(_("Play it this many times:"));
 	_follow_count_label.set_alignment(1.0, 0.5);
 	fol_table->attach(_follow_count_label,  1, 2, row, row+1, Gtk::FILL, Gtk::SHRINK );
 	Gtk::Alignment *align = manage (new Gtk::Alignment (0, .5, 0, 0));
 	align->add (_follow_count_spinner);
 	fol_table->attach(*align,               2, 3, row, row+1, Gtk::FILL, Gtk::SHRINK, 0, 0 ); row++;
 
-	_follow_length_label.set_text(_("Follow Length:"));
+	_follow_length_label.set_text(_("Then act after:"));
 	_follow_length_label.set_alignment(1.0, 0.5);
 	_beat_label.set_text(_("(beats)"));
 	_beat_label.set_alignment (0.0, 0.5);
@@ -356,13 +356,13 @@ SlotPropertyTable::SlotPropertyTable ()
 	trigBox->add (_trigger_table);
 
 	ArdourWidgets::Frame* eFollowBox = manage (new ArdourWidgets::Frame);
-	eFollowBox->set_label(_("Follow Options"));
+	eFollowBox->set_label(_("When the clip ends"));
 	eFollowBox->set_name("EditorDark");
 	eFollowBox->set_edge_color (0x000000ff); // black
 	eFollowBox->add (_follow_table);
 
 	ArdourWidgets::Frame* eLaunchBox = manage (new ArdourWidgets::Frame);
-	eLaunchBox->set_label(_("Launch Options"));
+	eLaunchBox->set_label(_("Launching"));
 	eLaunchBox->set_name("EditorDark");
 	eLaunchBox->set_edge_color (0x000000ff); // black
 	eLaunchBox->add (_launch_table);
@@ -390,10 +390,10 @@ SlotPropertyTable::SlotPropertyTable ()
 	set_tooltip(_follow_left, _("Select an action that will occur when this clip ends"));
 	set_tooltip(_follow_right, _("Select an action that will occur when this clip ends"));
 
-	set_tooltip(_launch_style_button, _("Set the behavior of this clip's launch button"));
-	set_tooltip(_quantize_button, _("Clip will wait until the timeline passes this boundary before it triggers"));
+	set_tooltip(_launch_style_button, _("What the launch button does:\nPlay: start on click, play to the end\nRetrigger: every click restarts the clip\nHold: plays only while held down\nToggle: click to start, click again to stop\nRepeat: repeats a short slice while held"));
+	set_tooltip(_quantize_button, _("The clip waits for this musical boundary before it starts, so it stays in time"));
 	set_tooltip(_legato_button, _("If selected, this clip can 'take over' playback in the playback position of the prior clip"));
-	set_tooltip(_isolate_button, _("If selected, this slot will not respond to Cue events (either starting or stopping)"));
+	set_tooltip(_isolate_button, _("If selected, launching or stopping a whole scene does not affect this clip"));
 }
 
 SlotPropertyTable::~SlotPropertyTable ()
@@ -713,8 +713,8 @@ SlotPropertyTable::on_trigger_changed (PropertyChange const& pc)
 
 	if (pc.contains (Properties::follow_action_probability)) {
 		_follow_probability_adjustment.set_value (probability);
-		_left_probability_label.set_text (string_compose(_("%1%% Left"), 100-probability));
-		_right_probability_label.set_text (string_compose(_("%1%% Right"), probability));
+		_left_probability_label.set_text (string_compose(_("left %1%%"), 100-probability));
+		_right_probability_label.set_text (string_compose(_("right %1%%"), probability));
 	}
 
 	_ignore_changes = false;

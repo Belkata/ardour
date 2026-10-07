@@ -22,6 +22,7 @@
 #include <ytkmm/frame.h>
 #include <ytkmm/separator.h>
 
+#include "pbd/compose.h"
 #include "pbd/error.h"
 
 #include "ardour/audio_track.h"
@@ -103,11 +104,10 @@ QuickAddRouteWindow::QuickAddRouteWindow ()
 		labels[i]->set_name ("QuickAddLabel");
 	}
 
-	_name_entry.set_activates_default (true);
 	_name_entry.set_width_chars (16);
 	_name_entry.signal_activate ().connect (sigc::mem_fun (*this, &QuickAddRouteWindow::add_clicked));
 	_count_spin.set_numeric (true);
-	_count_spin.set_activates_default (true);
+	_count_spin.signal_activate ().connect (sigc::mem_fun (*this, &QuickAddRouteWindow::add_clicked));
 
 	_add_button.set_name ("primary button");
 	_add_button.signal_clicked.connect (sigc::mem_fun (*this, &QuickAddRouteWindow::add_clicked));
@@ -149,8 +149,9 @@ QuickAddRouteWindow::QuickAddRouteWindow ()
 	frame->add (*vbox);
 	add (*frame);
 
-	set_kind (AudioTrack);
+	/* show everything first; set_kind() then hides what does not apply */
 	frame->show_all ();
+	set_kind (AudioTrack);
 }
 
 void
