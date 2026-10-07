@@ -29,9 +29,11 @@ git tag -a 9.0 -m local <oldest-commit>  # ONLY if `git describe` fails (shallow
   `libs/widgets/widgets/ardour_icon.h`) recompiles most of `gtk2_ardour` (~30–40 min).
   Prefer `.cc`-only changes when iterating.
 - New source files must be added to the list in `gtk2_ardour/wscript`.
-- Long builds: run in the background and give the user visible progress
-  (a monitor that reports every 5 % from the `[n/total]` lines, errors immediately,
-  and a task-list entry). The user asked for this.
+- Long builds: run `./waf build -j4 2>&1 | tee <log>` itself as the *background task*
+  (not redirected to a file only), so the user sees the live `[n/total] Compiling ...`
+  lines in the background-task window. Don't use Monitor for build progress: it wakes
+  the agent on every line and expires after 5 minutes. You get one notification when
+  the task exits; check errors with `grep error: <log>`.
 - Run from the build tree: `gtk2_ardour/ardev` (sets up paths for `build/`).
 
 ## Run headless

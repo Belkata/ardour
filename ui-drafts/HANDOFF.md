@@ -12,8 +12,9 @@ Branch: `claude/wizardly-brahmagupta-jyh5oi` (push only there; no PR opened).
 - Workflow agreed: **drafts as images first**, then implement.
 - Scope decided by the user: **colors + layout**, and the font **as in the drafts
   (Inter)**. The cue page redesign was requested later and is in scope too.
-- The user wants **visible progress for long builds** (5 %/2 % monitor lines,
-  task-list entry with the percentage). Monitors expire after 5 minutes: re-arm them.
+- The user wants **visible progress for long builds in the background-task window**,
+  without the agent being pinged: run `./waf build -j4 2>&1 | tee <log>` as the
+  background task itself (see `CLAUDE.md`); no Monitor.
 - The user wants QA so nothing breaks (see `tools/ui-qa/QA.md`).
 
 ## Research summary (forks / prior art)
