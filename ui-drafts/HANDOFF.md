@@ -1,6 +1,6 @@
 # UI redesign – handoff
 
-State of the Ardour UI redesign at the end of the first working session, so a
+State of the Ardour UI redesign, so a
 new session can continue without re-deriving anything. See `CLAUDE.md` for how
 to build, run headless and test.
 
@@ -64,36 +64,34 @@ render with `src/render.js` (Playwright + preinstalled Chromium; commands in `RE
 
 ## Current state / where it stopped
 
-- Stock baseline built and screenshotted: `ui-drafts/screenshots/before/{editor,mixer,cues}.png`.
-- The redesign changes were applied and an incremental `./waf build` was **running**
-  (≈85 %, no compile errors yet) when the session ended. Except `quick_add_route.cc`,
-  **none of the redesign C++ has been confirmed to compile.** First thing to do:
-  `./waf build -j4` and fix errors.
-- `check_themes.py` and `check_contrast.py` pass (3 pre-existing warnings in upstream
-  themes blueberry_milk, captain_light, diehard3 – not ours).
+Iteration loop (screenshot → QA → fix → rebuild), rounds 1–4 committed:
+
+- Everything builds; `tools/ui-qa/run_static.sh` and `tools/ui-qa/run_gui.sh` pass
+  (smoke 10/10, theme colors in screenshots, clip states, 150 % HiDPI).
+- Compatibility: a session saved by stock Ardour opens in the redesign build.
+- Round 1: track-colored clip tiles, font lookup in the dev tree, editor defaults, color QA.
+- Round 2: faders tinted with the track color, taller clip tiles (22 px), more QA.
+- Round 3: master/monitor neutral (tracks get the distinct hues); screenshots of
+  playing/queued clips.
+- Round 4: queued outline also on clips waiting behind a playing clip
+  (`TriggerBox::peek_next_trigger`); `check_cue_states.py`; `run_gui.sh` no longer
+  swallows the screenshot color check's exit status; "+ Add Track" button at natural
+  width; editor list Name column min 90 px; quieter "Show Sends" fill; cue-page gain
+  sliders in the track color.
+
+Harness lessons: launching a cue (F1–F8) starts the transport by itself — pressing Space
+afterwards stops it. Queued clips start at the next bar (< 2 s at 120 bpm), so capture
+the queued state immediately.
 
 ## Next steps
 
-1. Finish the build; fix compile errors (watch especially `quick_add_route.cc` API use,
-   `triggerbox_ui.cc` outline members, `editing_context.cc` labels).
-2. `tools/ui-qa/screenshots/shoot.sh . after` → compare with `ui-drafts/screenshots/before/`
-   and the drafts; send the user before/after/draft side by side. Commit the after shots to
-   `ui-drafts/screenshots/after/`.
-3. `tools/ui-qa/smoke.sh . /tmp/ui-qa` and fix failures. Check: Quick Add creates and arms
-   "QA Track", rulers default, no "Color … not found", no CRITICAL.
-   (Rec-enable may not be stored in the session file under `Controllable name="rec-enable"` –
-   verify and adjust `check_session.py` if needed.)
-4. Compatibility: open the `before` session in the new build and a new session in stock
-   (`smoke.sh … compat <session>`).
-5. Visual tuning after seeing real screenshots (expected gaps): toolbar density (still
-   Ardour's controls), 4 px color stripe, Inter at Ardour's small default sizes (font scale),
-   tool label width changes shifting the toolbar.
-6. Remaining draft items not implemented: mixer plugin "cards"/send bars/fader restyle,
+1. Save the after screenshots to `ui-drafts/screenshots/after/` and show the user
+   before / after / draft side by side.
+2. Remaining draft items not implemented: mixer plugin "cards"/send bars/fader restyle,
    region drawing, follow actions as one sentence, named scenes, clip library BPM/length,
    Quick Add "Record from" input picker, bottom status bar. Windows Inter registration
    (`bundle_env_mingw.cc`) not done (falls back to system font).
-7. When stable: update `ui-drafts/README.md` status table, remove "WIP" in a final commit
-   message, ask the user before opening a PR.
+3. When stable: update `ui-drafts/README.md` status table, ask the user before opening a PR.
 
 ## Expectation set with the user
 

@@ -32,6 +32,7 @@
 
 #include "gtkmm2ext/utils.h"
 
+#include "widgets/barcontroller.h"
 #include "widgets/tooltips.h"
 
 #include "gui_thread.h"
@@ -265,6 +266,7 @@ TriggerStrip::set_route (std::shared_ptr<Route> rt)
 	_gain_control->set_name (X_("ProcessorControlSlider"));
 	_gain_control->set_size_request (PX_SCALE (19), -1);
 	volume_table.attach (*_gain_control, 0, 1, 1, 2);
+	route_color_changed (); /* tint the new gain slider */
 
 	_level_meter.set_meter (_route->shared_peak_meter ().get ());
 	_level_meter.clear_meters ();
@@ -497,6 +499,13 @@ TriggerStrip::route_color_changed ()
 {
 	Gtkmm2ext::Color c = gdk_color_to_rgba (route_color());
 	_name_button.set_fixed_colors (c, c);
+
+	/* gain slider in the track's (tinted) color, like the mixer's faders */
+	BarController* bc = _gain_control ? dynamic_cast<BarController*> (_gain_control->widget ()) : 0;
+	ArdourFader*   f  = bc ? dynamic_cast<ArdourFader*> (&bc->event_widget ()) : 0;
+	if (f) {
+		f->set_fg (gdk_color_to_rgba (route_color_tint ()));
+	}
 }
 
 void

@@ -473,7 +473,8 @@ Editor::Editor ()
 	_add_track_row_button.signal_clicked.connect (sigc::mem_fun (*this, &Editor::add_track_row_clicked));
 	set_tooltip (_add_track_row_button, _("Add a track or bus (double-click the empty area for all options)"));
 
-	Gtk::Alignment* add_track_row = manage (new Gtk::Alignment (0, 0, 1, 0));
+	/* natural width: icon and label stay together (ArdourButton right-aligns text in a wide button) */
+	Gtk::Alignment* add_track_row = manage (new Gtk::Alignment (0, 0, 0, 0));
 	add_track_row->set_padding (8, 8, 8, 8);
 	add_track_row->add (_add_track_row_button);
 	add_track_row->show_all ();
