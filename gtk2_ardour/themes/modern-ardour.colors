@@ -48,6 +48,7 @@
     <Color name="theme:contrasting less" value="4fb87aff"/>
     <Color name="theme:contrasting selection" value="5b8defff"/>  <!--gtk_bg_selected-->
     <Color name="widget:bg" value="3b3f47ff"/>    <!--generic button-->
+    <Color name="widget:bg active" value="565b67ff"/>  <!--selected page/tool/tab-->
     <Color name="widget:blue" value="4b6ea8ff"/>  <!--processor fader: fill-->
     <Color name="widget:blue darker" value="222731ff"/>  <!--gtk_audio_bus-->
     <Color name="widget:blue lighter" value="6c92d6ff"/>  <!--processor fader: fill-->
@@ -60,6 +61,10 @@
   </Colors>
   <ColorAliases>
     <ColorAlias name="active crossfade" alias="neutral:foreground"/>
+    <ColorAlias name="add track row button: fill" alias="theme:bg1"/>
+    <ColorAlias name="add track row button: fill active" alias="widget:bg active"/>
+    <ColorAlias name="add track row button: led active" alias="alert:green"/>
+    <ColorAlias name="add track row button: outline" alias="neutral:background2"/>
     <ColorAlias name="arrange base" alias="theme:bg"/>
     <ColorAlias name="arrangement marker bar" alias="neutral:background2"/>
     <ColorAlias name="arrangement rect" alias="widget:blue"/>
@@ -278,7 +283,7 @@
     <ColorAlias name="mono panner position outline" alias="theme:bg"/>
     <ColorAlias name="mono panner text" alias="neutral:backgroundest"/>
     <ColorAlias name="mouse mode button: fill" alias="widget:bg"/>
-    <ColorAlias name="mouse mode button: fill active" alias="alert:greenish"/>
+    <ColorAlias name="mouse mode button: fill active" alias="widget:bg active"/>
     <ColorAlias name="mouse mode button: led active" alias="alert:green"/>
     <ColorAlias name="mute button: fill" alias="widget:bg"/>
     <ColorAlias name="mute button: fill active" alias="alert:yellow"/>
@@ -291,7 +296,7 @@
     <ColorAlias name="nudge clock: edited text" alias="theme:contrasting alt"/>
     <ColorAlias name="nudge clock: text" alias="theme:contrasting clock"/>
     <ColorAlias name="page switch button: fill" alias="widget:bg"/>
-    <ColorAlias name="page switch button: fill active" alias="alert:green"/>
+    <ColorAlias name="page switch button: fill active" alias="widget:bg active"/>
     <ColorAlias name="pan knob" alias="widget:bg"/>
     <ColorAlias name="pan knob: arc end" alias="widget:orange"/>
     <ColorAlias name="pan knob: arc start" alias="widget:orange"/>
@@ -316,6 +321,10 @@
     <ColorAlias name="pluginui toggle: fill" alias="widget:bg"/>
     <ColorAlias name="pluginui toggle: fill active" alias="widget:blue"/>
     <ColorAlias name="preference highlight" alias="alert:yellow"/>
+    <ColorAlias name="primary button: fill" alias="theme:contrasting selection"/>
+    <ColorAlias name="primary button: fill active" alias="theme:contrasting selection"/>
+    <ColorAlias name="primary button: led active" alias="alert:green"/>
+    <ColorAlias name="primary button: outline" alias="neutral:backgroundest"/>
     <ColorAlias name="processor automation line" alias="alert:green"/>
     <ColorAlias name="processor auxfeedback: fill" alias="theme:contrasting alt"/>
     <ColorAlias name="processor auxfeedback: led active" alias="alert:green"/>
@@ -437,7 +446,7 @@
     <ColorAlias name="summary: view rect" alias="neutral:foregroundest"/>
     <ColorAlias name="sync mark" alias="theme:contrasting clock"/>
     <ColorAlias name="tab button: fill" alias="widget:bg"/>
-    <ColorAlias name="tab button: fill active" alias="neutral:midground"/>
+    <ColorAlias name="tab button: fill active" alias="widget:bg active"/>
     <ColorAlias name="tab button: led active" alias="alert:red"/>
     <ColorAlias name="tempo bar" alias="neutral:background2"/>
     <ColorAlias name="tempo curve" alias="widget:blue"/>

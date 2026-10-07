@@ -562,6 +562,7 @@ cp $BUILD_ROOT/gtk2_ardour/ardour.keys  $Resources
 cp $BUILD_ROOT/gtk2_ardour/ardour.menus $Resources
 cp $BUILD_ROOT/gtk2_ardour/default_ui_config $Resources
 cp $BUILD_ROOT/gtk2_ardour/clearlooks.rc $Resources
+cp $BUILD_ROOT/gtk2_ardour/clearlooks.inter.rc $Resources
 
 if test -n "$LIVETRAX"; then
 	cp $BUILD_ROOT/gtk2_ardour/livetrax.keys $Resources
@@ -576,6 +577,7 @@ cp ../../gtk2_ardour/icons/*.png ${Resources}/icons/
 cp -r ../../gtk2_ardour/icons/cursor_* ${Resources}/icons/
 cp ../../gtk2_ardour/ArdourMono.ttf $Shared
 cp ../../gtk2_ardour/ArdourSans.ttf $Shared
+cp ../../gtk2_ardour/fonts/Inter-*.otf ../../gtk2_ardour/fonts/Inter-LICENSE.txt $Shared
 cp ../../gtk2_ardour/resources/${PRODUCT_PKG_DIR}-* ${Resources}/resources/
 
 
