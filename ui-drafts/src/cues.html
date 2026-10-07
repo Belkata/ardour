@@ -1,0 +1,270 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+body { width: 1680px; height: 1000px; overflow: hidden; display: grid; grid-template-rows: 26px 60px 1fr 26px; grid-template-columns: minmax(0,1fr); position: relative; }
+.menubar { background: var(--surf2); display: flex; align-items: center; gap: 2px; padding: 0 8px; color: var(--fg2); border-bottom: 1px solid var(--bg0); }
+.menubar span { padding: 3px 9px; }
+.menubar .title { margin-left: auto; color: var(--fg3); }
+.toolbar { background: var(--surf2); display: flex; align-items: center; gap: 12px; padding: 0 14px; border-bottom: 1px solid var(--bg0); overflow: hidden; }
+.tbtn { width: 36px; height: 36px; border-radius: 8px; background: var(--widget); display: flex; align-items: center; justify-content: center; color: var(--fg2); flex-shrink: 0; }
+.tbtn svg { width: 18px; height: 18px; }
+.tbtn.play { background: #2f4a37; color: var(--solo); }
+.clock { background: var(--bg1); border-radius: 10px; height: 46px; padding: 0 14px; display: flex; align-items: center; gap: 16px; }
+.clock .big { font-size: 24px; color: var(--clock); }
+.clock .sub { white-space: nowrap; font-size: 11px; color: var(--fg3); display: flex; flex-direction: column; gap: 2px; }
+.clock .sub b { color: var(--fg2); font-weight: 500; }
+.sep { width: 1px; height: 32px; background: var(--line); }
+.dd { white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-radius: 7px; background: var(--widget); color: var(--fg); }
+.dd .k { color: var(--fg3); }
+.dd svg { width: 12px; height: 12px; color: var(--fg3); }
+.stopall { display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px; border-radius: 7px; background: #4a2a2e; color: #ffb3b8; font-weight: 600; white-space: nowrap; }
+.stopall i { width: 10px; height: 10px; background: currentColor; border-radius: 2px; }
+.pages { margin-left: auto; }
+.pages .seg > div { padding: 0 14px; }
+
+.main { display: grid; grid-template-columns: minmax(0,1fr) 280px; grid-template-rows: minmax(0,1fr) 250px; min-height: 0; background: var(--bg1); }
+.gridwrap { grid-row: 1; grid-column: 1; display: flex; padding: 12px 12px 0 12px; gap: 6px; overflow: hidden; }
+.scenes { width: 132px; display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+.colhead { height: 34px; border-radius: 7px; display: flex; align-items: center; padding: 0 10px; font-weight: 700; color: #121316; white-space: nowrap; overflow: hidden; }
+.colhead small { margin-left: auto; font-size: 9.5px; opacity: .6; text-transform: uppercase; font-weight: 600; }
+.scenes .colhead { background: transparent; color: var(--fg3); font-weight: 600; font-size: 10.5px; text-transform: uppercase; letter-spacing: .6px; padding: 0 4px; }
+.scene { height: 52px; border-radius: 7px; background: var(--surf); display: flex; align-items: center; gap: 8px; padding: 0 8px; color: var(--fg2); }
+.scene .go { width: 26px; height: 26px; border-radius: 6px; background: var(--widget); display: flex; align-items: center; justify-content: center; color: var(--fg2); flex-shrink: 0; }
+.scene .go svg { width: 12px; height: 12px; }
+.scene .nm { font-weight: 600; color: var(--fg); }
+.scene .key { margin-left: auto; font-size: 10px; color: var(--fg4); font-family: "DejaVu Sans Mono"; }
+.scene.playing { box-shadow: inset 3px 0 0 var(--solo); }
+.scene.playing .go { background: #2f4a37; color: var(--solo); }
+.scene.next .go { background: #4a4224; color: var(--amber); }
+
+.col { width: 152px; display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+.slot { height: 52px; border-radius: 7px; position: relative; overflow: hidden; }
+.slot.empty { border: 1px dashed #353840; background: transparent; }
+.slot.empty.hover { border-color: var(--fg4); display: flex; align-items: center; justify-content: center; color: var(--fg3); font-size: 11px; gap: 6px; }
+.clip { background: color-mix(in srgb, var(--tc) 22%, #1c1d22); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tc) 45%, transparent); display: flex; flex-direction: column; }
+.clip .top { display: flex; align-items: center; gap: 6px; padding: 6px 8px 0 6px; }
+.clip .st { width: 18px; height: 18px; border-radius: 5px; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--tc) 35%, #15161a); color: var(--tc); flex-shrink: 0; }
+.clip .st svg { width: 10px; height: 10px; }
+.clip .nm { font-size: 11.5px; font-weight: 600; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.clip .meta { margin-left: auto; font-size: 9.5px; color: var(--fg3); white-space: nowrap; display: flex; align-items: center; gap: 4px; }
+.clip .meta svg { width: 10px; height: 10px; }
+.clip .wave { flex: 1; margin: 2px 8px 6px 8px; position: relative; }
+.clip .wave svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.clip.playing { background: color-mix(in srgb, var(--tc) 38%, #1c1d22); box-shadow: inset 0 0 0 2px var(--tc); }
+.clip.playing .st { background: var(--solo); color: #102012; }
+.clip .prog { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--fg); opacity: .85; }
+.clip.queued { animation: none; box-shadow: inset 0 0 0 2px var(--amber); }
+.clip.queued .st { background: var(--amber); color: #2a2208; }
+.badge { position: absolute; right: 6px; bottom: 5px; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 4px; background: var(--amber); color: #2a2208; }
+.clip.sel { outline: 2px solid #fff; outline-offset: -2px; }
+.colfoot { margin-top: auto; padding-bottom: 10px; display: flex; flex-direction: column; gap: 6px; }
+.stopbtn { height: 30px; border-radius: 7px; background: var(--widget); color: var(--fg3); display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; font-weight: 500; }
+.stopbtn i { width: 9px; height: 9px; background: currentColor; border-radius: 2px; }
+.mini { height: 26px; border-radius: 7px; background: var(--surf); display: flex; align-items: center; gap: 6px; padding: 0 8px; }
+.mini .m { flex: 1; height: 5px; border-radius: 2px; background: var(--bg0); position: relative; overflow: hidden; }
+.mini .m i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #37a556, #4cd16c 70%, #ecd84a); }
+.mini b { width: 18px; height: 18px; border-radius: 4px; background: var(--widget); color: var(--fg3); font-size: 9.5px; display: flex; align-items: center; justify-content: center; }
+.mini b.on { background: var(--mute); color: #222; }
+
+/* inspector */
+.insp { grid-row: 2; grid-column: 1; background: var(--surf); border-top: 1px solid var(--bg0); display: grid; grid-template-columns: 300px 1fr 330px; gap: 22px; padding: 16px 18px; }
+.insp h3 { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; color: var(--fg4); font-weight: 600; margin-bottom: 8px; }
+.insp .clipname { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.insp .clipname .sw { width: 14px; height: 14px; border-radius: 4px; background: var(--t8); }
+.insp .clipname b { font-size: 15px; }
+.insp .clipname span { color: var(--fg3); font-size: 11px; }
+.field { margin-bottom: 12px; }
+.field label { display: block; font-size: 10.5px; color: var(--fg3); margin-bottom: 5px; font-weight: 500; }
+.field .seg { width: 100%; }
+.field .seg > div { flex: 1; justify-content: center; }
+.help { font-size: 11px; color: var(--fg4); margin-top: 5px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.preview { background: var(--bg1); border-radius: 8px; height: 150px; position: relative; overflow: hidden; }
+.preview svg { position: absolute; left: 0; top: 18px; width: 100%; height: calc(100% - 18px); }
+.preview .loop { position: absolute; top: 0; bottom: 0; background: rgba(91,141,239,.12); border-left: 2px solid var(--accent); border-right: 2px solid var(--accent); }
+.preview .loop span { position: absolute; top: 2px; left: 6px; font-size: 10px; color: var(--accent); font-weight: 600; }
+.preview .ph { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--fg); }
+.preview .bars { position: absolute; left: 0; right: 0; top: 0; height: 18px; border-bottom: 1px solid var(--line); }
+.preview .bars span { position: absolute; top: 2px; font-size: 10px; color: var(--fg3); }
+.follow { background: var(--bg1); border-radius: 8px; padding: 10px 12px; color: var(--fg2); line-height: 1.6; }
+.follow .chip { display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 8px; border-radius: 6px; background: var(--widget); color: var(--fg); font-weight: 500; margin: 0 2px; }
+.follow .chip svg { width: 10px; height: 10px; color: var(--fg3); }
+.toggle { display: flex; align-items: center; gap: 8px; color: var(--fg2); margin-top: 10px; }
+.toggle i { width: 28px; height: 16px; border-radius: 8px; background: var(--accent); position: relative; }
+.toggle i::after { content: ""; position: absolute; right: 2px; top: 2px; width: 12px; height: 12px; border-radius: 50%; background: #fff; }
+.toggle i.off { background: var(--widget-hi); }
+.toggle i.off::after { right: auto; left: 2px; }
+.slider { height: 4px; border-radius: 2px; background: var(--bg0); position: relative; margin: 10px 0 4px; }
+.slider i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: var(--fg4); }
+.slider u { position: absolute; top: -5px; width: 14px; height: 14px; border-radius: 50%; background: var(--fg2); margin-left: -7px; }
+
+/* library */
+.lib { grid-row: 1 / 3; grid-column: 2; background: var(--surf); border-left: 1px solid var(--bg0); display: flex; flex-direction: column; }
+.tabs { display: flex; gap: 2px; padding: 8px; border-bottom: 1px solid var(--bg0); }
+.tabs div { flex: 1; text-align: center; padding: 6px 0; border-radius: 6px; color: var(--fg3); font-weight: 500; }
+.tabs .on { background: var(--widget); color: var(--fg); }
+.search { margin: 10px; height: 30px; border-radius: 7px; background: var(--bg1); display: flex; align-items: center; gap: 8px; padding: 0 10px; color: var(--fg4); }
+.lib h4 { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; color: var(--fg4); padding: 12px 16px 6px; font-weight: 600; display: flex; }
+.lib h4 span { margin-left: auto; text-transform: none; letter-spacing: 0; }
+.li { display: flex; align-items: center; gap: 9px; padding: 6px 10px; margin: 0 6px; border-radius: 6px; color: var(--fg2); }
+.li .ic { width: 26px; height: 26px; border-radius: 6px; background: var(--bg1); display: flex; align-items: center; justify-content: center; color: var(--fg3); flex-shrink: 0; }
+.li .ic svg { width: 13px; height: 13px; }
+.li .t { display: flex; flex-direction: column; min-width: 0; }
+.li .t b { font-weight: 500; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.li .t small { color: var(--fg4); font-size: 10.5px; }
+.li .pv { margin-left: auto; color: var(--fg4); }
+.li .pv svg { width: 14px; height: 14px; }
+.li.on { background: #2b3242; }
+.libhint { margin: auto 12px 12px; padding: 10px 12px; border-radius: 8px; border: 1px dashed #3f434c; color: var(--fg4); font-size: 11px; text-align: center; }
+
+.status { background: var(--surf2); border-top: 1px solid var(--bg0); display: flex; align-items: center; gap: 18px; padding: 0 14px; color: var(--fg3); font-size: 11px; }
+.status .r { margin-left: auto; display: flex; gap: 8px; }
+</style></head>
+<body>
+<div class="menubar"><span>Session</span><span>Transport</span><span>Edit</span><span>Region</span><span>Track</span><span>View</span><span>Window</span><span>Help</span><span class="title">Night Drive — Ardour</span></div>
+
+<div class="toolbar">
+  <div class="tbtn"><svg class="i" viewBox="0 0 24 24"><path d="M6 5v14M18 6l-9 6 9 6z"/></svg></div>
+  <div class="tbtn"><svg class="i" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></div>
+  <div class="tbtn play"><svg class="i" viewBox="0 0 24 24" style="fill:currentColor"><path d="M8 5l11 7-11 7z"/></svg></div>
+  <div class="tbtn" style="color:var(--rec)"><svg class="i" viewBox="0 0 24 24" style="fill:currentColor"><circle cx="12" cy="12" r="6"/></svg></div>
+  <div class="clock"><div class="big mono">009 | 1 | 0000</div><div class="sub"><div class="mono"><b>00:00:16.000</b></div><div><b>120</b> BPM · <b>4/4</b></div></div></div>
+  <div class="sep"></div>
+  <div class="dd"><span class="k">Launch on</span> next bar <svg class="i" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
+  <div class="dd"><span class="k">Record into</span> empty slot <svg class="i" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
+  <div class="stopall"><i></i>Stop all clips</div>
+  <div class="pages"><div class="seg"><div>Record</div><div>Edit</div><div>Mix</div><div class="on">Clips</div></div></div>
+</div>
+
+<div class="main">
+  <div class="gridwrap" id="grid"></div>
+
+  <div class="insp">
+    <div>
+      <div class="clipname"><span class="sw"></span><b>Vox hook</b><span>Vocal · slot B</span></div>
+      <div class="field"><label>When launched</label>
+        <div class="seg"><div class="on">Play</div><div>Hold</div><div>Toggle</div><div>Retrigger</div></div>
+        <div class="help">Play: starts on click, plays to the end (or loops).</div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Start on</label><div class="dd" style="width:100%"><span>next bar</span><svg class="i" viewBox="0 0 24 24" style="margin-left:auto"><path d="M6 9l6 6 6-6"/></svg></div></div>
+        <div class="field"><label>Length</label><div class="dd" style="width:100%"><span>2 bars</span><svg class="i" viewBox="0 0 24 24" style="margin-left:auto"><path d="M6 9l6 6 6-6"/></svg></div></div>
+      </div>
+    </div>
+    <div>
+      <h3>Clip</h3>
+      <div class="preview" id="pv">
+        <div class="bars"><span style="left:6px">1</span><span style="left:25%">2</span><span style="left:50%">3</span><span style="left:75%">4</span></div>
+        <div class="loop" style="left:25%;width:50%"><span>Loop · 2 bars</span></div>
+        <div class="ph" style="left:41%"></div>
+      </div>
+      <div class="toggle"><i></i>Stretch to session tempo <span style="color:var(--fg4)">· original 96 BPM</span></div>
+    </div>
+    <div>
+      <h3>Then</h3>
+      <div class="follow">
+        After <span class="chip">4 bars <svg class="i" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+        <span class="chip">play next clip <svg class="i" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span><br>
+        otherwise <span class="chip">loop this clip <svg class="i" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+        <span style="color:var(--fg4)">(25%)</span>
+      </div>
+      <div class="field" style="margin-top:14px"><label>Clip volume <span style="float:right;color:var(--fg2)" class="mono">-3.0 dB</span></label>
+        <div class="slider"><i style="width:68%"></i><u style="left:68%"></u></div>
+      </div>
+      <div class="toggle"><i class="off"></i>Follow note velocity</div>
+    </div>
+  </div>
+
+  <div class="lib">
+    <div class="tabs"><div class="on">Library</div><div>Session</div><div>Files</div></div>
+    <div class="search"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4"/></svg>Search clips</div>
+    <div id="liblist"></div>
+    <div class="libhint">Drag a clip onto any slot, or drop audio / MIDI files from your desktop</div>
+  </div>
+</div>
+
+<div class="status"><span>Ready</span><span>48 kHz · 24-bit WAV</span><span>4 clips playing · 1 queued</span><div class="r"><span class="pill"><span class="dot"></span>DSP 18%</span><span class="pill"><span class="dot"></span>0 xruns</span></div></div>
+
+<script>
+let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+function wave(w, h, kind, col) {
+  const n = Math.floor(w / 2), mid = h / 2; let top = [], bot = [];
+  for (let i = 0; i < n; i++) {
+    const x = i * 2; let a;
+    if (kind === 'kick') { const p = (x % 18) / 18; a = Math.exp(-p * 6) * .95; }
+    else if (kind === 'snare') { const p = ((x + 9) % 36) / 36; a = (p < .5 ? Math.exp(-p * 8) : .03) * .9 + rnd() * .05; }
+    else if (kind === 'bass') { const p = (x % 9) / 9; a = .35 + .4 * Math.exp(-p * 3); }
+    else if (kind === 'vox') { a = Math.max(0, Math.sin(x / 26)) ** .6 * (.5 + rnd() * .4); }
+    else if (kind === 'midi') { a = 0; }
+    else { a = .3 + rnd() * .5; }
+    a = Math.min(a, .98) * (mid - 1);
+    top.push(`${x},${(mid - a).toFixed(1)}`); bot.unshift(`${x},${(mid + a).toFixed(1)}`);
+  }
+  if (kind === 'midi') {
+    let s = `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">`;
+    const ps = [5, 3, 6, 4, 7, 3, 5, 2];
+    for (let x = 2, k = 0; x < w - 10; x += 16, k++) s += `<rect x="${x}" y="${h - 3 - ps[k % 8] * (h - 6) / 8}" width="12" height="3" rx="1" fill="${col}"/>`;
+    return s + '</svg>';
+  }
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polygon points="${top.concat(bot).join(' ')}" fill="${col}" opacity=".8"/></svg>`;
+}
+const play = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>';
+const stopI = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>';
+const nextI = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h12M13 7l5 5-5 5"/></svg>';
+const loopI = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 12a6 6 0 0 1 6-6h8M15 3l3 3-3 3M20 12a6 6 0 0 1-6 6H6M9 21l-3-3 3-3"/></svg>';
+
+const scenes = [['Intro', ''], ['Verse', 'playing'], ['Pre', 'next'], ['Chorus', ''], ['Break', ''], ['Bridge', ''], ['Last chorus', ''], ['Outro', '']];
+const cols = [
+  { n: 'Kick', c: 't1', k: 'kick', t: 'Audio', s: [['Kick A', '1 bar', 'loop'], ['Kick A', '1 bar', 'loop', 'playing', .62], ['Kick fill', '1 bar', 'next', 'queued'], ['Kick B', '2 bars', 'loop'], null, ['Kick end', '1 bar', ['Kick B', '2 bars', 'loop'], ['Kick B', '2 bars', 'loop'], 'stop']] },
+  { n: 'Snare', c: 't2', k: 'snare', t: 'Audio', s: [null, ['Snare A', '2 bars', 'loop', 'playing', .31], ['Roll', '1 bar', 'next'], ['Snare B', '2 bars', 'loop'], ['Clap', '1 bar', 'loop'], null, ['Snare B', '2 bars', 'loop'], null] },
+  { n: 'Bass', c: 't4', k: 'bass', t: 'Audio', s: [null, ['Bass verse', '4 bars', 'loop', 'playing', .45], ['Bass pre', '2 bars', 'next'], ['Bass chorus', '4 bars', 'loop'], null, ['Bass end', '1 bar', ['Bass bridge', '4 bars', 'next'], ['Bass chorus', '4 bars', 'loop'], 'stop']] },
+  { n: 'Keys', c: 't6', k: 'midi', t: 'MIDI', s: [['Pad intro', '8 bars', 'next'], null, ['Rhodes', '4 bars', 'loop'], ['Rhodes ch.', '4 bars', 'loop'], ['Pad break', '8 bars', 'loop'], ['Organ', '4 bars', 'next'], ['Rhodes ch.', '4 bars', 'loop'], null] },
+  { n: 'Vocal', c: 't8', k: 'vox', t: 'Audio', s: [null, ['Vox hook', '2 bars', 'next', 'playing sel', .78], null, ['Vox chorus', '4 bars', 'loop'], ['Vox chop', '1 bar', 'loop'], ['Vox bridge', '4 bars', 'next'], ['Vox chorus', '4 bars', 'loop'], null], m: 0 },
+  { n: 'Guitar', c: 't5', k: 'gtr', t: 'Audio', s: [['Gtr swell', '2 bars', 'stop'], null, null, ['Gtr chorus', '4 bars', 'loop'], null, ['Gtr outro', '4 bars', null, ['Gtr chorus', '4 bars', 'loop'], 'stop']], mute: 1 },
+  { n: 'FX', c: 't7', k: 'gtr', t: 'Audio', s: [['Riser', '4 bars', 'next'], null, ['Sweep', '2 bars', 'next'], null, ['Impact', '1 bar', 'stop'], ['Reverse', '1 bar', 'next'], null, null] },
+];
+const G = document.getElementById('grid');
+let html = '<div class="scenes"><div class="colhead">Scenes</div>';
+scenes.forEach(([n, st], i) => html += `<div class="scene ${st}"><div class="go">${play}</div><span class="nm">${n}</span><span class="key">${i + 1}</span></div>`);
+html += '<div class="colfoot"><div class="stopbtn" style="background:#4a2a2e;color:#ffb3b8"><i></i>Stop all</div><div style="height:26px"></div></div></div>';
+cols.forEach((c, ci) => {
+  while (c.s.length < scenes.length) c.s.push(null);
+  html += `<div class="col" style="--tc:var(--${c.c})"><div class="colhead" style="background:var(--${c.c})">${c.n}<small>${c.t}</small></div>`;
+  c.s.forEach((s, si) => {
+    if (!s) { html += `<div class="slot empty ${ci === 2 && si === 4 ? 'hover' : ''}">${ci === 2 && si === 4 ? '+ Drop or record' : ''}</div>`; return; }
+    const [nm, len, fol, st = '', prog = 0] = s;
+    const icon = st.includes('playing') ? play : (st.includes('queued') ? play : stopI);
+    const fi = fol === 'loop' ? loopI : (fol === 'next' ? nextI : stopI);
+    html += `<div class="slot clip ${st}"><div class="top"><span class="st">${icon}</span><span class="nm">${nm}</span><span class="meta">${len} ${fi}</span></div><div class="wave">${wave(130, 22, c.k, `var(--${c.c})`)}</div>${prog ? `<div class="prog" style="width:${prog * 100}%"></div>` : ''}${st.includes('queued') ? '<span class="badge">NEXT BAR</span>' : ''}</div>`;
+  });
+  const lv = [.7, .55, .6, 0, .75, 0, 0][ci];
+  html += `<div class="colfoot"><div class="stopbtn"><i></i>Stop</div><div class="mini"><div class="m"><i style="width:${lv * 100}%"></i></div><b class="${c.mute ? 'on' : ''}">M</b><b>S</b></div></div></div>`;
+});
+G.innerHTML = html;
+
+document.getElementById('pv').insertAdjacentHTML('beforeend', wave(1000, 132, 'vox', 'var(--t8)').replace('<svg ', '<svg style="opacity:.9" '));
+
+const lib = [
+  ['Drums', [['Breakbeat 96', '2 bars · 96 BPM', 'a'], ['Shaker loop', '1 bar · 120 BPM', 'a'], ['Tom fill', '1 bar · 120 BPM', 'a']]],
+  ['Bass', [['Sub pulse', '4 bars · 120 BPM', 'a'], ['Acid line', '2 bars · MIDI', 'm']]],
+  ['Vocals', [['Vox hook', '2 bars · 96 BPM', 'a', 'on'], ['Breath chops', '1 bar · 120 BPM', 'a']]],
+];
+const ai = '<svg class="i" viewBox="0 0 24 24"><path d="M2 12h3l2-6 3 12 3-9 2 3h7"/></svg>';
+const mi = '<svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 5v8M12 5v8M16 5v8"/></svg>';
+const pvI = '<svg class="i" viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6L8 10z"/></svg>';
+document.getElementById('liblist').innerHTML = lib.map(([h, items]) => `<h4>${h}<span>${items.length}</span></h4>` + items.map(([n, m, k, on]) => `<div class="li ${on || ''}"><span class="ic">${k === 'm' ? mi : ai}</span><span class="t"><b>${n}</b><small>${m}</small></span><span class="pv">${pvI}</span></div>`).join('')).join('');
+</script>
+
+<div class="co">
+  <div class="callout" style="left:110px;top:104px">1</div>
+  <div class="callout" style="left:142px;top:190px">2</div>
+  <div class="callout" style="left:460px;top:376px">3</div>
+  <div class="callout" style="left:142px;top:646px">4</div>
+  <div class="callout" style="left:546px;top:30px">5</div>
+  <div class="callout" style="left:8px;top:650px">6</div>
+  <div class="callout" style="left:246px;top:768px">7</div>
+  <div class="callout" style="left:384px;top:740px">8</div>
+  <div class="callout" style="left:1090px;top:730px">9</div>
+  <div class="callout" style="left:1392px;top:94px">10</div>
+</div>
+</body></html>
