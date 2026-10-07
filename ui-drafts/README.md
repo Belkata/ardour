@@ -71,7 +71,8 @@ Scope agreed: colors + layout, with Inter as the UI font.
 | Mixer: quieter plugin colors | Done | pre/post-fader distinction kept, softened |
 | Quick-add "Record from" input picker | Not done | inputs follow the auto-connect preference; use "More options…" |
 | Clips page: clip tiles tinted by clip color | Done | stronger tint while playing, readable white names |
-| Clips page: play / queued / selected states | Done | outline in clip color / amber / white; green launch icon while playing |
+| Clips page: play / queued / selected states | Done | outline in clip color / amber / white; green launch icon while playing; queued clips waiting behind a playing clip are outlined too |
+| Track colors used widely | Done | distinct default palette; faders, mixer headers and Clips-page gain sliders in the track color; master stays neutral |
 | Clips page: progress bar on playing clip | Done | thin bar along the bottom of the tile |
 | Clips page: plain-language launch options | Done | "Play / Retrigger / Hold / Toggle / Repeat", "Start on", tooltips explain each |
 | Clips page: follow actions as words | Partly | options read "Play next clip", "Play again", ...; the panel is relabelled ("When the clip ends", "Then act after"), not rebuilt as one sentence |
@@ -81,5 +82,8 @@ Scope agreed: colors + layout, with Inter as the UI font.
 ## Screenshots and handoff
 
 - `screenshots/before/` – stock Ardour (this repo, before the redesign), captured with
-  `tools/ui-qa/screenshots/shoot.sh . before`. Put the redesign's shots in `screenshots/after/`.
+  `tools/ui-qa/screenshots/shoot.sh . before`.
+- `screenshots/after/` – the redesign build, same demo session (`editor`, `mixer`, `cues`,
+  plus `cues-playing` / `cues-queued` clip states).
+- `screenshots/before-after.png` – the three pages side by side.
 - `HANDOFF.md` – status, decisions, next steps for continuing in a new session.
