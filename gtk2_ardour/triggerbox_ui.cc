@@ -66,6 +66,9 @@ using namespace ArdourCanvas;
 using namespace Gtkmm2ext;
 using namespace PBD;
 
+/** Trigger's initial color (see ARDOUR::Trigger), i.e. "no color chosen" */
+static const Gtkmm2ext::Color default_clip_color = 0xBEBEBEFF;
+
 /** blend color a over b in RGB; amt is the weight of a */
 static Gtkmm2ext::Color
 tile_mix (Gtkmm2ext::Color a, Gtkmm2ext::Color b, double amt)
@@ -202,7 +205,8 @@ TriggerEntry::owner_prop_change (PropertyChange const& pc)
 void
 TriggerEntry::owner_color_changed ()
 {
-	// TODO
+	/* clips without their own color are drawn in the track color */
+	set_widget_colors ();
 }
 
 void
@@ -619,10 +623,20 @@ TriggerEntry::set_widget_colors (TriggerEntry::EnteredState es)
 {
 	color_t bg_col = bg_color ();
 
+	/* a clip's color, or its track's color while the clip still has
+	 * the default (unset) color */
+	color_t clip_col = trigger ()->color ();
+	if (clip_col == default_clip_color) {
+		Stripable* owner = dynamic_cast<Stripable*> (tref.box ()->owner ());
+		if (owner) {
+			clip_col = owner->presentation_info ().color ();
+		}
+	}
+
 	/* clips are tinted with their color, stronger while playing; empty
 	 * slots keep the plain (darker) background */
 	if (trigger ()->playable ()) {
-		bg_col = tile_mix (trigger ()->color (), bg_col, trigger ()->active () ? 0.42 : 0.24);
+		bg_col = tile_mix (clip_col, bg_col, trigger ()->active () ? 0.42 : 0.24);
 	}
 	set_fill_color (bg_col);
 
@@ -650,7 +664,7 @@ TriggerEntry::set_widget_colors (TriggerEntry::EnteredState es)
 	} else if (queued) {
 		_state_outline = UIConfiguration::instance ().color ("theme:contrasting alt");
 	} else if (trigger ()->active ()) {
-		_state_outline = trigger ()->color ();
+		_state_outline = clip_col;
 	} else {
 		_has_state_outline = false;
 	}

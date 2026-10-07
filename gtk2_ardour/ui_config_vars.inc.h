@@ -130,7 +130,7 @@ UI_CONFIG_VARIABLE (uint32_t, action_table_columns, "action-table-columns", 3)
 UI_CONFIG_VARIABLE (bool, hide_splash_screen, "hide-splash-screen", true)
 UI_CONFIG_VARIABLE (bool, check_announcements, "check-announcements", true)
 UI_CONFIG_VARIABLE (bool, use_wm_visibility, "use-wm-visibility", true)
-UI_CONFIG_VARIABLE (std::string, stripable_color_palette, "stripable-color-palette", "#AA3939:#FFAAAA:#D46A6A:#801515:#550000:#AA8E39:#FFEAAA:#D4BA6A:#806515:#554000:#343477:#8080B3:#565695:#1A1A59:#09093B:#2D882D:#88CC88:#55AA55:#116611:#004400")  /* Gtk::ColorSelection::palette_to_string */
+UI_CONFIG_VARIABLE (std::string, stripable_color_palette, "stripable-color-palette", "#E0715F:#E3A253:#CFC45C:#69BD7B:#57B4C8:#7A8EE6:#B07CE0:#DC7AA8:#B4513F:#B87E35:#A39A3C:#4A9A5C:#3C8FA2:#5A6CC0:#8B5BBA:#B45A84:#8A93A3:#D9B38C:#4FB3A4:#9CC75A")  /* Gtk::ColorSelection::palette_to_string; new tracks cycle through it from the start */
 UI_CONFIG_VARIABLE (bool, use_palette_for_new_track, "use-palette-for-new-track", true)
 UI_CONFIG_VARIABLE (bool, use_palette_for_new_bus, "use-palette-for-new-bus", true)
 UI_CONFIG_VARIABLE (bool, use_palette_for_new_vca, "use-palette-for-new-vca", true)

@@ -465,10 +465,6 @@ Editor::Editor ()
 	_group_tabs = new EditorGroupTabs (*this);
 	controls_layout.add (edit_controls_vbox);
 
-	if (UIConfiguration::instance().get_render_plus_hints ()) {
-		controls_layout.signal_expose_event ().connect (sigc::bind (sigc::ptr_fun (&ArdourWidgets::ArdourIcon::expose_with_text), &controls_layout, ArdourWidgets::ArdourIcon::ShadedPlusSign, _("Right-click\nor Double-click here\nto add Track, Bus,\n or VCA.")));
-	}
-
 	/* "+ Add track" row, directly below the last track header */
 	_add_track_row_button.set_name ("add track row button");
 	_add_track_row_button.set_text (_("Add Track"));
@@ -2321,7 +2317,8 @@ Editor::set_state (const XMLNode& node, int version)
 	node.get_property ("stationary-playhead", yn);
 	set_stationary_playhead (yn);
 
-	yn = true;
+	/* defaults for new sessions: no editor-mixer strip, editor list shown */
+	yn = false;
 	node.get_property ("show-editor-mixer", yn);
 	/* force a change to sync action state and actual attachment visibility.
 	 * Otherwise after creating a new session from a running instance
@@ -2331,7 +2328,7 @@ Editor::set_state (const XMLNode& node, int version)
 	show_editor_mixer_action->set_active (!yn);
 	show_editor_mixer_action->set_active (yn);
 
-	yn = false;
+	yn = true;
 	node.get_property ("show-editor-list", yn);
 	show_editor_list_action->set_active (!yn); // ditto
 	show_editor_list_action->set_active (yn);

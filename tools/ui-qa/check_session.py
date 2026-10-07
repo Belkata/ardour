@@ -54,6 +54,8 @@ def main():
     check(not crit, "no GTK/GLib CRITICAL messages%s" % ((" (%d, first: %s)" % (len(crit), crit[0])) if crit else ""))
     check("QA: script done" in text, "QA Lua script ran to completion")
     check("Unable to find UI style file" not in text, "UI style (rc) file found")
+    missing_fonts = sorted(set(re.findall(r"Cannot find (\S+) (?:TrueType )?font", text)))
+    check(not missing_fonts, "bundled fonts found %s" % (missing_fonts or ""))
 
     failed = sum(1 for ok, _ in results if not ok)
     print("\n%d check(s), %d failed" % (len(results), failed))
