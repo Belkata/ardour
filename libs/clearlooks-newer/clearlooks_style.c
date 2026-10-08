@@ -1501,7 +1501,11 @@ clearlooks_style_draw_layout (GtkStyle * style,
 		etched.green = (int) (temp.g * 65535);
 		etched.blue = (int) (temp.b * 65535);
 
-		gdk_draw_layout_with_colors (window, gc, x + 1, y + 1, layout, &etched, NULL);
+		/* the light "etched" copy only reads as an emboss on light
+		 * backgrounds; on dark themes it just blurs the dimmed text */
+		if (temp.r * 0.299 + temp.g * 0.587 + temp.b * 0.114 > 0.5) {
+			gdk_draw_layout_with_colors (window, gc, x + 1, y + 1, layout, &etched, NULL);
+		}
 		gdk_draw_layout (window, gc, x, y, layout);
 	}
 	else

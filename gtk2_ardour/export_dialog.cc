@@ -42,6 +42,7 @@
 #include "ardour/export_handler.h"
 #include "ardour/profile.h"
 
+#include "dialog_buttons.h"
 #include "export_dialog.h"
 #include "export_report.h"
 #include "gui_thread.h"
@@ -157,6 +158,7 @@ ExportDialog::init ()
 	cancel_button = add_button (Gtk::Stock::CANCEL, RESPONSE_CANCEL);
 	analyze_button = add_button (_("Only Analyze"), RESPONSE_ANALYZE);
 	export_button = add_button (_("Export"), RESPONSE_FAST);
+	ArdourDialogButtons::set_primary (*export_button);
 
 	set_default_response (RESPONSE_FAST);
 

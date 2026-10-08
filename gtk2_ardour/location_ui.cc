@@ -58,10 +58,10 @@ LocationEditRow::LocationEditRow(Session * sess, Location * loc, int32_t num)
 	, location(0)
 	, item_table (1, 6, false)
 	, start_clock (X_("locationstart"), true, "", true, false)
-	, start_to_playhead_button (_("Use PH"))
+	, start_to_playhead_button (_("Use Playhead"))
 	, locate_to_start_button (_("Goto"))
 	, end_clock (X_("locationend"), true, "", true, false)
-	, end_to_playhead_button (_("Use PH"))
+	, end_to_playhead_button (_("Use Playhead"))
 	, locate_to_end_button (_("Goto"))
 	, length_clock (X_("locationlength"), true, "", true, false, true)
 	, cd_check_button (_("CD"))
@@ -1210,6 +1210,11 @@ LocationUIWindow::LocationUIWindow ()
 {
 	set_wmclass(X_("ardour_locations"), PROGRAM_NAME);
 	set_name ("LocationWindow");
+
+	/* room for a full range row (name, start/end/length clocks, flags);
+	 * the natural size request is just a narrow column */
+	float const scale = UIConfiguration::instance ().get_ui_scale ();
+	set_default_size (960 * scale, 640 * scale);
 
 	add (_ui);
 }

@@ -166,8 +166,16 @@ AudioClock::on_realize ()
 
 	set_clock_dimensions (req);
 
+	/* the size requested before realize was measured with the font of an
+	 * unrealized stand-in widget, which can differ from ours: ask again */
+	bool const changed = (req.width != first_width || req.height != first_height);
+
 	first_width = req.width;
 	first_height = req.height;
+
+	if (changed) {
+		queue_resize ();
+	}
 
 	set_colors ();
 }
@@ -2375,6 +2383,13 @@ AudioClock::on_style_changed (const Glib::RefPtr<Gtk::Style>& old_style)
 
 	Gtk::Requisition req;
 	set_clock_dimensions (req);
+
+	if (first_width) {
+		/* the font changed after realize: ask for the new size, or the
+		 * text overflows the (cached) old one and is clipped */
+		first_width = req.width;
+		first_height = req.height;
+	}
 
 	/* set-colors also sets up font-attributes */
 	set_colors ();

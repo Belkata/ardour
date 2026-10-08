@@ -229,16 +229,16 @@ ARDOUR_UI::install_actions ()
 	                                      hide_return (sigc::bind (sigc::mem_fun(*this, &ARDOUR_UI::export_video), false)));
 	ActionManager::session_sensitive_actions.push_back (act);
 
-	act = ActionManager::register_action (main_actions, X_("SnapshotStay"), _("Snapshot (& keep working on current version) ..."), sigc::bind (sigc::mem_fun(*this, &ARDOUR_UI::snapshot_session), false));
+	act = ActionManager::register_action (main_actions, X_("SnapshotStay"), _("Save Snapshot (Keep Working Here)..."), sigc::bind (sigc::mem_fun(*this, &ARDOUR_UI::snapshot_session), false));
 	ActionManager::session_sensitive_actions.push_back (act);
 
-	act = ActionManager::register_action (main_actions, X_("SnapshotSwitch"), _("Snapshot (& switch to new version) ..."), sigc::bind (sigc::mem_fun(*this, &ARDOUR_UI::snapshot_session), true));
+	act = ActionManager::register_action (main_actions, X_("SnapshotSwitch"), _("Save Snapshot and Switch to It..."), sigc::bind (sigc::mem_fun(*this, &ARDOUR_UI::snapshot_session), true));
 	ActionManager::session_sensitive_actions.push_back (act);
 
-	act = ActionManager::register_action (main_actions, X_("QuickSnapshotStay"), _("Quick Snapshot (& keep working on current version) ..."), sigc::bind (sigc::mem_fun(*this, &ARDOUR_UI::quick_snapshot_session), false));
+	act = ActionManager::register_action (main_actions, X_("QuickSnapshotStay"), _("Quick Snapshot (Keep Working Here)"), sigc::bind (sigc::mem_fun(*this, &ARDOUR_UI::quick_snapshot_session), false));
 	ActionManager::session_sensitive_actions.push_back (act);
 
-	act = ActionManager::register_action (main_actions, X_("QuickSnapshotSwitch"), _("Quick Snapshot (& switch to new version) ..."), sigc::bind (sigc::mem_fun(*this, &ARDOUR_UI::quick_snapshot_session), true));
+	act = ActionManager::register_action (main_actions, X_("QuickSnapshotSwitch"), _("Quick Snapshot and Switch to It"), sigc::bind (sigc::mem_fun(*this, &ARDOUR_UI::quick_snapshot_session), true));
 	ActionManager::session_sensitive_actions.push_back (act);
 	ActionManager::write_sensitive_actions.push_back (act);
 
@@ -593,11 +593,11 @@ ARDOUR_UI::install_dependent_actions ()
 	   - otherwise do nothing
 	*/
 
-	act = ActionManager::register_action (transport_actions, X_("TransitionToRoll"), _("Transition to Roll"), sigc::bind (sigc::mem_fun (*editor, &PublicEditor::transition_to_rolling), true));
+	act = ActionManager::register_action (transport_actions, X_("TransitionToRoll"), _("Play Forward"), sigc::bind (sigc::mem_fun (*editor, &PublicEditor::transition_to_rolling), true));
 	ActionManager::session_sensitive_actions.push_back (act);
 	ActionManager::transport_sensitive_actions.push_back (act);
 
-	act = ActionManager::register_action (transport_actions, X_("TransitionToReverse"), _("Transition to Reverse"), sigc::bind (sigc::mem_fun (*editor, &PublicEditor::transition_to_rolling), false));
+	act = ActionManager::register_action (transport_actions, X_("TransitionToReverse"), _("Play Backward"), sigc::bind (sigc::mem_fun (*editor, &PublicEditor::transition_to_rolling), false));
 	ActionManager::session_sensitive_actions.push_back (act);
 	ActionManager::transport_sensitive_actions.push_back (act);
 
@@ -824,11 +824,69 @@ ARDOUR_UI::setup_action_tooltips ()
 	ActionManager::get_action (X_("Monitor Section"), X_("monitor-cut-all"))->set_tooltip (_("Monitor section mute output"));
 }
 
+static bool
+tabbable_on_screen (ArdourWidgets::Tabbable* t)
+{
+	if (!t) {
+		return false;
+	}
+	if (!t->tabbed ()) {
+		return t->window_visible ();
+	}
+	Gtk::Notebook& tabs (ARDOUR_UI::instance ()->tabs ());
+	return tabs.get_nth_page (tabs.get_current_page ()) == &t->contents ();
+}
+
+/* View menu: the Editor, Clips page and Mixer each have their own pane
+ * toggles with the same shortcuts (Shift+L, Shift+P ..). Only list those
+ * of the pages that are on screen. The actions stay active, so key
+ * bindings are not affected.
+ */
+static void
+update_view_menu_pane_items ()
+{
+	struct PaneItems {
+		ArdourWidgets::Tabbable* page;
+		char const*              group;
+		std::vector<char const*> actions;
+	};
+
+	ARDOUR_UI* ui = ARDOUR_UI::instance ();
+
+	PaneItems const items[] = {
+		{ &ui->the_editor (),     X_("Editor"), { X_("show-editor-mixer"), X_("show-editor-list"), X_("show-editor-props") } },
+		{ ui->the_trigger_page (), X_("Cues"),   { X_("ToggleTriggerList"), X_("ToggleTriggerProps") } },
+		{ ui->the_mixer (),        X_("Mixer"),  { X_("ToggleMixerList"), X_("ToggleMixerProps"), X_("ToggleVCAPane"), X_("ToggleMixbusPane"), X_("ToggleMonitorSection"), X_("ToggleFoldbackStrip") } },
+	};
+
+	bool any = false;
+	for (auto const& i : items) {
+		any |= tabbable_on_screen (i.page);
+	}
+
+	for (auto const& i : items) {
+		/* none of these pages on screen (e.g. the Recorder): list everything */
+		bool const show = !any || tabbable_on_screen (i.page);
+		for (auto const& a : i.actions) {
+			Glib::RefPtr<Action> act = ActionManager::get_action (i.group, a, false);
+			if (act) {
+				act->set_visible (show);
+			}
+		}
+	}
+}
+
 void
 ARDOUR_UI::build_menu_bar ()
 {
 	menu_bar = dynamic_cast<MenuBar*> (ActionManager::get_widget (X_("/Main")));
 	menu_bar->set_name ("MainMenuBar");
+
+	/* list only the pane toggles of the pages on screen */
+	MenuItem* view_item = dynamic_cast<MenuItem*> (ActionManager::get_widget (X_("/Main/View")));
+	if (view_item && view_item->get_submenu ()) {
+		view_item->get_submenu ()->signal_show ().connect (sigc::ptr_fun (&update_view_menu_pane_items));
+	}
 
 	EventBox* ev = manage (new EventBox);
 	ev->set_name ("MainMenuBar");

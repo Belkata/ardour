@@ -87,11 +87,11 @@ SessionOptionEditor::SessionOptionEditor (Session* s)
 	_vpu->add (-4.1667 - 0.1, _("-4.1667 - 0.1%"));
 
 	add_option (_("Timecode"), _vpu);
-	add_option (_("Timecode"), new OptionEditorHeading (_("Ext Timecode Offsets")));
+	add_option (_("Timecode"), new OptionEditorHeading (_("External Timecode Offsets")));
 
 	ClockOption* sco = new ClockOption (
 		"slave-timecode-offset",
-		_("Slave Timecode offset"),
+		_("Incoming Timecode offset"),
 		sigc::mem_fun (*_session_config, &SessionConfiguration::get_slave_timecode_offset),
 		sigc::mem_fun (*_session_config, &SessionConfiguration::set_slave_timecode_offset)
 		);

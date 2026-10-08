@@ -1943,15 +1943,33 @@ clearlooks_draw_radiobutton (cairo_t *cr,
 	inconsistent = (checkbox->shadow_type == (ClearlooksShadowType)GTK_SHADOW_ETCHED_IN);
 	draw_bullet |= inconsistent;
 
+	CairoColor visible_border;
+	CairoColor dimmed;
+
+	/* see clearlooks_draw_checkbox: keep empty indicators visible on dark themes */
+	ge_mix_color (&colors->text[GTK_STATE_NORMAL], &colors->bg[GTK_STATE_NORMAL], 0.6, &dimmed);
+	ge_mix_color (&colors->text[GTK_STATE_NORMAL], &colors->shade[6], 0.55, &visible_border);
+
 	if (widget->disabled)
 	{
 		border = &colors->shade[5];
-		dot    = &colors->shade[6];
+		dot    = &dimmed;
 	}
 	else
 	{
-		border = &colors->shade[6];
+		border = &visible_border;
 		dot    = &colors->text[0];
+	}
+
+	if (checkbox->in_menu) {
+		/* menus: a plain dot for the active choice, nothing otherwise */
+		if (draw_bullet && !inconsistent) {
+			cairo_translate (cr, x, y);
+			cairo_arc (cr, width * 0.5, height * 0.5, 3, 0, G_PI*2);
+			ge_cairo_set_color (cr, dot);
+			cairo_fill (cr);
+		}
+		return;
 	}
 
 	ge_shade_color (&widget->parentbg, 0.9, &shadow);
@@ -2025,23 +2043,44 @@ clearlooks_draw_checkbox (cairo_t *cr,
 	inconsistent = (checkbox->shadow_type == (ClearlooksShadowType)GTK_SHADOW_ETCHED_IN);
 	draw_bullet |= inconsistent;
 
+	CairoColor dimmed;
+
+	/* on dark themes shade[5..6] are darker than the background, which made
+	 * empty boxes and disabled check marks invisible: mix in the text color */
+	ge_mix_color (&colors->text[GTK_STATE_NORMAL], &colors->bg[GTK_STATE_NORMAL], 0.6, &dimmed);
+
 	if (widget->disabled)
 	{
 		border = colors->shade[5];
-		dot    = &colors->shade[6];
+		dot    = &dimmed;
 	}
 	else
 	{
 		if (checkbox->in_cell) {
 			ge_mix_color (&colors->text[GTK_STATE_NORMAL], &colors->shade[6], 0.7, &border);
 		} else {
-			border = colors->shade[6];
+			ge_mix_color (&colors->text[GTK_STATE_NORMAL], &colors->shade[6], 0.55, &border);
 		}
 		dot    = &colors->text[GTK_STATE_NORMAL];
 	}
 
 	cairo_translate (cr, x, y);
 	cairo_set_line_width (cr, 1);
+
+	if (checkbox->in_menu) {
+		/* menus: a plain check mark when active, nothing otherwise */
+		if (draw_bullet && !inconsistent) {
+			cairo_set_line_width (cr, 1.7);
+			cairo_move_to (cr, 0.5 + (width*0.2), (height*0.5));
+			cairo_line_to (cr, 0.5 + (width*0.4), (height*0.7));
+			cairo_curve_to (cr, 0.5 + (width*0.4), (height*0.7),
+			                    0.5 + (width*0.5), (height*0.4),
+			                    0.5 + (width*0.70), (height*0.25));
+			ge_cairo_set_color (cr, dot);
+			cairo_stroke (cr);
+		}
+		return;
+	}
 
 	if (widget->xthickness > 2 && widget->ythickness > 2)
 	{

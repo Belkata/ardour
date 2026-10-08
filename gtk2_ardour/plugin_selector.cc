@@ -54,6 +54,7 @@
 #include "ardour/rc_configuration.h"
 
 #include "ardour_message.h"
+#include "dialog_buttons.h"
 #include "plugin_scan_dialog.h"
 #include "plugin_selector.h"
 #include "ardour_ui.h"
@@ -123,6 +124,20 @@ PluginSelector::PluginSelector (PluginManager& mgr)
 	plugin_display.append_column (_("Type"), plugin_columns.type_name);
 	plugin_display.append_column (_("Audio I/O"),plugin_columns.audio_io);
 	plugin_display.append_column (_("MIDI I/O"), plugin_columns.midi_io);
+	{
+		/* the list's cells otherwise use the toolkit's (larger) default font */
+		Pango::FontDescription const fd = ARDOUR_UI_UTILS::get_font_for_style (X_("PluginSelectorDisplay"));
+		std::vector<Gtk::TreeViewColumn*> columns = plugin_display.get_columns ();
+		for (auto const& col : columns) {
+			std::vector<Gtk::CellRenderer*> cells = col->get_cell_renderers ();
+			for (auto const& c : cells) {
+				Gtk::CellRendererText* t = dynamic_cast<Gtk::CellRendererText*> (c);
+				if (t) {
+					t->property_font_desc () = fd;
+				}
+			}
+		}
+	}
 	plugin_display.set_headers_visible (true);
 	plugin_display.set_headers_clickable (true);
 	plugin_display.set_reorderable (false);
@@ -344,7 +359,7 @@ PluginSelector::PluginSelector (PluginManager& mgr)
 	table->attach (*to_be_inserted_vbox,   2, 3, 6, 8, FILL|EXPAND, FILL, 5, 5); /* to be inserted... */
 
 	add_button (Stock::CLOSE, RESPONSE_CLOSE);
-	add_button (_("Insert Plugin(s)"), RESPONSE_APPLY);
+	ArdourDialogButtons::set_primary (*add_button (_("Insert Plugin(s)"), RESPONSE_APPLY));
 	set_default_response (RESPONSE_APPLY);
 	set_response_sensitive (RESPONSE_APPLY, false);
 	get_vbox()->pack_start (*table);
@@ -739,9 +754,7 @@ PluginSelector::btn_remove_clicked()
 	TreeModel::iterator iter = added_list.get_selection()->get_selected();
 
 	amodel->erase(iter);
-	if (amodel->children().empty()) {
-		set_response_sensitive (RESPONSE_APPLY, false);
-	}
+	update_insert_sensitivity ();
 }
 
 void
@@ -767,6 +780,14 @@ PluginSelector::display_selection_changed()
 		btn_add->set_sensitive (false);
 	}
 	tag_entry_connection.unblock ();
+	update_insert_sensitivity ();
+}
+
+void
+PluginSelector::update_insert_sensitivity ()
+{
+	/* "Insert" also works directly on the selected plugin, without "Add" first */
+	set_response_sensitive (RESPONSE_APPLY, !amodel->children().empty() || plugin_display.get_selection()->count_selected_rows() != 0);
 }
 
 int
@@ -803,6 +824,10 @@ PluginSelector::run ()
 
 		switch (r) {
 		case RESPONSE_APPLY:
+			if (amodel->children().empty()) {
+				/* nothing queued: insert the plugin selected in the list */
+				btn_add_clicked ();
+			}
 			for (i = amodel->children().begin(); i != amodel->children().end(); ++i) {
 				PluginInfoPtr pp = (*i)[acols.plugin];
 				PluginPtr p = load_plugin (pp);

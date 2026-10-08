@@ -73,6 +73,7 @@
 #include "ardour/profile.h"
 
 #include "ardour_ui.h"
+#include "dialog_buttons.h"
 #include "editing.h"
 #include "gui_thread.h"
 #include "sfdb_ui.h"
@@ -881,6 +882,7 @@ SoundFileBrowser::SoundFileBrowser (string title, ARDOUR::Session* s, bool persi
 	button_box->set_layout (BUTTONBOX_END);
 
 	button_box->pack_start (import_button, false, false);
+	ArdourDialogButtons::set_primary (import_button);
 	import_button.signal_clicked().connect (sigc::bind (sigc::mem_fun (*this, &SoundFileBrowser::do_something), RESPONSE_OK));
 
 	Gtkmm2ext::UI::instance()->set_tip (import_button, _("Press to import selected files"));

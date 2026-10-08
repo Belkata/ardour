@@ -11,6 +11,8 @@ to build, run headless and test.
 | [#1](https://github.com/Belkata/ardour/pull/1) | `9afe9e82` | the redesign, rounds 1–4 |
 | [#2](https://github.com/Belkata/ardour/pull/2) | `ea1f697` | this handoff |
 | [#3](https://github.com/Belkata/ardour/pull/3) | `79d6274` | round 5: top bar in one row, Quick Add "Record from" |
+| [#4](https://github.com/Belkata/ardour/pull/4) | `b53c75f` | handoff after round 5; Quick Add input picker QA script |
+| [#5](https://github.com/Belkata/ardour/pull/5) | (squash) | round 6: menus, dialogs and windows; this handoff update |
 
 It sits on top of upstream `608f15a4` (the fork point); `git diff 608f15a4 master`
 shows the whole redesign.
@@ -105,9 +107,39 @@ The user found the top bar "confusing and a bit messy"; draft 09 was approved as
 ## Current state / where it stopped
 
 A working prototype, merged. Iteration loop (draft → approve → implement → build →
-QA → screenshot → fix), rounds 1–5. Round 5 builds; `run_static.sh` and `run_gui.sh`
-pass (smoke 10/10, picker, colors, clip states, 150 %). Screenshots: `screenshots/after/`,
-`screenshots/before-after.png`, `screenshots/topbar-before-after.png`.
+QA → screenshot → fix), rounds 1–6, all merged. Round 6 builds; `run_static.sh` and
+`run_gui.sh` pass (smoke 10/10, picker, colors, clip states, 150 %). Screenshots:
+`screenshots/after/`, `screenshots/before-after.png`, `screenshots/topbar-before-after.png`,
+`screenshots/menus-dialogs-before-after.png`.
+
+Round 6 (PR #5): fixes from a tour
+of every menu and dialog, sheet in `screenshots/menus-dialogs-before-after.png`.
+`run_static.sh` and `run_gui.sh` pass. Details worth knowing:
+
+- Widget drawing lives in `libs/clearlooks-newer` (a GTK engine, shared by all themes):
+  checkbox/radio borders mix in the text color; menus draw only a check mark (no box);
+  the "etched" copy of insensitive text is skipped on dark backgrounds.
+  `fg[INSENSITIVE]` in `clearlooks.rc.in` is a mix of fg and bg.
+- **Fonts:** rc `font_name` reaches labels and named widgets, but drop-downs
+  (`GtkComboBox` → `GtkCellView`), tree views and unnamed custom widgets end up with
+  the toolkit default "Sans 10" (larger than the UI's Inter 8). A rule like
+  `widget "*OptionsNotebook*"` does *not* fix the combos. What works: set the cell
+  renderers' `font_desc` (see `match_combo_fonts()` in `option_editor.cc`, the plugin list
+  in `plugin_selector.cc`). Setting `gtk-font-name` globally would also work but
+  shrinks many redesigned buttons, so it was not done.
+- `AudioClock` measures its size before realize with a stand-in label's font; it now
+  asks for a relayout in `on_realize()` when the real font gives a different size
+  (that was the clipped "0:00:00:0" in Session Properties / Locations).
+- Dialog buttons: `dialog_buttons.{h,cc}` — `plain_buttons()` (drops stock icons, called
+  from `ArdourDialog::on_show` and `ArdourMessageDialog::run/show`) and `set_primary()`
+  (rc style `primary_dialog_button`, accent fill).
+- View menu: `update_view_menu_pane_items()` in `ardour_ui_ed.cc` hides the pane toggles
+  of pages that are not on screen when the menu opens (actions and shortcuts unchanged).
+- Selected regions: background blended 60 % towards `selected region base`, waveform
+  keeps its track tint (`audio_region_view.cc`, `midi_region_view.cc`,
+  `time_axis_view_item.cc`).
+- Not done: Preferences sidebar is still larger than the page text (reads as navigation);
+  other tree views (editor list, etc.) still use the default font.
 
 Round 5 details worth knowing:
 
@@ -157,6 +189,9 @@ the queued state immediately.
    - bottom status bar
    - editor tool row (Edit mode, tools, Snap) merged into the top bar as in draft 02 (not requested yet)
    - Windows Inter registration (`bundle_env_mingw.cc`; falls back to the system font)
+   - left over from round 6: Preferences sidebar text larger than the page text; other
+     tree views (editor list, etc.) still in the toolkit default font (see the round 6
+     font notes above for the fix pattern)
 2. For any change: build, `tools/ui-qa/run_static.sh`, `tools/ui-qa/run_gui.sh`, and
    compare screenshots with `ui-drafts/screenshots/after/` (`visual_diff.sh`). Refresh
    the after shots and `before-after.png` when the look changes.
@@ -172,6 +207,9 @@ with side-by-side images and let the user choose what to close next.
 ## Environment notes (cloud container)
 
 - apt downloads stall; use `tools/ui-qa/install_deps.sh`.
+- If `git describe` names `fork-point` instead of `9.0-…`, the build fails in
+  `set_version`; make the local `fork-point` tag lightweight (`git tag -f fork-point 608f15a4`)
+  so `git describe` (annotated tags only) finds `9.0`.
 - No git tags in the shallow clone; configure needs `git describe` → local annotated tag
   (see `CLAUDE.md`), never pushed.
 - Don't use `pkill -f <pattern>`/`rm` with globs in compound shell commands: `pkill -f`
