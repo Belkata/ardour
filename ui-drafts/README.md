@@ -91,4 +91,14 @@ Scope agreed: colors + layout, with Inter as the UI font.
   plus `cues-playing` / `cues-queued` clip states).
 - `screenshots/before-after.png` – the three pages side by side.
 - `screenshots/topbar-before-after.png` – the top bar before/after round 5.
+
+Rebuild `before-after.png` after refreshing `screenshots/after/`:
+
+```sh
+cd ui-drafts/screenshots && montage -background '#111215' -fill '#b6bbc4' -pointsize 16 \
+  -label 'Before: editor' before/editor.png -label 'After: editor' after/editor.png \
+  -label 'Before: mixer' before/mixer.png -label 'After: mixer' after/mixer.png \
+  -label 'Before: Clips' before/cues.png -label 'After: Clips' after/cues.png \
+  -tile 2x3 -geometry 840x525+0+0 -depth 8 before-after.png
+```
 - `HANDOFF.md` – status, decisions, next steps for continuing in a new session.
