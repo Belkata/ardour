@@ -202,6 +202,19 @@ Result: `screenshots/round10-before-after.png`. `run_static.sh` and `run_gui.sh`
 Follow-ups: editor list (right sidebar) now opens narrower, so In/R/RS columns are scrolled
 off; "DSP  9%" has a padded number; green tint for send rows (new `processor send` style);
 the status bar's left labels still say "Record time left:", "I/O Latency:", "PDC:".
+(All four fixed in round 11.)
+
+### Round 11 (branch `claude/round11`, merged into `master`)
+
+| Change | Files |
+|---|---|
+| Round 10 follow-ups: "DSP 9%" unpadded with a fixed width; status bar "Rec …", "Latency …", "PDC …" with tooltips; editor list Name column min 50 px and a wider default sidebar (all state columns visible); green `processor send` style for send rows (falls back when a theme lacks it) | `ardour_ui.cc`, `ardour_ui_ed.cc`, `editor.cc`, `route_list_base.cc`, `processor_box.cc`, `clearlooks.rc.in`, `modern-ardour.colors` |
+| Region name bar at the **top** of regions (like Live/Bitwig/Logic/Cubase). `TimeAxisViewItem::_content_group` holds the region content and is translated down by `NAME_HIGHLIGHT_SIZE` when the bar shows, so content keeps its `[0, _effective_height]` coordinates; `MidiStreamView::y_position ()` and the note lines include the offset; `content_rect ()` is the base rect for freehand automation draws | `time_axis_view_item.{h,cc}`, `region_view.cc`, `audio_region_view.cc`, `midi_region_view.cc`, `automation_region_view.cc`, `midi_streamview.{h,cc}`, `editor_mouse.cc` |
+
+Not verified by mouse (headless): gain line / fade / MIDI note / velocity drags, note
+creation, freehand automation draw, MIDI CC (automation) regions, ghost regions.
+Possible edge case: on tracks shorter than `NAME_HIGHLIGHT_THRESH` regions have no bar
+(offset 0) but `MidiStreamView::y_position ()` still adds the bar height.
 
 ## Current state / where it stopped
 
