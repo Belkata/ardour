@@ -148,6 +148,7 @@
 #include "plugin_setup_dialog.h"
 #include "public_editor.h"
 #include "quantize_dialog.h"
+#include "quick_add_route.h"
 #include "region_peak_cursor.h"
 #include "region_layering_order_editor.h"
 #include "rgb_macros.h"
@@ -464,9 +465,20 @@ Editor::Editor ()
 	_group_tabs = new EditorGroupTabs (*this);
 	controls_layout.add (edit_controls_vbox);
 
-	if (UIConfiguration::instance().get_render_plus_hints ()) {
-		controls_layout.signal_expose_event ().connect (sigc::bind (sigc::ptr_fun (&ArdourWidgets::ArdourIcon::expose_with_text), &controls_layout, ArdourWidgets::ArdourIcon::ShadedPlusSign, _("Right-click\nor Double-click here\nto add Track, Bus,\n or VCA.")));
-	}
+	/* "+ Add track" row, directly below the last track header */
+	_add_track_row_button.set_name ("add track row button");
+	_add_track_row_button.set_text (_("Add Track"));
+	_add_track_row_button.set_icon (ArdourWidgets::ArdourIcon::PlusSign);
+	_add_track_row_button.add_elements (ArdourButton::Text);
+	_add_track_row_button.signal_clicked.connect (sigc::mem_fun (*this, &Editor::add_track_row_clicked));
+	set_tooltip (_add_track_row_button, _("Add a track or bus (double-click the empty area for all options)"));
+
+	/* natural width: icon and label stay together (ArdourButton right-aligns text in a wide button) */
+	Gtk::Alignment* add_track_row = manage (new Gtk::Alignment (0, 0, 0, 0));
+	add_track_row->set_padding (8, 8, 8, 8);
+	add_track_row->add (_add_track_row_button);
+	add_track_row->show_all ();
+	edit_controls_vbox.pack_end (*add_track_row, false, false);
 
 	HSeparator* separator = manage (new HSeparator());
 	separator->set_name("TrackSeparator");
@@ -802,6 +814,7 @@ Editor::~Editor()
 	delete _selection_marker;
 
 	delete button_bindings;
+	delete _quick_add_route;
 	delete _routes;
 	delete _route_groups;
 	delete _track_canvas_viewport;
@@ -2305,7 +2318,8 @@ Editor::set_state (const XMLNode& node, int version)
 	node.get_property ("stationary-playhead", yn);
 	set_stationary_playhead (yn);
 
-	yn = true;
+	/* defaults for new sessions: no editor-mixer strip, editor list shown */
+	yn = false;
 	node.get_property ("show-editor-mixer", yn);
 	/* force a change to sync action state and actual attachment visibility.
 	 * Otherwise after creating a new session from a running instance
@@ -2315,7 +2329,7 @@ Editor::set_state (const XMLNode& node, int version)
 	show_editor_mixer_action->set_active (!yn);
 	show_editor_mixer_action->set_active (yn);
 
-	yn = false;
+	yn = true;
 	node.get_property ("show-editor-list", yn);
 	show_editor_list_action->set_active (!yn); // ditto
 	show_editor_list_action->set_active (yn);
@@ -2926,7 +2940,14 @@ Editor::build_edit_mode_menu ()
 	edit_mode_selector.add_menu_elem (MenuElem (edit_mode_strings[(int)Ripple], sigc::bind (sigc::mem_fun(*this, &Editor::edit_mode_selection_done), (EditMode) Ripple)));
 	edit_mode_selector.add_menu_elem (MenuElem (edit_mode_strings[(int)Lock], sigc::bind (sigc::mem_fun(*this, &Editor::edit_mode_selection_done), (EditMode)  Lock)));
 	/* Note: Splice was removed */
-	edit_mode_selector.set_sizing_texts (edit_mode_strings);
+	{
+		/* the selector reads "Edit: Slide" etc, so it says what it controls */
+		std::vector<std::string> sizing;
+		for (auto const& m : edit_mode_strings) {
+			sizing.push_back (string_compose (_("Edit: %1"), m));
+		}
+		edit_mode_selector.set_sizing_texts (sizing);
+	}
 
 	ripple_mode_selector.add_menu_elem (MenuElem (ripple_mode_strings[(int)RippleSelected],  sigc::bind (sigc::mem_fun(*this, &Editor::ripple_mode_selection_done), (RippleMode) RippleSelected)));
 	ripple_mode_selector.add_menu_elem (MenuElem (ripple_mode_strings[(int)RippleAll],       sigc::bind (sigc::mem_fun(*this, &Editor::ripple_mode_selection_done), (RippleMode) RippleAll)));
@@ -3387,6 +3408,34 @@ Editor::override_visible_track_count ()
 {
 	_visible_track_count = -1;
 	visible_tracks_selector.set_text (_("*"));
+}
+
+void
+Editor::add_track_row_clicked ()
+{
+	if (!_session) {
+		return;
+	}
+	if (!_quick_add_route) {
+		_quick_add_route = new QuickAddRouteWindow ();
+		Gtk::Window* toplevel = current_toplevel ();
+		if (toplevel) {
+			_quick_add_route->set_transient_for (*toplevel);
+		}
+	}
+
+	/* open to the right of the row */
+	Glib::RefPtr<Gdk::Window> win = _add_track_row_button.get_window ();
+	if (win) {
+		int x, y;
+		win->get_origin (x, y);
+		Gtk::Allocation a = _add_track_row_button.get_allocation ();
+		x += a.get_x () + a.get_width () + 12;
+		y += a.get_y () - 140;
+		_quick_add_route->popup_at (x, std::max (0, y));
+	} else {
+		_quick_add_route->present ();
+	}
 }
 
 bool

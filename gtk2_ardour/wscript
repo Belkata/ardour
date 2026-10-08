@@ -256,6 +256,7 @@ gtk2_ardour_sources = [
         'pt_import_selector.cc',
         'public_editor.cc',
         'quantize_dialog.cc',
+        'quick_add_route.cc',
         'rc_option_editor.cc',
         'rec_info_box.cc',
         'recorder_group_tabs.cc',
@@ -879,6 +880,14 @@ def build(bld):
     obj.install_path = bld.env['CONFDIR']
     set_subst_dict(obj, font_subst_dict)
 
+    font_subst_dict['FONTFAMILY'] = 'Inter'
+
+    obj              = bld(features = 'subst')
+    obj.source       = [ 'clearlooks.rc.in' ]
+    obj.target       = 'clearlooks.inter.rc'
+    obj.install_path = bld.env['CONFDIR']
+    set_subst_dict(obj, font_subst_dict)
+
     obj              = bld(features = 'subst')
     obj.source       = [ 'default_ui_config.in' ]
     obj.target       = 'default_ui_config'
@@ -997,6 +1006,8 @@ def build(bld):
     bld.install_files(os.path.join (bld.env['DATADIR'], 'icons'), bld.path.ant_glob('icons/*.png'))
     bld.install_files(bld.env['DATADIR'], 'ArdourMono.ttf')
     bld.install_files(bld.env['DATADIR'], 'ArdourSans.ttf')
+    bld.install_files(bld.env['DATADIR'], bld.path.ant_glob('fonts/Inter-*.otf'))
+    bld.install_files(bld.env['DATADIR'], 'fonts/Inter-LICENSE.txt')
 
     # Application/Product specific resources (icon, splash)
     pgmname = bld.env['PROGRAM_NAME']

@@ -203,6 +203,7 @@ Editor::register_actions ()
 	show_editor_props_action->set_tooltip (_("Show/Hide Bottom Panel"));
 	bottom_attachment_button.set_related_action (show_editor_props_action);
 
+	reg_sens (editor_actions, "quick-add-track", _("Quick Add Track..."), sigc::mem_fun(*this, &Editor::add_track_row_clicked));
 	reg_sens (editor_actions, "playhead-to-next-region-boundary", _("Playhead to Next Region Boundary"), sigc::bind (sigc::mem_fun(*this, &Editor::cursor_to_next_region_boundary), true));
 	reg_sens (editor_actions, "playhead-to-next-region-boundary-noselection", _("Playhead to Next Region Boundary (No Track Selection)"), sigc::bind (sigc::mem_fun(*this, &Editor::cursor_to_next_region_boundary), false));
 	reg_sens (editor_actions, "playhead-to-previous-region-boundary", _("Playhead to Previous Region Boundary"), sigc::bind (sigc::mem_fun(*this, &Editor::cursor_to_previous_region_boundary), true));
@@ -615,13 +616,18 @@ Editor::register_actions ()
 
 	no_ruler_shown_update = true;
 
+	/* keep the default ruler stack short: arrangement sections, markers,
+	 * loop/punch ranges and bars:beats. Tempo and meter are shown in the
+	 * BBT clock; all other rulers remain available via the ruler menu.
+	 */
 	ruler_minsec_action->set_active (false);
-	ruler_timecode_action->set_active (true);
+	ruler_timecode_action->set_active (false);
 	ruler_samples_action->set_active (false);
 	ruler_bbt_action->set_active (true);
-	ruler_meter_action->set_active (true);
-	ruler_tempo_action->set_active (true);
+	ruler_meter_action->set_active (false);
+	ruler_tempo_action->set_active (false);
 	ruler_range_action->set_active (true);
+	ruler_section_action->set_active (true);
 	ruler_marker_action->set_active (true);
 
 	ruler_video_action->set_active (false);
@@ -1225,7 +1231,7 @@ Editor::parameter_changed (std::string p)
 	} else if (p == "ripple-mode") {
 		ripple_mode_selector.set_text (ripple_mode_strings [Config->get_ripple_mode()]);
 	} else if (p == "edit-mode") {
-		edit_mode_selector.set_text (edit_mode_strings [Config->get_edit_mode()]);
+		edit_mode_selector.set_text (string_compose (_("Edit: %1"), edit_mode_strings [Config->get_edit_mode()]));
 		if (Config->get_edit_mode()==Ripple) {
 			ripple_mode_selector.show();
 		} else {

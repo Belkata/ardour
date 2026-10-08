@@ -45,6 +45,7 @@
 #include "selection.h"
 #include "timers.h"
 #include "trigger_ui.h"
+#include "triggerbox_ui.h"
 #include "ui_config.h"
 #include "utils.h"
 
@@ -472,10 +473,10 @@ CueBoxWidget::on_unmap ()
 
 CueBoxWindow::CueBoxWindow ()
 {
-	CueBoxWidget* tbw = manage (new CueBoxWidget (-1., TriggerBox::default_triggers_per_box * 16.));
+	CueBoxWidget* tbw = manage (new CueBoxWidget (-1., TriggerBox::default_triggers_per_box * TriggerBoxUI::slot_height));
 	set_title (_("CueBox for XXXX"));
 
-	set_default_size (-1., TriggerBox::default_triggers_per_box * 16.);
+	set_default_size (-1., TriggerBox::default_triggers_per_box * TriggerBoxUI::slot_height);
 	add (*tbw);
 	tbw->show ();
 }

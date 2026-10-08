@@ -1,0 +1,351 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+body { width: 1680px; height: 1000px; overflow: hidden; display: grid; grid-template-rows: 26px 60px 1fr 26px; grid-template-columns: minmax(0,1fr); position: relative; }
+
+/* menubar */
+.menubar { background: var(--surf2); display: flex; align-items: center; gap: 2px; padding: 0 8px; color: var(--fg2); border-bottom: 1px solid var(--bg0); }
+.menubar span { padding: 3px 9px; border-radius: 4px; }
+.menubar .title { margin-left: auto; color: var(--fg3); }
+
+/* toolbar */
+.toolbar { background: var(--surf2); display: flex; align-items: center; gap: 12px; overflow: hidden; padding: 0 14px; border-bottom: 1px solid var(--bg0); }
+.group { display: flex; align-items: center; gap: 4px; }
+.sep { width: 1px; height: 32px; background: var(--line); }
+.tbtn { width: 36px; height: 36px; border-radius: 8px; background: var(--widget); display: flex; align-items: center; justify-content: center; color: var(--fg2); }
+.tbtn svg { width: 18px; height: 18px; }
+.tbtn.play { background: #2f4a37; color: var(--solo); }
+.tbtn.rec { color: var(--rec); }
+.tbtn.loop.on { background: #2c3a57; color: var(--accent); }
+.clock { background: var(--bg1); border-radius: 10px; height: 46px; padding: 0 14px; display: flex; align-items: center; gap: 16px; }
+.clock .big { font-size: 24px; color: var(--clock); letter-spacing: .5px; }
+.clock .sub { white-space: nowrap; display: flex; flex-direction: column; gap: 2px; font-size: 11px; color: var(--fg3); }
+.clock .sub b { color: var(--fg2); font-weight: 500; }
+.tools .seg > div svg { width: 15px; height: 15px; }
+.tools .seg > div:not(.on) { padding: 0 8px; }
+.tools .seg > div:not(.on) .t { display: none; }
+.lbl { font-size: 10px; color: var(--fg4); text-transform: uppercase; letter-spacing: .6px; margin-right: 4px; }
+.dd { white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-radius: 7px; background: var(--widget); color: var(--fg); }
+.dd .k { color: var(--fg3); }
+.dd svg { width: 12px; height: 12px; color: var(--fg3); }
+.pages { margin-left: auto; }
+.pages .seg > div { padding: 0 14px; }
+
+/* main */
+.main { display: grid; grid-template-columns: 272px minmax(0,1fr) 268px; min-height: 0; }
+.headers { background: var(--surf); border-right: 1px solid var(--bg0); display: flex; flex-direction: column; }
+.canvas { background: var(--bg2); position: relative; overflow: hidden; }
+.side { background: var(--surf); border-left: 1px solid var(--bg0); display: flex; flex-direction: column; }
+
+/* rulers */
+.rul-h { height: 86px; border-bottom: 1px solid var(--bg0); padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; background: var(--surf2); }
+.rul-h .row { height: 22px; display: flex; align-items: center; justify-content: space-between; color: var(--fg3); font-size: 11px; }
+.rul-h .row b { color: var(--fg2); font-weight: 500; }
+.rul-h .row .x { display: flex; gap: 6px; align-items: center; }
+.rul { height: 86px; border-bottom: 1px solid var(--bg0); background: var(--bg1); position: relative; }
+.sections { position: absolute; left: 0; right: 0; top: 6px; height: 22px; }
+.section { position: absolute; top: 0; height: 22px; border-radius: 5px; padding: 0 8px; display: flex; align-items: center; font-size: 11px; font-weight: 600; color: #101114; }
+.marker { position: absolute; top: 32px; height: 18px; display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--amber); }
+.marker::before { content: ""; width: 2px; height: 18px; background: var(--amber); }
+.bars { position: absolute; left: 0; right: 0; bottom: 0; height: 30px; border-top: 1px solid var(--line); }
+.bar { position: absolute; bottom: 0; height: 30px; border-left: 1px solid #3a3d44; padding: 3px 0 0 4px; font-size: 11px; color: var(--fg2); }
+.tick { position: absolute; bottom: 0; height: 7px; border-left: 1px solid #2d3036; }
+.loopr { position: absolute; top: 54px; height: 6px; border-radius: 3px; background: rgba(91,141,239,.55); }
+
+/* tracks */
+.th { height: var(--h); border-bottom: 1px solid var(--bg0); display: flex; position: relative; }
+.th .c { width: 5px; background: var(--tc); }
+.th .body { flex: 1; padding: 8px 10px 0 10px; display: flex; flex-direction: column; gap: 7px; }
+.th .top { display: flex; align-items: center; gap: 6px; }
+.th .name { flex: 1; font-weight: 600; color: var(--fg); font-size: 12.5px; display: flex; align-items: center; gap: 6px; }
+.th .name small { font-weight: 500; color: var(--fg4); font-size: 10px; text-transform: uppercase; letter-spacing: .5px; }
+.rms { display: flex; gap: 3px; }
+.rms b { width: 22px; height: 20px; border-radius: 5px; background: var(--widget); color: var(--fg3); display: flex; align-items: center; justify-content: center; font-size: 10.5px; font-weight: 700; }
+.rms b.r.on { background: var(--rec); color: #fff; }
+.rms b.m.on { background: var(--mute); color: #222; }
+.rms b.s.on { background: var(--solo); color: #102012; }
+.th .bot { display: flex; align-items: center; gap: 8px; color: var(--fg3); }
+.fader { flex: 1; height: 4px; border-radius: 2px; background: var(--bg0); position: relative; }
+.fader i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: var(--fg4); }
+.fader u { position: absolute; top: -4px; width: 12px; height: 12px; border-radius: 50%; background: var(--fg2); margin-left: -6px; }
+.th .db { font-size: 10.5px; width: 34px; text-align: right; }
+.th .ic { display: flex; gap: 2px; }
+.th .ic span { width: 22px; height: 20px; border-radius: 5px; display: flex; align-items: center; justify-content: center; color: var(--fg3); }
+.th .ic span svg { width: 14px; height: 14px; }
+.vmeter { position: absolute; right: 4px; top: 8px; bottom: 8px; width: 4px; border-radius: 2px; background: var(--bg0); overflow: hidden; }
+.vmeter i { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(to top, #37a556 0%, #4cd16c 65%, #ecd84a 85%, #ec4b55 100%); background-size: 100% var(--full); background-position: bottom; }
+.th.sel { background: #2b3242; }
+.addrow { height: 46px; margin: 10px; border: 1px dashed #3f434c; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--fg3); font-weight: 500; }
+
+.lane { height: var(--h); border-bottom: 1px solid var(--bg0); position: relative; }
+.lane.alt { background: var(--lane-alt); }
+.lane.sel { background: #222a39; }
+.region { position: absolute; top: 4px; bottom: 4px; border-radius: 5px; overflow: hidden; background: color-mix(in srgb, var(--tc) 24%, #1b1c20); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tc) 55%, transparent); }
+.region .nm { position: absolute; left: 0; right: 0; top: 0; height: 17px; padding: 0 6px; font-size: 10.5px; font-weight: 600; color: #121316; background: color-mix(in srgb, var(--tc) 85%, #fff 0%); display: flex; align-items: center; white-space: nowrap; overflow: hidden; }
+.region svg { position: absolute; left: 0; top: 17px; width: 100%; height: calc(100% - 17px); }
+.region.selr { box-shadow: inset 0 0 0 2px #fff; }
+.grid { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,.035); }
+.grid.major { background: rgba(255,255,255,.07); }
+.playhead { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--rec); z-index: 5; }
+.playhead::before { content: ""; position: absolute; top: 60px; left: -6px; border: 7px solid transparent; border-top: 9px solid var(--rec); }
+.rangesel { position: absolute; top: 86px; bottom: 0; background: rgba(91,141,239,.12); border-left: 1px solid var(--accent); border-right: 1px solid var(--accent); z-index: 4; }
+
+/* sidebar */
+.tabs { display: flex; gap: 2px; padding: 8px; border-bottom: 1px solid var(--bg0); }
+.tabs div { flex: 1; text-align: center; padding: 6px 0; border-radius: 6px; color: var(--fg3); font-weight: 500; }
+.tabs .on { background: var(--widget); color: var(--fg); }
+.search { margin: 10px; height: 30px; border-radius: 7px; background: var(--bg1); display: flex; align-items: center; gap: 8px; padding: 0 10px; color: var(--fg4); }
+.list { padding: 0 6px; }
+.item { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 6px; color: var(--fg2); }
+.item .sw { width: 10px; height: 10px; border-radius: 3px; }
+.item .meta { margin-left: auto; color: var(--fg4); font-size: 11px; }
+.item.on { background: #2b3242; color: var(--fg); }
+.side h4 { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; color: var(--fg4); padding: 14px 16px 6px; font-weight: 600; }
+
+/* status */
+.status { background: var(--surf2); border-top: 1px solid var(--bg0); display: flex; align-items: center; gap: 18px; padding: 0 14px; color: var(--fg3); font-size: 11px; }
+.status .r { margin-left: auto; display: flex; gap: 8px; }
+
+/* quick-add popover (shown with #add) */
+.pop { display: none; position: absolute; left: 300px; top: 470px; width: 400px; background: #30333a; border-radius: 12px; box-shadow: 0 18px 50px rgba(0,0,0,.55), 0 0 0 1px #464a54; z-index: 60; padding: 16px; }
+body.add .pop { display: block; }
+body.add .addrow { border-color: var(--accent); color: var(--fg); background: rgba(91,141,239,.08); }
+.pop::after { content: ""; position: absolute; left: -8px; top: 236px; border: 8px solid transparent; border-left: 0; border-right-color: #30333a; }
+.pop h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; }
+.pop h3 span { margin-left: auto; color: var(--fg4); font-weight: 400; font-size: 11px; }
+.pop .seg { width: 100%; margin-bottom: 14px; }
+.pop .seg > div { flex: 1; justify-content: center; height: 32px; }
+.pop .row2 { display: grid; grid-template-columns: 1fr 96px; gap: 10px; margin-bottom: 12px; }
+.pop label { display: block; font-size: 10.5px; color: var(--fg3); margin-bottom: 5px; font-weight: 500; }
+.pop .field { height: 32px; border-radius: 7px; background: var(--bg1); display: flex; align-items: center; padding: 0 10px; color: var(--fg); gap: 8px; }
+.pop .field .dim { color: var(--fg4); margin-left: auto; }
+.pop .step { justify-content: space-between; }
+.pop .step b { color: var(--fg3); font-weight: 400; font-size: 15px; }
+.pop .chk { display: flex; align-items: center; gap: 8px; color: var(--fg2); margin: 12px 0 16px; }
+.pop .chk i { width: 16px; height: 16px; border-radius: 4px; background: var(--accent); display: flex; align-items: center; justify-content: center; color: #fff; font-style: normal; font-size: 11px; }
+.pop .act { display: flex; align-items: center; gap: 8px; }
+.pop .act .more { color: var(--fg3); }
+.pop .act .go { margin-left: auto; background: var(--accent); color: #fff; height: 32px; padding: 0 16px; border-radius: 7px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.pop .act .go kbd { font: 10px Inter; opacity: .75; }
+.pop .hint { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); color: var(--fg4); font-size: 11px; }
+</style></head>
+<body>
+
+<div class="menubar">
+  <span>Session</span><span>Transport</span><span>Edit</span><span>Region</span><span>Track</span><span>View</span><span>Window</span><span>Help</span>
+  <span class="title">Night Drive — Ardour</span>
+</div>
+
+<div class="toolbar">
+  <div class="group">
+    <div class="tbtn"><svg class="i" viewBox="0 0 24 24"><path d="M6 5v14M18 6l-9 6 9 6z"/></svg></div>
+    <div class="tbtn"><svg class="i" viewBox="0 0 24 24"><path d="M11 6l-7 6 7 6zM20 6l-7 6 7 6z"/></svg></div>
+    <div class="tbtn"><svg class="i" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></div>
+    <div class="tbtn play"><svg class="i" viewBox="0 0 24 24" style="fill:currentColor"><path d="M8 5l11 7-11 7z"/></svg></div>
+    <div class="tbtn"><svg class="i" viewBox="0 0 24 24"><path d="M4 6l7 6-7 6zM13 6l7 6-7 6z"/></svg></div>
+    <div class="tbtn rec"><svg class="i" viewBox="0 0 24 24" style="fill:currentColor"><circle cx="12" cy="12" r="6"/></svg></div>
+    <div class="tbtn loop on"><svg class="i" viewBox="0 0 24 24"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/></svg></div>
+  </div>
+
+  <div class="clock">
+    <div class="big mono">017 | 3 | 0240</div>
+    <div class="sub">
+      <div class="mono"><b>00:01:12.480</b></div>
+      <div><b>120</b> BPM · <b>4/4</b> · <b>A min</b></div>
+    </div>
+  </div>
+
+  <div class="sep"></div>
+
+  <div class="group tools">
+    <div class="seg">
+      <div class="on"><svg class="i" viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.5L10 19z"/></svg><span class="t">Grab</span></div>
+      <div><svg class="i" viewBox="0 0 24 24"><path d="M4 7v10M20 7v10M4 12h16"/></svg><span class="t">Range</span></div>
+      <div><svg class="i" viewBox="0 0 24 24"><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M7.5 16L18 4M16.5 16L6 4"/></svg><span class="t">Cut</span></div>
+      <div><svg class="i" viewBox="0 0 24 24"><path d="M4 20l4-1L19 8l-3-3L5 16z"/></svg><span class="t">Draw</span></div>
+      <div><svg class="i" viewBox="0 0 24 24"><path d="M3 12h18M7 8l-4 4 4 4M17 8l4 4-4 4"/></svg><span class="t">Stretch</span></div>
+      <div><svg class="i" viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6L8 10z"/><path d="M16 9a4 4 0 0 1 0 6"/></svg><span class="t">Listen</span></div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="dd"><span class="k">Edit</span> Slide <svg class="i" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
+    <div class="dd"><span class="k">Snap</span> 1/16 note <svg class="i" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
+  </div>
+
+  <div class="pages">
+    <div class="seg">
+      <div>Record</div><div class="on">Edit</div><div>Mix</div><div>Clips</div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="headers" id="headers">
+    <div class="rul-h">
+      <div class="row"><span>Sections &amp; markers</span><span class="x"><svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M12 5v14M5 12h14"/></svg></span></div>
+      <div class="row"><span>Bars &amp; beats</span><span class="x" style="color:var(--fg3)">Rulers ▾</span></div>
+      <div class="row"><span style="color:var(--fg4)">▸ Tempo &amp; meter</span><span></span></div>
+    </div>
+  </div>
+  <div class="canvas" id="canvas">
+    <div class="rul" id="rul">
+      <div class="sections" id="sections"></div>
+      <div class="loopr" style="left:600px;width:480px"></div>
+      <div class="bars" id="bars"></div>
+    </div>
+    <div id="lanes"></div>
+    <div class="rangesel" style="left:600px;width:480px;"></div>
+    <div class="playhead" style="left:738px"></div>
+  </div>
+  <div class="side">
+    <div class="tabs"><div class="on">Tracks</div><div>Regions</div><div>Files</div><div>Marks</div></div>
+    <div class="search"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4"/></svg>Filter tracks</div>
+    <h4>Tracks · 7</h4>
+    <div class="list" id="tlist"></div>
+    <h4>Groups</h4>
+    <div class="list">
+      <div class="item"><span class="sw" style="background:var(--t1)"></span>Drums<span class="meta">3 tracks</span></div>
+      <div class="item"><span class="sw" style="background:var(--t6)"></span>Music<span class="meta">3 tracks</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="status">
+  <span>Ready</span>
+  <span>48 kHz · 24-bit WAV</span>
+  <span>Buffer 256 (5.3 ms)</span>
+  <span>Disk: 14.2 GB free (≈ 9 h of recording)</span>
+  <div class="r">
+    <span class="pill"><span class="dot"></span>DSP 12%</span>
+    <span class="pill"><span class="dot"></span>Disk OK</span>
+    <span class="pill"><span class="dot"></span>0 xruns</span>
+  </div>
+</div>
+
+<script>
+const PX_PER_BAR = 120, X0 = 0;
+// pseudo-random
+let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+function wave(w, h, kind) {
+  const n = Math.floor(w / 2), mid = h / 2; let top = [], bot = [];
+  for (let i = 0; i < n; i++) {
+    const x = i * 2; let a;
+    if (kind === 'kick') { const ph = (x % 30) / 30; a = Math.exp(-ph * 7) * 0.95 + rnd() * 0.04; }
+    else if (kind === 'snare') { const ph = ((x + 30) % 60) / 60; a = (ph < 0.5 ? Math.exp(-ph * 9) : 0.02) * 0.9 + rnd() * 0.05; }
+    else if (kind === 'pad') { a = 0.45 + 0.2 * Math.sin(x / 40) + rnd() * 0.12; }
+    else if (kind === 'bass') { const ph = (x % 15) / 15; a = 0.35 + 0.35 * Math.exp(-ph * 3) + rnd() * 0.06; }
+    else if (kind === 'vox') { const env = Math.max(0, Math.sin(x / 55)) ** 0.6; a = env * (0.55 + rnd() * 0.35); }
+    else { a = 0.3 + rnd() * 0.45; }
+    a = Math.min(a, 0.98) * (mid - 2);
+    top.push(`${x},${(mid - a).toFixed(1)}`); bot.unshift(`${x},${(mid + a).toFixed(1)}`);
+  }
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polygon points="${top.concat(bot).join(' ')}" fill="var(--tc)" opacity=".85"/><line x1="0" x2="${w}" y1="${mid}" y2="${mid}" stroke="var(--tc)" stroke-opacity=".35"/></svg>`;
+}
+function notes(w, h) {
+  let s = `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">`;
+  const pitches = [3, 5, 7, 5, 8, 7, 5, 3, 2, 3, 5, 7];
+  for (let x = 4, k = 0; x < w - 20; x += 30, k++) {
+    const p = pitches[k % pitches.length]; const y = h - 6 - p * (h - 12) / 10;
+    s += `<rect x="${x}" y="${y}" width="${22 + (k % 3) * 6}" height="5" rx="1.5" fill="var(--tc)"/>`;
+    if (k % 2 == 0) s += `<rect x="${x}" y="${y + 14}" width="22" height="5" rx="1.5" fill="var(--tc)" opacity=".75"/>`;
+  }
+  return s + '</svg>';
+}
+
+const tracks = [
+  { n: 'Kick', t: 'audio', c: 't1', h: 64, k: 'kick', regions: [[0, 4, 'Kick-01'], [4, 8, 'Kick-02'], [8, 11, 'Kick-03']], r: 0, m: 0, s: 0, f: .72, db: '-2.1', lvl: .62 },
+  { n: 'Snare', t: 'audio', c: 't2', h: 64, k: 'snare', regions: [[0, 4, 'Snare-01'], [4, 8, 'Snare-02'], [8, 11, 'Snare-03']], r: 0, m: 0, s: 0, f: .68, db: '-4.0', lvl: .55 },
+  { n: 'Overheads', t: 'stereo', c: 't3', h: 64, k: 'pad', regions: [[0, 11, 'OH take 3']], r: 0, m: 1, s: 0, f: .6, db: '-6.5', lvl: 0 },
+  { n: 'Bass', t: 'audio', c: 't4', h: 80, k: 'bass', regions: [[1, 6, 'Bass DI'], [6, 11, 'Bass DI.2']], r: 0, m: 0, s: 0, f: .7, db: '-3.2', lvl: .7 },
+  { n: 'Keys', t: 'midi', c: 't6', h: 80, k: 'midi', regions: [[2, 10, 'Rhodes chords']], r: 0, m: 0, s: 1, f: .64, db: '-5.0', lvl: .5 },
+  { n: 'Lead vocal', t: 'audio', c: 't8', h: 96, k: 'vox', regions: [[4, 7.5, 'Vox verse'], [8, 11, 'Vox chorus']], r: 1, m: 0, s: 0, f: .74, db: '-1.0', lvl: .82, sel: 1 },
+  { n: 'Gtr double', t: 'audio', c: 't5', h: 64, k: 'gtr', regions: [[8, 11, 'Gtr L']], r: 0, m: 0, s: 0, f: .66, db: '-4.8', lvl: .4 },
+];
+
+const I = {
+  pl: '<svg class="i" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/><path d="M17 15v6M14 18h6"/></svg>',
+  au: '<svg class="i" viewBox="0 0 24 24"><path d="M3 17l5-6 4 3 4-7 5 6"/></svg>',
+  more: '<svg class="i" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>',
+  wave: '<svg class="i" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M2 12h3l2-6 3 12 3-9 2 3h7"/></svg>',
+  midi: '<svg class="i" viewBox="0 0 24 24" style="width:12px;height:12px"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 5v8M12 5v8M16 5v8"/></svg>',
+};
+
+const H = document.getElementById('headers'), L = document.getElementById('lanes'), TL = document.getElementById('tlist');
+tracks.forEach((t, i) => {
+  const kind = t.t === 'midi' ? 'MIDI' : (t.t === 'stereo' ? 'Stereo' : 'Mono');
+  H.insertAdjacentHTML('beforeend', `
+  <div class="th ${t.sel ? 'sel' : ''}" style="--h:${t.h}px;--tc:var(--${t.c})">
+    <div class="c"></div>
+    <div class="body">
+      <div class="top">
+        <div class="name">${t.n} <small>${kind}</small></div>
+        <div class="rms"><b class="r ${t.r ? 'on' : ''}">●</b><b class="m ${t.m ? 'on' : ''}">M</b><b class="s ${t.s ? 'on' : ''}">S</b></div>
+      </div>
+      <div class="bot">
+        <div class="fader"><i style="width:${t.f * 100}%"></i><u style="left:${t.f * 100}%"></u></div>
+        <span class="db mono">${t.db}</span>
+        <div class="ic"><span>${I.pl}</span><span>${I.au}</span></div>
+      </div>
+    </div>
+    <div class="vmeter"><i style="height:${t.lvl * 100}%;--full:${(1 / Math.max(t.lvl, .01)) * 100}%"></i></div>
+  </div>`);
+  let lane = `<div class="lane ${i % 2 ? 'alt' : ''} ${t.sel ? 'sel' : ''}" style="--h:${t.h}px;--tc:var(--${t.c})">`;
+  t.regions.forEach(([a, b, nm]) => {
+    const w = (b - a) * PX_PER_BAR - 2, hh = t.h - 8 - 17;
+    const sel = (t.sel && nm === 'Vox chorus') ? 'selr' : '';
+    lane += `<div class="region ${sel}" style="left:${a * PX_PER_BAR + 1}px;width:${w}px"><div class="nm">${nm}</div>${t.k === 'midi' ? notes(w, hh) : wave(w, hh, t.k)}</div>`;
+  });
+  L.insertAdjacentHTML('beforeend', lane + '</div>');
+  TL.insertAdjacentHTML('beforeend', `<div class="item ${t.sel ? 'on' : ''}"><span class="sw" style="background:var(--${t.c})"></span>${t.n}<span class="meta">${t.t === 'midi' ? I.midi : I.wave}</span></div>`);
+});
+H.insertAdjacentHTML('beforeend', `<div class="addrow"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add track <span style="color:var(--fg4);font-weight:400">— or drop audio files here</span></div>`);
+
+// grid + rulers
+const C = document.getElementById('canvas'), B = document.getElementById('bars');
+for (let b = 0; b < 12; b++) {
+  const x = b * PX_PER_BAR;
+  B.insertAdjacentHTML('beforeend', `<div class="bar" style="left:${x}px">${b + 1}</div>`);
+  for (let q = 1; q < 4; q++) B.insertAdjacentHTML('beforeend', `<div class="tick" style="left:${x + q * 30}px"></div>`);
+  C.insertAdjacentHTML('beforeend', `<div class="grid major" style="left:${x}px;top:86px"></div>`);
+  for (let q = 1; q < 4; q++) C.insertAdjacentHTML('beforeend', `<div class="grid" style="left:${x + q * 30}px;top:86px"></div>`);
+}
+const S = document.getElementById('sections');
+[[0, 4, 'Intro', 't5'], [4, 8, 'Verse 1', 't4'], [8, 12, 'Chorus', 't8']].forEach(([a, b, n, c]) =>
+  S.insertAdjacentHTML('beforeend', `<div class="section" style="left:${a * PX_PER_BAR + 2}px;width:${(b - a) * PX_PER_BAR - 4}px;background:var(--${c})">${n}</div>`));
+const R = document.getElementById('rul');
+[[ 2*PX_PER_BAR + 60, 'Drums in'], [7*PX_PER_BAR, 'Breath']].forEach(([x, n]) => R.insertAdjacentHTML('beforeend', `<div class="marker" style="left:${x}px">${n}</div>`));
+</script>
+
+
+<div class="pop">
+  <h3>Add track <span>Ctrl+Shift+N</span></h3>
+  <div class="seg"><div class="on">Audio</div><div>MIDI</div><div>Bus</div><div>VCA</div></div>
+  <div class="row2">
+    <div><label>Name</label><div class="field">Audio 8</div></div>
+    <div><label>How many</label><div class="field step"><b>−</b>1<b>+</b></div></div>
+  </div>
+  <label>Channels</label>
+  <div class="seg" style="margin-bottom:12px"><div class="on">Mono</div><div>Stereo</div></div>
+  <label>Record from</label>
+  <div class="field">In 8 <span class="dim">Scarlett 18i8</span><svg class="i" viewBox="0 0 24 24" style="width:12px;height:12px;color:var(--fg3)"><path d="M6 9l6 6 6-6"/></svg></div>
+  <div class="chk"><i>✓</i>Arm for recording</div>
+  <div class="act"><span class="more">More options…</span><div class="go">Add track <kbd>⏎</kbd></div></div>
+  <div class="hint">Tip: drop audio or MIDI files on the empty area to create tracks from them.</div>
+</div>
+<script>if (location.hash === '#add') document.body.classList.add('add');</script>
+<!-- numbered callouts (removed in the clean render) -->
+<div class="co">
+  <div class="callout" style="left:4px;top:30px">1</div>
+  <div class="callout" style="left:294px;top:30px">2</div>
+  <div class="callout" style="left:688px;top:30px">3</div>
+  <div class="callout" style="left:937px;top:30px">4</div>
+  <div class="callout" style="left:1422px;top:30px">5</div>
+  <div class="callout" style="left:210px;top:90px">6</div>
+  <div class="callout" style="left:150px;top:186px">7</div>
+  <div class="callout" style="left:150px;top:688px">8</div>
+  <div class="callout" style="left:1406px;top:94px">9</div>
+  <div class="callout" style="left:1180px;top:976px">10</div>
+</div>
+</body></html>

@@ -380,7 +380,10 @@ RouteUI::set_route (std::shared_ptr<Route> rp)
 	}
 
 	if (set_color_from_route()) {
-		if (_route->is_track() && UIConfiguration::instance().get_use_palette_for_new_track ()) {
+		if (_route->is_master () || _route->is_monitor ()) {
+			/* neutral, and don't use up a palette color: tracks get the distinct hues */
+			set_color (UIConfiguration::instance().color ("neutral:midground"));
+		} else if (_route->is_track() && UIConfiguration::instance().get_use_palette_for_new_track ()) {
 			set_color (gdk_color_to_rgba (AxisView::round_robin_palette_color ()));
 		} else if (!_route->is_track() && UIConfiguration::instance().get_use_palette_for_new_bus ()) {
 			set_color (gdk_color_to_rgba (AxisView::round_robin_palette_color ()));
@@ -2351,17 +2354,15 @@ RouteUI::route_color () const
 Gdk::Color
 RouteUI::route_color_tint () const
 {
-	return route_color ();
-#if 0
-	Gdk::Color lighter_bg;
-
-	HSV l (gdk_color_to_rgba (route_color()));
-	l.h += std::min (l.h + 0.08, 1.0);
-	l.s = 0.15;
-	l.v -= std::max (0.0, 0.05);
-	set_color_from_rgba (lighter_bg, l.color ());
-	return lighter_bg;
-#endif
+	/* the route color blended into the panel background, so large areas
+	 * (fader fills) carry the track's hue without shouting */
+	double rr, rg, rb, ra, br, bg, bb, ba;
+	color_to_rgba (gdk_color_to_rgba (route_color ()), rr, rg, rb, ra);
+	color_to_rgba (UIConfiguration::instance ().color ("theme:bg1"), br, bg, bb, ba);
+	const double amt = 0.55;
+	Gdk::Color tint;
+	set_color_from_rgba (tint, rgba_to_color (rr * amt + br * (1. - amt), rg * amt + bg * (1. - amt), rb * amt + bb * (1. - amt), 1.0));
+	return tint;
 }
 
 void

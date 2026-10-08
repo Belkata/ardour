@@ -53,6 +53,7 @@
 #include "public_editor.h"
 #include "route_sorter.h"
 #include "rta_manager.h"
+#include "ui_config.h"
 #include "utils.h"
 
 #include "pbd/i18n.h"
@@ -155,7 +156,8 @@ RouteListBase::add_name_column ()
 	cell->signal_editing_started ().connect (sigc::mem_fun (*this, &RouteListBase::name_edit_started));
 	tvc->set_sizing (TREE_VIEW_COLUMN_FIXED);
 	tvc->set_expand (true);
-	tvc->set_min_width (50);
+	/* room for a typical track name ("Drum bus", "Master") next to the state columns */
+	tvc->set_min_width (rint (90 * UIConfiguration::instance ().get_ui_scale ()));
 	cell->property_editable () = true;
 	cell->signal_editing_started ().connect (sigc::mem_fun (*this, &RouteListBase::name_edit_started));
 	cell->signal_edited ().connect (sigc::mem_fun (*this, &RouteListBase::name_edit));

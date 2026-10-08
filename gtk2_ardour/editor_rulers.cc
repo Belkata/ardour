@@ -459,16 +459,20 @@ Editor::restore_ruler_visibility ()
 
 	} else {
 		Temporal::TimeDomain const td (_session->config.get_default_time_domain ());
-		/* New session: no rulers have been displayed yet. let's assign default rulers from the session's time domain */
+		/* New session: no rulers have been displayed yet. Show a short stack:
+		 * one time ruler matching the session's time domain, plus sections,
+		 * markers and loop/punch ranges. Tempo and meter are shown in the
+		 * BBT clock; the remaining rulers are available from the ruler menu.
+		 */
 		ruler_minsec_action->set_active (td == Temporal::AudioTime);
-		ruler_timecode_action->set_active (td == Temporal::AudioTime);
+		ruler_timecode_action->set_active (false);
 		ruler_samples_action->set_active (false);
 		ruler_bbt_action->set_active (td == Temporal::BeatTime);
-		ruler_meter_action->set_active (td == Temporal::BeatTime);
-		ruler_tempo_action->set_active (td == Temporal::BeatTime);
+		ruler_meter_action->set_active (false);
+		ruler_tempo_action->set_active (false);
 		ruler_range_action->set_active (true);
 		ruler_marker_action->set_active (true);
-		ruler_section_action->set_active (td == Temporal::BeatTime);
+		ruler_section_action->set_active (true);
 	}
 
 	no_ruler_shown_update = false;

@@ -92,6 +92,9 @@ namespace ArdourWidgets { namespace ArdourIcon {
 		AttachmentBottom,
 		Drum,
 		CuesNTriggers,
+		TrackPlaylist,
+		TrackAutomation,
+		TrackGroup,
 		NoIcon //< Last
 	};
 

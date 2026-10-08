@@ -345,8 +345,8 @@ ARDOUR_UI::ARDOUR_UI (int *argcp, char **argvp[], const char* localedir)
 	, editor_visibility_button (S_("Window|Edit"))
 	, mixer_visibility_button (S_("Window|Mix"))
 	, prefs_visibility_button (S_("Window|Prefs"))
-	, recorder_visibility_button (S_("Window|Rec"))
-	, trigger_page_visibility_button (S_("Window|Cue"))
+	, recorder_visibility_button (S_("Window|Record"))
+	, trigger_page_visibility_button (S_("Window|Clips"))
 	, nsm_first_session_opened (false)
 	, _loading_session (false)
 {
@@ -1220,7 +1220,7 @@ ARDOUR_UI::update_sample_rate ()
 			char buf[64];
 			snprintf (buf, sizeof (buf), "%4.1f", (AudioEngine::instance()->usecs_per_cycle() / 1000.0f));
 			const char* const bg = (_session && _session->nominal_sample_rate () != rate) ? " background=\"red\" foreground=\"white\"" : "";
-			sample_rate_label.set_markup (string_compose ("%1 <span%2>%3</span> %4 %5", label, bg, ARDOUR_UI_UTILS::rate_as_string (rate), buf, _("ms")));
+			sample_rate_label.set_markup (string_compose ("%1 <span%2>%3</span> \u00b7 %4 %5", label, bg, ARDOUR_UI_UTILS::rate_as_string (rate), buf, _("ms buffer")));
 
 		}
 	}
@@ -1311,10 +1311,11 @@ ARDOUR_UI::update_cpu_load ()
 	const char* const bg = (c > 90 && !fw) ? " background=\"red\" foreground=\"white\"" : "";
 
 	char buf[256];
+	/* spell out xruns instead of a bare "(N)" */
 	if (x > 9999) {
-		snprintf (buf, sizeof (buf), "<span face=\"monospace\"%s>%2.0f%%</span> (>10k)", bg, c);
+		snprintf (buf, sizeof (buf), "<span face=\"monospace\"%s>%2.0f%%</span> \u00b7 %s", bg, c, _(">10k xruns"));
 	} else if (x > 0) {
-		snprintf (buf, sizeof (buf), "<span face=\"monospace\"%s>%2.0f%%</span> (%d)", bg, c, x);
+		snprintf (buf, sizeof (buf), "<span face=\"monospace\"%s>%2.0f%%</span> \u00b7 %s", bg, c, string_compose (P_("%1 xrun", "%1 xruns", x), x).c_str ());
 	} else {
 		snprintf (buf, sizeof (buf), "<span face=\"monospace\"%s>%2.0f%%</span>", bg, c);
 	}
@@ -1374,7 +1375,7 @@ ARDOUR_UI::format_disk_space_label (float remain_sec)
 	snprintf (buf, sizeof(buf), _("%02dh:%02dm:%02ds"), hrs, mins, secs);
 	ArdourWidgets::set_tooltip (disk_space_label, string_compose ("%1: %2", _("Available record time"), buf));
 
-	std::string label = string_compose (X_("<span weight=\"ultralight\">%1</span>: "), _("Rec"));
+	std::string label = string_compose (X_("<span weight=\"ultralight\">%1</span>: "), _("Record time left"));
 
 	if (_session && FLAC == _session->config.get_native_file_header_format () && remain_sec <= 86400) {
 		label += u8"\u2265"; // Greater-Than or Equal To
@@ -1384,13 +1385,13 @@ ARDOUR_UI::format_disk_space_label (float remain_sec)
 		disk_space_label.set_markup (label + _(">24h"));
 	} else if (remain_sec > 32400 /* 9 hours */) {
 		snprintf (buf, sizeof (buf), "%.0f", remain_sec / 3600.f);
-		disk_space_label.set_markup (label + buf + S_("hours|h"));
+		disk_space_label.set_markup (label + buf + " " + S_("hours|h"));
 	} else if (remain_sec > 5940 /* 99 mins */) {
 		snprintf (buf, sizeof (buf), "%.1f", remain_sec / 3600.f);
-		disk_space_label.set_markup (label + buf + S_("hours|h"));
+		disk_space_label.set_markup (label + buf + " " + S_("hours|h"));
 	} else {
 		snprintf (buf, sizeof (buf), "%.0f", remain_sec / 60.f);
-		disk_space_label.set_markup (label + buf + S_("minutes|m"));
+		disk_space_label.set_markup (label + buf + " " + S_("minutes|min"));
 	}
 
 }

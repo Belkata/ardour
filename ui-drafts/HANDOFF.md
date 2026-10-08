@@ -1,0 +1,110 @@
+# UI redesign – handoff
+
+State of the Ardour UI redesign, so a
+new session can continue without re-deriving anything. See `CLAUDE.md` for how
+to build, run headless and test.
+
+Branch: `claude/wizardly-brahmagupta-jyh5oi` (push only there; no PR opened).
+
+## Goal and decisions (from the user)
+
+- "Ardour's UI is ugly and confusing – fix it up", after researching forks.
+- Workflow agreed: **drafts as images first**, then implement.
+- Scope decided by the user: **colors + layout**, and the font **as in the drafts
+  (Inter)**. The cue page redesign was requested later and is in scope too.
+- The user wants **visible progress for long builds in the background-task window**,
+  without the agent being pinged: run `./waf build -j4 2>&1 | tee <log>` as the
+  background task itself (see `CLAUDE.md`); no Monitor.
+- The user wants QA so nothing breaks (see `tools/ui-qa/QA.md`).
+
+## Research summary (forks / prior art)
+
+- No published fork restyles or reorganizes Ardour's GTK UI.
+  - Harrison **Mixbus** (commercial; different mixer, same editor) and **LiveTrax** (Harrison,
+    GPL, stripped-down live-recording Ardour) – simplify by removing features.
+  - `friendsgamingyt611-sys/Ardour-Plus` – attempted Qt6/QML rewrite, ~50 of ~250 components,
+    one commit. Toolkit rewrite judged unrealistic.
+  - `eotter-beep/waveride` – only dialog wording.
+  - Community themes (Catppuccin, Gruvbox, Monokai, Nord, base16, OpenColor) – colors only.
+- Ardour devs: "you can change the colors, you can't change the visual appearance in
+  any fundamental way" (without code); GTK3 rejected (plugin GUIs).
+- Useful UX input: Discourse thread "I designed some fixes for a few UX interaction
+  pain points" (heavy Add Track dialog → our Quick Add) and the theme color-definitions
+  proposal (aliases are hard to edit).
+- QA: upstream has only library unit tests (`libs/*/test`, `gtk2_ardour/artest`), nightly
+  builds, nightly scan-build, community-tested `-preN` releases. No GUI tests.
+
+## Drafts (ui-drafts/)
+
+`02/03` editor (clean/annotated, 10 numbered changes), `04` mixer, `05` quick add track,
+`06` palette (current vs proposed), `07/08` Clips/cue page. Sources in `ui-drafts/src/*.html`,
+render with `src/render.js` (Playwright + preinstalled Chromium; commands in `README.md`).
+`README.md` has the research table, feasibility table and the **implementation status table**
+(keep it updated).
+
+## What is implemented (commits b7e48fc9, 9f09a753)
+
+| Area | Files |
+|---|---|
+| Defaults: `modern` theme, flat buttons, Inter font, secondary clock off | `gtk2_ardour/ui_config_vars.inc.h` |
+| Inter 4.0 (OFL) bundled + registered | `gtk2_ardour/fonts/`, `bundle_env_linux.cc`, `bundle_env_cocoa.cc`, `wscript` (install + `clearlooks.inter.rc`), `tools/*_packaging/*` |
+| rc-file fallback to `clearlooks.rc` | `ui_config.cc` |
+| Theme: palette, blue selection accent, neutral "selected" state, softer plugin colors, `primary button` / `add track row button` styles | `themes/modern-ardour.colors` |
+| Page switcher in one row: Record · Edit · Mix · Clips | `ardour_ui2.cc`, `ardour_ui.cc` (labels) |
+| Active edit tool shows its name | `editing_context.{h,cc}` (`update_mouse_mode_button_labels`), `editor_mouse.cc` |
+| "Edit: Slide" edit-mode selector | `editor.cc`, `editor_actions.cc` |
+| Shorter default ruler set | `editor_actions.cc`, `editor_rulers.cc` |
+| Track header color stripe; P/A/G → icons | `route_time_axis.{h,cc}`, `vca_time_axis.cc`, new icons `TrackPlaylist/TrackAutomation/TrackGroup` in `libs/widgets/ardour_icon.{h,cc}` |
+| "+ Add Track" row + Quick Add popover; action `Editor/quick-add-track` in Track menu | `quick_add_route.{h,cc}` (new, in `wscript`), `editor.{h,cc}`, `editor_actions.cc`, `ardour.menus.in` |
+| Plain-language status bar | `ardour_ui.cc` (`update_cpu_load`, `format_disk_space_label`, `update_sample_rate`) |
+| Mixer strip name in track color | `mixer_strip.cc` |
+| Clips page tiles: clip-color tint, playing/queued/selected outline, progress bar, green play icon | `triggerbox_ui.{h,cc}` |
+| Clips page plain-language labels/tooltips | `trigger_ui.cc`, `slot_properties_box.cc` |
+| QA tools | `tools/ui-qa/` |
+
+## Current state / where it stopped
+
+Iteration loop (screenshot → QA → fix → rebuild), rounds 1–4 committed:
+
+- Everything builds; `tools/ui-qa/run_static.sh` and `tools/ui-qa/run_gui.sh` pass
+  (smoke 10/10, theme colors in screenshots, clip states, 150 % HiDPI).
+- Compatibility: a session saved by stock Ardour opens in the redesign build.
+- Round 1: track-colored clip tiles, font lookup in the dev tree, editor defaults, color QA.
+- Round 2: faders tinted with the track color, taller clip tiles (22 px), more QA.
+- Round 3: master/monitor neutral (tracks get the distinct hues); screenshots of
+  playing/queued clips.
+- Round 4: queued outline also on clips waiting behind a playing clip
+  (`TriggerBox::peek_next_trigger`); `check_cue_states.py`; `run_gui.sh` no longer
+  swallows the screenshot color check's exit status; "+ Add Track" button at natural
+  width; editor list Name column min 90 px; quieter "Show Sends" fill; cue-page gain
+  sliders in the track color.
+
+Harness lessons: launching a cue (F1–F8) starts the transport by itself — pressing Space
+afterwards stops it. Queued clips start at the next bar (< 2 s at 120 bpm), so capture
+the queued state immediately.
+
+## Next steps
+
+1. Save the after screenshots to `ui-drafts/screenshots/after/` and show the user
+   before / after / draft side by side.
+2. Remaining draft items not implemented: mixer plugin "cards"/send bars/fader restyle,
+   region drawing, follow actions as one sentence, named scenes, clip library BPM/length,
+   Quick Add "Record from" input picker, bottom status bar. Windows Inter registration
+   (`bundle_env_mingw.cc`) not done (falls back to system font).
+3. When stable: update `ui-drafts/README.md` status table, ask the user before opening a PR.
+
+## Expectation set with the user
+
+The real build will match the drafts' colors, font, page switcher, tool labels, rulers,
+color stripes and headers, but **not** the drafts' spacing, region cards or mixer strip
+internals (estimate: editor 60–70 %, mixer ~40 % of the mockup). Present the gaps honestly
+with side-by-side images and let the user choose what to close next.
+
+## Environment notes (cloud container)
+
+- apt downloads stall; use `tools/ui-qa/install_deps.sh`.
+- No git tags in the shallow clone; configure needs `git describe` → local annotated tag
+  (see `CLAUDE.md`), never pushed.
+- Don't use `pkill -f <pattern>`/`rm` with globs in compound shell commands: `pkill -f`
+  matched the agent's own shell, and a safety check blocks `cd … && rm …*`.
+- Full build ≈ 37 min; header changes rebuild most of `gtk2_ardour`.

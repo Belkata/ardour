@@ -697,6 +697,7 @@ echo "Copying other stuff to $APPDIR  ..."
 cp $BUILD_ROOT/gtk2_ardour/ardour.keys  $Etc
 cp $BUILD_ROOT/gtk2_ardour/ardour.menus $Etc
 cp $BUILD_ROOT/gtk2_ardour/clearlooks.rc $Etc
+cp $BUILD_ROOT/gtk2_ardour/clearlooks.inter.rc $Etc
 cp $BUILD_ROOT/gtk2_ardour/default_ui_config $Etc
 
 if test -n "$LIVETRAX"; then
@@ -712,6 +713,7 @@ cp ../../gtk2_ardour/icons/*.png ${Shared}/icons
 cp -r ../../gtk2_ardour/icons/cursor_* ${Shared}/icons/
 cp ../../gtk2_ardour/ArdourMono.ttf $Shared
 cp ../../gtk2_ardour/ArdourSans.ttf $Shared
+cp ../../gtk2_ardour/fonts/Inter-*.otf ../../gtk2_ardour/fonts/Inter-LICENSE.txt $Shared
 cp ../../gtk2_ardour/resources/${APPNAME}-* ${Shared}/resources/
 
 # Themes: only install those named for this app

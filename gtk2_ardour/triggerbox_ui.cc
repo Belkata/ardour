@@ -57,6 +57,8 @@
 #include "ui_config.h"
 #include "utils.h"
 
+#include <algorithm>
+
 #include "pbd/i18n.h"
 
 using namespace ARDOUR;
@@ -64,12 +66,27 @@ using namespace ArdourCanvas;
 using namespace Gtkmm2ext;
 using namespace PBD;
 
+/** Trigger's initial color (see ARDOUR::Trigger), i.e. "no color chosen" */
+static const Gtkmm2ext::Color default_clip_color = 0xBEBEBEFF;
+
+/** blend color a over b in RGB; amt is the weight of a */
+static Gtkmm2ext::Color
+tile_mix (Gtkmm2ext::Color a, Gtkmm2ext::Color b, double amt)
+{
+	double ar, ag, ab, aa, br, bg, bb, ba;
+	Gtkmm2ext::color_to_rgba (a, ar, ag, ab, aa);
+	Gtkmm2ext::color_to_rgba (b, br, bg, bb, ba);
+	return Gtkmm2ext::rgba_to_color (ar * amt + br * (1. - amt), ag * amt + bg * (1. - amt), ab * amt + bb * (1. - amt), 1.0);
+}
+
 TriggerEntry::TriggerEntry (Item* item, TriggerStrip& s, TriggerReference tr)
 	: ArdourCanvas::Rectangle (item)
 	, _strip (s)
 	, _grabbed (false)
 	, _drag_active (false)
 	, rec_blink_on (false)
+	, _state_outline (0)
+	, _has_state_outline (false)
 {
 	set_layout_sensitive (true); // why???
 
@@ -188,7 +205,8 @@ TriggerEntry::owner_prop_change (PropertyChange const& pc)
 void
 TriggerEntry::owner_color_changed ()
 {
-	// TODO
+	/* clips without their own color are drawn in the track color */
+	set_widget_colors ();
 }
 
 void
@@ -372,7 +390,7 @@ TriggerEntry::draw_launch_icon (Cairo::RefPtr<Cairo::Context> context, float sz,
 				context->rel_line_to (size, 0);	
 				context->rel_line_to (-size, 0);
 				context->line_to (margin, margin);
-				set_source_rgba (context, UIConfiguration::instance ().color ("neutral:foreground"));
+				set_source_rgba (context, UIConfiguration::instance ().color ("alert:green"));
 				context->fill ();
 				context->stroke ();
 			} else {				/* boxy arrow */
@@ -392,7 +410,7 @@ TriggerEntry::draw_launch_icon (Cairo::RefPtr<Cairo::Context> context, float sz,
 			context->rel_line_to (size, -size / 2);
 			context->line_to (margin, margin);
 			if (active) {
-				set_source_rgba (context, UIConfiguration::instance ().color ("neutral:foreground"));
+				set_source_rgba (context, UIConfiguration::instance ().color ("alert:green"));
 				context->fill ();
 			} else {
 				set_source_rgba (context, UIConfiguration::instance ().color ("neutral:midground"));
@@ -402,7 +420,7 @@ TriggerEntry::draw_launch_icon (Cairo::RefPtr<Cairo::Context> context, float sz,
 		case Trigger::ReTrigger:
 			/* line + boxy arrow + line */
 			if (active) {
-				set_source_rgba (context, UIConfiguration::instance ().color ("neutral:foreground"));
+				set_source_rgba (context, UIConfiguration::instance ().color ("alert:green"));
 			} else {
 				set_source_rgba (context, UIConfiguration::instance ().color ("neutral:midground"));
 			}
@@ -433,7 +451,7 @@ TriggerEntry::draw_launch_icon (Cairo::RefPtr<Cairo::Context> context, float sz,
 			context->rel_line_to (-size / 2, -size / 2);
 			context->rel_line_to (size / 2, -size / 2);
 			if (active) {
-				set_source_rgba (context, UIConfiguration::instance ().color ("neutral:foreground"));
+				set_source_rgba (context, UIConfiguration::instance ().color ("alert:green"));
 				context->fill ();
 				context->stroke ();
 			} else {
@@ -454,7 +472,7 @@ TriggerEntry::draw_launch_icon (Cairo::RefPtr<Cairo::Context> context, float sz,
 			context->rel_line_to (0, size - scale * 6);
 
 			if (active) {
-				set_source_rgba (context, UIConfiguration::instance ().color ("neutral:foregroundest"));
+				set_source_rgba (context, UIConfiguration::instance ().color ("alert:green"));
 			} else {
 				/* stutter shape needs to be brighter to maintain balance */
 				set_source_rgba (context, HSV (UIConfiguration::instance ().color ("neutral:midground")).lighter (0.25).color ());
@@ -496,6 +514,30 @@ TriggerEntry::render (ArdourCanvas::Rect const& area, Cairo::RefPtr<Cairo::Conte
 	}
 
 	render_children (area, context);
+
+	/* playback progress along the bottom edge of a playing clip */
+	if (trigger ()->active ()) {
+		const double frac = std::max (0., std::min (1., trigger ()->position_as_fraction ()));
+		const double bar_h = std::max (2., 3. * scale);
+		set_source_rgba (context, UIConfiguration::instance ().color ("neutral:foreground"));
+		context->rectangle (self.x0, self.y1 - bar_h, frac * width, bar_h);
+		context->fill ();
+	}
+
+	/* thin separator between stacked tiles */
+	set_source_rgba (context, UIConfiguration::instance ().color ("neutral:backgroundest"));
+	context->rectangle (self.x0, self.y1 - scale, width, scale);
+	context->fill ();
+
+	/* state outline (drawn on top of the child buttons) */
+	if (_has_state_outline) {
+		const double lw = 2. * scale;
+		context->set_line_width (lw);
+		set_source_rgba (context, _state_outline);
+		context->rectangle (self.x0 + lw * .5, self.y0 + lw * .5, width - lw, height - lw);
+		context->stroke ();
+		context->set_line_width (1);
+	}
 
 	if (trigger ()->cue_isolated ()) {
 		/* left shadow */
@@ -585,6 +627,22 @@ void
 TriggerEntry::set_widget_colors (TriggerEntry::EnteredState es)
 {
 	color_t bg_col = bg_color ();
+
+	/* a clip's color, or its track's color while the clip still has
+	 * the default (unset) color */
+	color_t clip_col = trigger ()->color ();
+	if (clip_col == default_clip_color) {
+		Stripable* owner = dynamic_cast<Stripable*> (tref.box ()->owner ());
+		if (owner) {
+			clip_col = owner->presentation_info ().color ();
+		}
+	}
+
+	/* clips are tinted with their color, stronger while playing; empty
+	 * slots keep the plain (darker) background */
+	if (trigger ()->playable ()) {
+		bg_col = tile_mix (clip_col, bg_col, trigger ()->active () ? 0.42 : 0.24);
+	}
 	set_fill_color (bg_col);
 
 	//child widgets highlight when entered
@@ -598,18 +656,25 @@ TriggerEntry::set_widget_colors (TriggerEntry::EnteredState es)
 
 	follow_button->set_fill_color ((es == FollowEntered) ? hilite : bg_col);
 
-	name_text->set_color (trigger ()->color ());
+	/* readable name text; the tile itself carries the clip color */
+	name_text->set_color (UIConfiguration::instance ().color ("neutral:foreground"));
 	name_text->set_fill_color (UIConfiguration::instance ().color ("neutral:midground"));
 
-	/*preserve selection border*/
+	/* state outline around the whole tile: playing = clip color,
+	 * queued = amber, selected = bright. A clip launched while another one
+	 * on the track plays waits in the box's explicit queue. */
+	const bool queued = !trigger ()->active () && (trigger ()->box ().currently_playing () == trigger () || trigger ()->box ().peek_next_trigger () == trigger ());
+	_has_state_outline = true;
 	if (PublicEditor::instance ().get_selection ().selected (this)) {
-		name_button->set_outline_color (UIConfiguration::instance ().color ("alert:red"));
+		_state_outline = UIConfiguration::instance ().color ("neutral:foregroundest");
+	} else if (queued) {
+		_state_outline = UIConfiguration::instance ().color ("theme:contrasting alt");
+	} else if (trigger ()->active ()) {
+		_state_outline = clip_col;
+	} else {
+		_has_state_outline = false;
 	}
-
-	/*draw a box around 'queued' trigger*/
-	if (!trigger ()->active () && trigger ()->box ().currently_playing () == trigger ()) {
-		play_button->set_outline_color (UIConfiguration::instance ().color ("neutral:foreground"));
-	}
+	redraw ();
 }
 
 void

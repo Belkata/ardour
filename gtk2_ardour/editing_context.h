@@ -758,6 +758,7 @@ class EditingContext : public ARDOUR::SessionHandlePtr, public AxisViewProvider,
 	void register_grid_actions ();
 
 	void bind_mouse_mode_buttons ();
+	void update_mouse_mode_button_labels ();
 
 	Gtk::HBox snap_box;
 	Gtk::HBox grid_box;

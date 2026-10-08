@@ -2668,6 +2668,32 @@ EditingContext::bind_mouse_mode_buttons ()
 	set_tooltip (mouse_draw_button, _("Draw Mode (draw and edit gain/notes/automation)"));
 	set_tooltip (mouse_timefx_button, _("Stretch Mode (time-stretch audio and midi regions, preserving pitch)"));
 	set_tooltip (mouse_content_button, _("Internal Edit Mode (edit notes and automation points)"));
+
+	/* tool buttons show their icon; the active tool also shows its name,
+	 * see update_mouse_mode_button_labels() */
+	mouse_move_button.add_elements (ArdourButton::Text);
+	mouse_select_button.add_elements (ArdourButton::Text);
+	mouse_draw_button.add_elements (ArdourButton::Text);
+	mouse_timefx_button.add_elements (ArdourButton::Text);
+	mouse_grid_button.add_elements (ArdourButton::Text);
+	mouse_content_button.add_elements (ArdourButton::Text);
+	mouse_cut_button.add_elements (ArdourButton::Text);
+}
+
+void
+EditingContext::update_mouse_mode_button_labels ()
+{
+	EC_LOCAL_TEMPO_SCOPE;
+
+	const MouseMode m = current_mouse_mode ();
+
+	mouse_move_button.set_text    (m == MouseObject  ? _("Grab")    : "");
+	mouse_select_button.set_text  (m == MouseRange   ? _("Range")   : "");
+	mouse_draw_button.set_text    (m == MouseDraw    ? _("Draw")    : "");
+	mouse_timefx_button.set_text  (m == MouseTimeFX  ? _("Stretch") : "");
+	mouse_grid_button.set_text    (m == MouseGrid    ? _("Grid")    : "");
+	mouse_content_button.set_text (m == MouseContent ? _("Content") : "");
+	mouse_cut_button.set_text     (m == MouseCut     ? _("Cut")     : "");
 }
 
 Editing::MouseMode
