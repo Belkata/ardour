@@ -400,6 +400,35 @@ CueEditor::pack_mouse_mode_box ()
 	return mouse_mode_hbox;
 }
 
+namespace {
+
+/** Holds the toolbar row without asking for its width: if the pane is narrower
+ * than the toolbar, the right end is clipped instead of the whole window
+ * growing past the screen (e.g. when the MIDI tools panel opens beside it).
+ */
+class ToolbarClip : public Gtk::EventBox
+{
+protected:
+	void on_size_request (Gtk::Requisition* r)
+	{
+		Gtk::EventBox::on_size_request (r);
+		r->width = 1;
+	}
+
+	void on_size_allocate (Gtk::Allocation& a)
+	{
+		Gtk::EventBox::on_size_allocate (a);
+		Gtk::Widget* child = get_child ();
+		if (child && child->is_visible ()) {
+			Gtk::Requisition req = child->size_request ();
+			Gtk::Allocation ca (0, 0, std::max (a.get_width (), req.width), a.get_height ());
+			child->size_allocate (ca);
+		}
+	}
+};
+
+}
+
 void
 CueEditor::build_upper_toolbar ()
 {
@@ -543,7 +572,10 @@ CueEditor::build_upper_toolbar ()
 	toolbar_right->pack_start (zoom_focus_selector, false, false);
 
 	toolbar_outer->pack_end (*toolbar_right, false, false);
-	_toolbox.pack_start (*toolbar_outer, false, false); // VBox
+
+	ToolbarClip* toolbar_clip = manage (new ToolbarClip);
+	toolbar_clip->add (*toolbar_outer);
+	_toolbox.pack_start (*toolbar_clip, false, false); // VBox
 
 	_hpacker.pack_start (_toolbox, true, true);
 
@@ -1227,6 +1259,8 @@ CueEditor::mouse_mode_chosen (Editing::MouseMode m)
 		set_mouse_mode (old_mouse_mode);
 		return;
 	}
+
+	update_mouse_mode_button_labels ();
 
 	/* this should generate a new enter event which will
 	   trigger the appropriate cursor.

@@ -88,7 +88,7 @@ Pianoroll::Pianoroll (std::string const & name, bool with_transport, bool expand
 	, _editing_policy (ActiveView)
 	, _color_mode (UIConfiguration::instance().get_default_midi_note_color_mode())
 	, size_button (ArdourButton::default_elements, true)
-	, automation_button (_("A"))
+	, automation_button (_("Lanes"))
 	, expandable (expandabl)
 	, single_region (singl_region)
 	, no_toggle (false)
@@ -100,7 +100,7 @@ Pianoroll::Pianoroll (std::string const & name, bool with_transport, bool expand
 	, xcursor (nullptr)
 	, midi_inspector (nullptr)
 	, inspector_scroller (nullptr)
-	, inspector_button (_("<"))
+	, inspector_button (_("Tools"))
 	, empty_view (nullptr)
 {
 	if (controller_name_map.empty()) {
@@ -130,7 +130,15 @@ Pianoroll::Pianoroll (std::string const & name, bool with_transport, bool expand
 	colors_dropdown.add_menu_elem (MenuElem (_("Pitch"), sigc::bind (sigc::mem_fun (*this, &Pianoroll::set_color_mode), ARDOUR::PitchColors)));
 	colors_dropdown.add_menu_elem (MenuElem (_("Setup"), sigc::mem_fun (*this, &Pianoroll::setup_colors)));
 	colors_dropdown.set_active ((int) _color_mode);
+	colors_dropdown.set_sizing_text (_("Colors: Velocity"));
+	colors_dropdown.disable_scrolling ();
+	update_colors_dropdown_text ();
 	ArdourWidgets::set_tooltip (colors_dropdown, _("Color Scheme for MIDI events"));
+
+	note_mode_button.set_icon (0, 0); /* back to text */
+	note_mode_button.set_text (_("Drums"));
+
+	automation_button.set_sizing_text (_("Lanes: Velocity"));
 
 	/* We always need the MIDI inspector to exist, but we don't pack it by default */
 
@@ -147,6 +155,7 @@ Pianoroll::Pianoroll (std::string const & name, bool with_transport, bool expand
 	build_draw_midi_menus();
 	build_lower_toolbar ();
 	build_canvas ();
+	build_view_menu ();
 
 	set_action_defaults ();
 	set_mouse_mode (Editing::MouseContent, true);
@@ -218,7 +227,9 @@ Pianoroll::set_inspector_visibility (bool yn)
 			_hpacker.reorder_child (*inspector_scroller, 0);
 		}
 		inspector_scroller->show();
+		inspector_button.set_active_state (Gtkmm2ext::ExplicitActive);
 	} else {
+		inspector_button.set_active_state (Gtkmm2ext::Off);
 		if (inspector_scroller->get_parent()) {
 			_hpacker.remove (*inspector_scroller);
 		}
@@ -420,10 +431,87 @@ Pianoroll::pack_inner (Gtk::Box& box)
 {
 	EC_LOCAL_TEMPO_SCOPE;
 
+	/* "Grid [1/4 Note] [Snap]" */
+	Gtk::Label* grid_label = manage (new Gtk::Label (_("Grid")));
+	grid_label->show ();
+	snap_box.reorder_child (grid_type_selector, 0);
+	box.pack_start (*grid_label, false, false, 2);
 	box.pack_start (snap_box, false, false);
 	box.pack_start (*(manage (new ArdourVSpacer ())), false, false, 3);
 	box.pack_start (draw_box, false, false);
 	draw_box.show ();
+
+	box.pack_start (visible_channel_label, false, false, 2);
+	box.pack_start (visible_channel_selector, false, false);
+	box.pack_start (note_mode_button, false, false, 4);
+}
+
+void
+Pianoroll::build_view_menu ()
+{
+	using namespace Gtk::Menu_Helpers;
+	using namespace Editing;
+
+	/* zoom focus and (with several regions) which regions are editable,
+	 * instead of two more drop-downs on the toolbar */
+
+	view_dropdown.set_text (_("View"));
+	view_dropdown.set_sizing_text (_("View"));
+	view_dropdown.disable_scrolling ();
+
+	Gtk::Menu* zoom_focus_menu = manage (new Gtk::Menu);
+	view_dropdown.append (*zoom_focus_menu, zoom_focus_actions[ZoomFocusLeft]);
+	view_dropdown.append (*zoom_focus_menu, zoom_focus_actions[ZoomFocusRight]);
+	view_dropdown.append (*zoom_focus_menu, zoom_focus_actions[ZoomFocusCenter]);
+	view_dropdown.append (*zoom_focus_menu, zoom_focus_actions[ZoomFocusMouse]);
+	view_dropdown.add_menu_elem (MenuElem (_("Zoom Focus"), *zoom_focus_menu));
+
+	if (!single_region) {
+		view_dropdown.add_separator ();
+		view_dropdown.add_menu_elem (MenuElem (_("Edit Active Region Only"), sigc::bind (sigc::mem_fun (*this, &Pianoroll::set_editing_policy), ActiveView)));
+		view_dropdown.add_menu_elem (MenuElem (_("Edit All Regions"), sigc::bind (sigc::mem_fun (*this, &Pianoroll::set_editing_policy), AllViews)));
+	}
+
+	ArdourWidgets::set_tooltip (view_dropdown, _("Zoom focus and which regions can be edited"));
+
+	/* zoom focus is in the View menu */
+	zoom_focus_selector.set_no_show_all (true);
+	zoom_focus_selector.hide ();
+}
+
+void
+Pianoroll::update_colors_dropdown_text ()
+{
+	std::string mode;
+
+	switch (_color_mode) {
+	case ARDOUR::MeterColors:
+		mode = _("Velocity");
+		break;
+	case ARDOUR::ChannelColors:
+		mode = _("Channel");
+		break;
+	case ARDOUR::TrackColor:
+		mode = _("Track");
+		break;
+	case ARDOUR::PitchColors:
+		mode = _("Pitch");
+		break;
+	}
+
+	colors_dropdown.set_text (string_compose (_("Colors: %1"), mode));
+}
+
+void
+Pianoroll::update_automation_button_text ()
+{
+	if (automation_lanes.empty ()) {
+		automation_button.set_text (_("Lanes"));
+	} else if (automation_lanes.size () == 1) {
+		automation_button.set_text (string_compose (_("Lanes: %1"), parameter_name (automation_lanes.begin()->first)));
+	} else {
+		automation_button.set_text (string_compose (_("Lanes: %1"), automation_lanes.size ()));
+	}
 }
 
 void
@@ -438,24 +526,23 @@ Pianoroll::pack_outer (Gtk::Box& box)
 	}
 
 	box.pack_start (rec_box, false, false);
-	box.pack_start (visible_channel_label, false, false);
-	box.pack_start (visible_channel_selector, false, false);
-	box.pack_start (note_mode_button, false, false);
 
 	if (expandable) {
 		box.pack_end (size_button, false, false);
 	}
 
-	ArdourWidgets::set_tooltip (automation_button, _("Select visible MIDI automation"));
+	ArdourWidgets::set_tooltip (automation_button, _("Show or hide lanes: velocity, pitch bend, pressure, controllers"));
 
-	box.pack_end (automation_button, false, false);
+	/* right to left: View, Colors, Lanes, region list */
+	box.pack_end (view_dropdown, false, false);
 	box.pack_end (colors_dropdown, false, false);
+	box.pack_end (automation_button, false, false);
 
 	if (!single_region) {
+		/* only shown while more than one region is open; the editing
+		 * policy is in the View menu */
 		box.pack_end (region_dropdown, false, false);
-		box.pack_end (policy_dropdown, false, false);
-		region_dropdown.show ();
-		policy_dropdown.show ();
+		region_dropdown.set_no_show_all (true);
 	}
 }
 
@@ -479,6 +566,7 @@ Pianoroll::set_color_mode (ARDOUR::ColorMode cm)
 
 	_color_mode = cm;
 	colors_dropdown.set_active ((int) cm);
+	update_colors_dropdown_text ();
 
 	if (bg) {
 		bg->set_color_mode (cm);
@@ -2099,6 +2187,8 @@ Pianoroll::rebuild_region_dropdown ()
 
 		region_dropdown.add_menu_elem (Gtk::Menu_Helpers::MenuElem (region->name(), [this,wr]() { std::shared_ptr<ARDOUR::Region> r (wr.lock()); if (r) set_region (r); }));
 	}
+
+	region_dropdown.set_visible (!single_region && region_view_map.size () > 1);
 }
 
 void
@@ -2277,6 +2367,7 @@ Pianoroll::add_automation_lane (Evoral::Parameter const & param)
 	}
 
 	automation_lanes.insert (std::make_pair (param, lane));
+	update_automation_button_text ();
 
 	partition_height ();
 
@@ -2307,6 +2398,7 @@ Pianoroll::remove_automation_lane (Evoral::Parameter const & param)
 
 	AutomationLane* lane = existing->second;
 	automation_lanes.erase (existing);
+	update_automation_button_text ();
 
 	partition_height ();
 

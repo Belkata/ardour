@@ -260,6 +260,10 @@ class Pianoroll : public CueEditor, public SlipDraggable
 
 	ArdourWidgets::ArdourDropdown policy_dropdown;
 	ArdourWidgets::ArdourDropdown colors_dropdown;
+	ArdourWidgets::ArdourDropdown view_dropdown;
+	void update_colors_dropdown_text ();
+	void update_automation_button_text ();
+	void build_view_menu ();
 
 	bool no_toggle;
 	void toggle_automation (Evoral::Parameter param);
