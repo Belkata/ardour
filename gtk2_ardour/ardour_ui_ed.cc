@@ -815,7 +815,7 @@ ARDOUR_UI::setup_action_tooltips ()
 {
 	ActionManager::get_action ("Transport", "TogglePunchIn")->set_tooltip (_("Start recording at auto-punch start"));
 	ActionManager::get_action ("Transport", "TogglePunchOut")->set_tooltip (_("Stop recording at auto-punch end"));
-	ActionManager::get_action ("Transport", "ToggleAutoReturn")->set_tooltip (_("Return to last playback start when stopped"));
+	ActionManager::get_action ("Transport", "ToggleAutoReturn")->set_tooltip (_("Auto return: when playback stops, go back to where it started"));
 	ActionManager::get_action ("Transport", "ToggleFollowEdits")->set_tooltip (_("Playhead follows Range tool clicks, and Range selections"));
 
 	ActionManager::get_action (X_("Main"), X_("cancel-solo"))->set_tooltip (_("When active, something is soloed.\nClick to de-solo everything"));
