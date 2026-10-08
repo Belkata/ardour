@@ -772,6 +772,8 @@
     </menu>
 
     <menu name='Help' action='Help'>
+      <menuitem action='command-palette'/>
+      <separator/>
 #ifndef __APPLE__
       <menuitem action='toggle-about'/>
 #endif
