@@ -70,7 +70,7 @@ Scope agreed: colors + layout, with Inter as the UI font.
 | 10 Plain-language status | Done | e.g. "DSP 12% · 3 xruns", "Record time left: 9 h" |
 | Mixer: colored strip headers | Done | name button in track color |
 | Mixer: quieter plugin colors | Done | pre/post-fader distinction kept, softened |
-| Quick-add "Record from" input picker | Not done | inputs follow the auto-connect preference; use "More options…" |
+| Quick-add "Record from" input picker | Done | "Automatic" (auto-connect preference), "No input", or a hardware input (pairs for stereo); several audio tracks take consecutive inputs, MIDI tracks share the chosen device |
 | Clips page: clip tiles tinted by clip color | Done | stronger tint while playing, readable white names |
 | Clips page: play / queued / selected states | Done | outline in clip color / amber / white; green launch icon while playing; queued clips waiting behind a playing clip are outlined too |
 | Track colors used widely | Done | distinct default palette; faders, mixer headers and Clips-page gain sliders in the track color; master stays neutral |

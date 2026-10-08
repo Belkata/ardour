@@ -26,13 +26,16 @@
 #include <ytkmm/spinbutton.h>
 #include <ytkmm/table.h>
 
+#include "ardour/types.h"
+
 #include "widgets/ardour_button.h"
+#include "widgets/ardour_dropdown.h"
 
 #include "ardour_window.h"
 #include "instrument_selector.h"
 
 /** A small, non-modal popover for the common case of adding tracks:
- * type, name, count, channels and arm-for-recording. Everything else
+ * type, name, count, channels, input and arm-for-recording. Everything else
  * is one click away via "More options...", which opens the full
  * Add Track/Bus/VCA dialog.
  */
@@ -59,6 +62,17 @@ private:
 	void add_clicked ();
 	void more_clicked ();
 	void update_sensitivity ();
+	void set_channels (bool stereo);
+
+	/* "Record from" input picker */
+	enum {
+		InputAuto = -2, ///< follow the input auto-connect preference
+		InputNone = -1  ///< leave inputs unconnected
+	};
+	void refill_inputs ();
+	void set_input (int);
+	std::string input_label (int) const;
+	void connect_inputs (ARDOUR::RouteList const&);
 
 	Kind _kind;
 
@@ -74,12 +88,17 @@ private:
 	Gtk::Label          _count_label;
 	Gtk::Label          _channels_label;
 	Gtk::Label          _instrument_label;
+	Gtk::Label          _input_label;
 	Gtk::Entry          _name_entry;
 	Gtk::Adjustment     _count_adj;
 	Gtk::SpinButton     _count_spin;
 	Gtk::CheckButton    _arm_button;
 	InstrumentSelector  _instrument;
 	Gtk::HBox           _channels_box;
+
+	ArdourWidgets::ArdourDropdown _input_selector;
+	std::vector<std::string>      _phys_inputs; ///< physical capture ports of the current data type
+	int                           _input; ///< InputAuto, InputNone or index of the first port in _phys_inputs
 
 	ArdourWidgets::ArdourButton _more_button;
 	ArdourWidgets::ArdourButton _add_button;
