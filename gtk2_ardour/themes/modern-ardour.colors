@@ -3,11 +3,11 @@
   <Colors>
     <Color name="alert:blue" value="4c7ce6ff"/>
     <Color name="alert:cyan" value="2fb3b3ff"/>
-    <Color name="alert:green" value="4cc46aff"/>
+    <Color name="alert:green" value="5ed07bff"/>
     <Color name="alert:greenish" value="4f9a62ff"/>
     <Color name="alert:orange" value="f0913aff"/>
-    <Color name="alert:red" value="ec4b55ff"/>
-    <Color name="alert:ruddy" value="c43c46ff"/>
+    <Color name="alert:red" value="f1545eff"/>
+    <Color name="alert:ruddy" value="b6333dff"/>
     <Color name="alert:yellow" value="e8cf4aff"/>
     <Color name="meter color0" value="2b8a46ff"/>
     <Color name="meter color1" value="37a556ff"/>
@@ -30,7 +30,7 @@
     <Color name="neutral:foreground" value="e4e6eaff"/>  <!--gtk_foreground-->
     <Color name="neutral:foreground2" value="b6bbc4ff"/>  <!--marker track-->
     <Color name="neutral:foregroundest" value="f4f5f7ff"/>  <!--grid line major-->
-    <Color name="neutral:midground" value="6c717cff"/>  <!--grid line minor-->
+    <Color name="neutral:midground" value="7d838fff"/>  <!--grid line minor-->
     <Color name="pianoroll: insensitive bender line" value="96b2df84"/>
     <Color name="pianoroll: insensitive expression line" value="dfc59684"/>
     <Color name="pianoroll: insensitive modulation line" value="afdf9684"/>
@@ -46,7 +46,7 @@
     <Color name="theme:contrasting alt" value="e3b34fff"/>  <!--delta clock , clock edit-->
     <Color name="theme:contrasting clock" value="8ed9a4ff"/>  <!--clock: text-->
     <Color name="theme:contrasting less" value="4fb87aff"/>
-    <Color name="theme:contrasting selection" value="5b8defff"/>  <!--gtk_bg_selected-->
+    <Color name="theme:contrasting selection" value="6a98f2ff"/>  <!--gtk_bg_selected-->
     <Color name="theme:selected header" value="2d3549ff"/>  <!--selected track header-->
     <Color name="theme:selected region" value="34497aff"/>  <!--selected region-->
     <Color name="widget:bg" value="3b3f47ff"/>    <!--generic button-->
@@ -119,7 +119,7 @@
     <ColorAlias name="fader outline" alias="neutral:backgroundest"/>
     <ColorAlias name="feedback alert: alt active" alias="alert:ruddy"/>
     <ColorAlias name="feedback alert: fill" alias="widget:bg"/>
-    <ColorAlias name="feedback alert: fill active" alias="alert:red"/>
+    <ColorAlias name="feedback alert: fill active" alias="alert:ruddy"/>
     <ColorAlias name="feedback alert: led active" alias="alert:red"/>
     <ColorAlias name="foldback knob" alias="widget:bg"/>
     <ColorAlias name="foldback knob: arc end" alias="widget:blue"/>
@@ -135,7 +135,7 @@
     <ColorAlias name="gain line" alias="alert:green"/>
     <ColorAlias name="gain line inactive" alias="theme:bg1"/>
     <ColorAlias name="generic button: fill" alias="widget:bg"/>
-    <ColorAlias name="generic button: fill active" alias="alert:red"/>
+    <ColorAlias name="generic button: fill active" alias="alert:ruddy"/>
     <ColorAlias name="generic button: led active" alias="alert:green"/>
     <ColorAlias name="generic button: outline" alias="neutral:backgroundest"/>
     <ColorAlias name="ghost track base" alias="neutral:background2"/>
@@ -161,7 +161,7 @@
     <ColorAlias name="gtk_contrasting_indicator" alias="alert:green"/>
     <ColorAlias name="gtk_control_master" alias="theme:bg1"/>
     <ColorAlias name="gtk_control_text" alias="neutral:foreground"/>
-    <ColorAlias name="gtk_control_text2" alias="alert:ruddy"/>
+    <ColorAlias name="gtk_control_text2" alias="neutral:foreground"/>
     <ColorAlias name="gtk_darkest" alias="theme:bg2"/>
     <ColorAlias name="gtk_entry_cursor" alias="alert:red"/>
     <ColorAlias name="gtk_fg_selected" alias="theme:bg2"/>
@@ -190,7 +190,7 @@
     <ColorAlias name="invert button: led active" alias="alert:green"/>
     <ColorAlias name="latency button: fill" alias="widget:bg"/>
     <ColorAlias name="latency button: fill active" alias="alert:ruddy"/>
-    <ColorAlias name="latency button: led active" alias="alert:ruddy"/>
+    <ColorAlias name="latency button: led active" alias="alert:red"/>
     <ColorAlias name="location arrangement marker" alias="theme:contrasting alt"/>
     <ColorAlias name="location cd marker" alias="theme:contrasting less"/>
     <ColorAlias name="location loop" alias="alert:blue"/>
@@ -260,7 +260,7 @@
     <ColorAlias name="mixer strip button: led active" alias="alert:green"/>
     <ColorAlias name="monitor button: fill" alias="widget:bg"/>
     <ColorAlias name="monitor button: fill active" alias="alert:orange"/>
-    <ColorAlias name="monitor button: led active" alias="alert:ruddy"/>
+    <ColorAlias name="monitor button: led active" alias="alert:red"/>
     <ColorAlias name="monitor section button: fill" alias="widget:bg"/>
     <ColorAlias name="monitor section dim: fill" alias="widget:bg"/>
     <ColorAlias name="monitor section dim: fill active" alias="alert:orange"/>
@@ -285,7 +285,7 @@
     <ColorAlias name="mono panner outline" alias="theme:bg"/>
     <ColorAlias name="mono panner position fill" alias="theme:contrasting less"/>
     <ColorAlias name="mono panner position outline" alias="theme:bg"/>
-    <ColorAlias name="mono panner text" alias="neutral:backgroundest"/>
+    <ColorAlias name="mono panner text" alias="neutral:foregroundest"/>
     <ColorAlias name="mouse mode button: fill" alias="widget:bg"/>
     <ColorAlias name="mouse mode button: fill active" alias="widget:bg active"/>
     <ColorAlias name="mouse mode button: led active" alias="alert:green"/>
@@ -315,7 +315,7 @@
     <ColorAlias name="piano roll black outline" alias="neutral:background"/>
     <ColorAlias name="piano roll offkey" alias="neutral:midground"/>
     <ColorAlias name="piano roll white" alias="neutral:foreground2"/>
-    <ColorAlias name="pinrouting custom: led active" alias="alert:ruddy"/>
+    <ColorAlias name="pinrouting custom: led active" alias="alert:red"/>
     <ColorAlias name="pinrouting sidechain: led active" alias="alert:green"/>
     <ColorAlias name="play head" alias="theme:contrasting"/>
     <ColorAlias name="plugin automation state button: fill active" alias="alert:orange"/>
@@ -357,10 +357,10 @@
     <ColorAlias name="punch button: fill active" alias="alert:ruddy"/>
     <ColorAlias name="punch button: led active" alias="alert:red"/>
     <ColorAlias name="punch clock: background" alias="theme:bg2"/>
-    <ColorAlias name="punch clock: cursor" alias="alert:ruddy"/>
-    <ColorAlias name="punch clock: edited text" alias="alert:ruddy"/>
+    <ColorAlias name="punch clock: cursor" alias="alert:red"/>
+    <ColorAlias name="punch clock: edited text" alias="alert:red"/>
     <ColorAlias name="punch clock: text" alias="theme:contrasting clock"/>
-    <ColorAlias name="punch line" alias="alert:ruddy"/>
+    <ColorAlias name="punch line" alias="alert:red"/>
     <ColorAlias name="range drag bar rect" alias="neutral:midground"/>
     <ColorAlias name="range drag rect" alias="alert:ruddy"/>
     <ColorAlias name="range marker bar" alias="neutral:background2"/>
@@ -406,8 +406,8 @@
     <ColorAlias name="selected waveform outline" alias="theme:bg2"/>
     <ColorAlias name="selection" alias="alert:red"/>
     <ColorAlias name="selection clock: background" alias="theme:bg2"/>
-    <ColorAlias name="selection clock: cursor" alias="alert:ruddy"/>
-    <ColorAlias name="selection clock: edited text" alias="alert:ruddy"/>
+    <ColorAlias name="selection clock: cursor" alias="alert:red"/>
+    <ColorAlias name="selection clock: edited text" alias="alert:red"/>
     <ColorAlias name="selection clock: text" alias="theme:contrasting clock"/>
     <ColorAlias name="selection rect" alias="alert:red"/>
     <ColorAlias name="send alert button: fill" alias="widget:blue"/>
@@ -424,10 +424,10 @@
     <ColorAlias name="solo button: led active" alias="alert:green"/>
     <ColorAlias name="solo isolate: fill" alias="widget:bg"/>
     <ColorAlias name="solo isolate: fill active" alias="widget:bg"/>
-    <ColorAlias name="solo isolate: led active" alias="alert:ruddy"/>
+    <ColorAlias name="solo isolate: led active" alias="alert:red"/>
     <ColorAlias name="solo safe: fill" alias="widget:bg"/>
     <ColorAlias name="solo safe: fill active" alias="widget:bg"/>
-    <ColorAlias name="solo safe: led active" alias="alert:ruddy"/>
+    <ColorAlias name="solo safe: led active" alias="alert:red"/>
     <ColorAlias name="stereo panner bg" alias="theme:bg2"/>
     <ColorAlias name="stereo panner fill" alias="widget:blue"/>
     <ColorAlias name="stereo panner inverted bg" alias="widget:blue darker"/>
@@ -440,7 +440,7 @@
     <ColorAlias name="stereo panner mono text" alias="neutral:backgroundest"/>
     <ColorAlias name="stereo panner outline" alias="theme:bg"/>
     <ColorAlias name="stereo panner rule" alias="theme:bg"/>
-    <ColorAlias name="stereo panner text" alias="neutral:backgroundest"/>
+    <ColorAlias name="stereo panner text" alias="neutral:foregroundest"/>
     <ColorAlias name="stretch clock: background" alias="theme:bg2"/>
     <ColorAlias name="stretch clock: cursor" alias="theme:contrasting alt"/>
     <ColorAlias name="stretch clock: edited text" alias="theme:contrasting alt"/>

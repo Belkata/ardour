@@ -27,7 +27,7 @@ Our changes are almost entirely in `gtk2_ardour` (plus one file in
 |---|---|---|
 | `run_static.sh` | no | runs the two checks below |
 | `check_themes.py` | no | every theme parses; no duplicate names; every alias points at a real palette color; `modern` and `dark` define every alias/modifier of the reference theme; **every color name the C++ code asks for literally is defined** |
-| `check_contrast.py` | no | WCAG contrast of text and button pairs in `modern`; fails only if below threshold *and* worse than `dark` |
+| `check_contrast.py` | no | WCAG contrast of `modern`. Part 1: text and button pairs; fails only if below threshold *and* worse than `dark`. Part 2 (**WCAG rules**, see below): ~110 curated pairs that must pass for `modern` |
 | `smoke.sh <tree> <out>` | yes | headless launch (Xvfb); creates a session from `qa_session.lua` (import, bus, every edit tool, every page, Quick Add), types a name into Quick Add, saves; then `check_session.py` asserts: imported track, bus, Quick Add track (armed), default rulers, no "Color … not found", no CRITICAL, rc file found |
 | `smoke.sh <tree> <out> compat <session>` | yes | opens an existing session, e.g. one saved by stock Ardour, or ours in stock Ardour |
 | `visual_diff.sh <base> <new>` | – | pixel diff of screenshots against approved baselines |
@@ -44,6 +44,44 @@ Run before every push that touches `gtk2_ardour`:
 tools/ui-qa/run_static.sh          # seconds, no build
 ./waf && tools/ui-qa/run_gui.sh    # ~7 minutes, headless
 ```
+
+### WCAG rules in `check_contrast.py`
+
+The WCAG rules are built by `build_rules()`: a curated list of (foreground, background)
+pairs, each with a label saying where it is used in the C++ code. They are blocking
+for the `modern` theme and only reported for any other (`--theme dark`).
+
+| kind | needs | used for |
+|------|-------|----------|
+| `text` | 4.5:1 | ruler labels, track/strip names, clocks, panner L/R, marker flag names, region names, button labels |
+| `large` | 3:1 | clock digits while being edited (large clock font) |
+| `ui` | 3:1 | icons on active buttons, LEDs on their button, playhead/punch line vs lane, waveform vs region |
+| `info` | – | printed only (exemptions below) |
+
+The pairs follow what the code really draws, not just the palette: button text and
+vector-icon colors are chosen the way `ArdourButton::get_contrasting_color` does (better
+of `gtk_foreground`/`gtk_background`, with the 0.35 bias for icons); marker and region
+names use `contrasting_text_color` (near-white below luminance 0.5, else black);
+translucent fills are composited over what is below them with the theme's own
+`<Modifier>` alpha. Try a color change without editing the theme:
+`check_contrast.py --set alert:green=5ed07b --set "alert:red=f1545e"`.
+
+Exemptions (kept out of the blocking list on purpose):
+
+- insensitive / disabled / bypassed text and widgets (WCAG exempts inactive components);
+- text over colors the *user* picks (track, region and marker colors): Ardour chooses black
+  or white itself, so the theme cannot fix a mid-tone track color;
+- button outline and button fill vs window (`info`, 1.4:1 / 1.3:1): every button is identified
+  by its label or icon, whose contrast *is* checked; WCAG 1.4.11 only asks for what is needed
+  to identify a control;
+- gain fader groove/handle (`info`): drawn with `shade()` of `gtk_background` in
+  `clearlooks.rc.in` (`gain_fader`), not from a theme color, so a theme edit cannot change it.
+  Fixing it needs a change to that style or to `ArdourFader`;
+- decorative lines: grid, separators, borders, frames.
+
+When you add a color name that carries text or an icon, add its pair to `build_rules()`.
+If you change a palette color, re-run `check_contrast.py` – shared colors (`alert:green`,
+`alert:red`, `alert:ruddy`, `neutral:midground`, selection blue) appear in many pairs.
 
 Things learned while building the GUI harness (Xvfb, no window manager):
 the Audio/MIDI dialog needs Return even with Autostart; window titles gain a
