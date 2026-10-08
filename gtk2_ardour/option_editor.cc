@@ -1119,6 +1119,32 @@ OptionEditor::add_path_to_treeview (std::string const & pn, Gtk::Widget& widget)
 	option_treeview.expand_all ();
 }
 
+/* GTK draws the text of drop-downs with the toolkit's default font, not the
+ * style of the page; use the same font as the option labels next to them */
+static void
+match_combo_fonts (Gtk::Widget& w)
+{
+	Gtk::ComboBox* combo = dynamic_cast<Gtk::ComboBox*> (&w);
+	if (combo) {
+		static Pango::FontDescription const fd = ARDOUR_UI_UTILS::get_font_for_style (X_("OptionsLabel"));
+		std::vector<Gtk::CellRenderer*> cells = combo->get_cells ();
+		for (auto const& c : cells) {
+			Gtk::CellRendererText* t = dynamic_cast<Gtk::CellRendererText*> (c);
+			if (t) {
+				t->property_font_desc () = fd;
+			}
+		}
+	}
+
+	Gtk::Container* container = dynamic_cast<Gtk::Container*> (&w);
+	if (container) {
+		std::vector<Gtk::Widget*> children = container->get_children ();
+		for (auto const& c : children) {
+			match_combo_fonts (*c);
+		}
+	}
+}
+
 /** Add a component to a given page.
  *  @param page_name Page name (will be created if it doesn't already exist)
  *  @param o Component.
@@ -1138,6 +1164,8 @@ OptionEditor::add_option (std::string const & page_name, OptionEditorComponent* 
 
 	o->add_to_page (p);
 	o->set_state_from_config ();
+
+	match_combo_fonts (p->table);
 }
 
 /** Add a new page

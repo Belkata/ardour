@@ -166,8 +166,16 @@ AudioClock::on_realize ()
 
 	set_clock_dimensions (req);
 
+	/* the size requested before realize was measured with the font of an
+	 * unrealized stand-in widget, which can differ from ours: ask again */
+	bool const changed = (req.width != first_width || req.height != first_height);
+
 	first_width = req.width;
 	first_height = req.height;
+
+	if (changed) {
+		queue_resize ();
+	}
 
 	set_colors ();
 }

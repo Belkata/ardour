@@ -124,6 +124,20 @@ PluginSelector::PluginSelector (PluginManager& mgr)
 	plugin_display.append_column (_("Type"), plugin_columns.type_name);
 	plugin_display.append_column (_("Audio I/O"),plugin_columns.audio_io);
 	plugin_display.append_column (_("MIDI I/O"), plugin_columns.midi_io);
+	{
+		/* the list's cells otherwise use the toolkit's (larger) default font */
+		Pango::FontDescription const fd = ARDOUR_UI_UTILS::get_font_for_style (X_("PluginSelectorDisplay"));
+		std::vector<Gtk::TreeViewColumn*> columns = plugin_display.get_columns ();
+		for (auto const& col : columns) {
+			std::vector<Gtk::CellRenderer*> cells = col->get_cell_renderers ();
+			for (auto const& c : cells) {
+				Gtk::CellRendererText* t = dynamic_cast<Gtk::CellRendererText*> (c);
+				if (t) {
+					t->property_font_desc () = fd;
+				}
+			}
+		}
+	}
 	plugin_display.set_headers_visible (true);
 	plugin_display.set_headers_clickable (true);
 	plugin_display.set_reorderable (false);

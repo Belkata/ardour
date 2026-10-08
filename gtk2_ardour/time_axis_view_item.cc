@@ -680,11 +680,11 @@ TimeAxisViewItem::get_fill_color () const
 	const std::string mod_name = (_dragging ? "dragging region" : fill_color_name);
 
 	if (_selected) {
-		if (UIConfiguration::instance().get_color_regions_using_track_color()) {
-			/* keep the track color recognizable, tinted towards the selection */
-			return UINT_INTERPOLATE (fill_color, UIConfiguration::instance().color ("selected region base"), 0.55);
-		}
-		return UIConfiguration::instance().color ("selected region base");
+		/* tint towards the selection color, keep the item's identity */
+		Gtkmm2ext::Color const c = UIConfiguration::instance().get_color_regions_using_track_color()
+			? UIConfiguration::instance().color_mod (fill_color, mod_name)
+			: UIConfiguration::instance().color_mod (fill_color_name, mod_name);
+		return UINT_INTERPOLATE (c, UIConfiguration::instance().color ("selected region base"), 0.6);
 	} else if (_recregion) {
 		return UIConfiguration::instance().color ("recording rect");
 	} else if (!UIConfiguration::instance().get_color_regions_using_track_color()) {

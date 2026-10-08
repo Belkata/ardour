@@ -82,6 +82,7 @@ Scope agreed: colors + layout, with Inter as the UI font.
 | Top bar (draft 09): single row | Done | transport grouped (locate · stop/play/range/record · loop/click/auto return); tempo/meter beside the clock; Punch In/Out + record mode in one row; pane toggles in one row |
 | Top bar: hide cryptic controls | Done | sync "Int.", shuttle, "VS" hidden by default (Preferences › Appearance › Application Bar › "Display Sync Source and Shuttle/Varispeed Controls"); MIDI panic only in the Transport menu; unassigned Lua slots hidden |
 | Top bar: alerts only when active | Done | "Solo active" / "Auditioning" / "Feedback loop" appear only while relevant |
+| Round 6: menus and dialogs (from a tour of every menu and window) | Done | readable disabled items; visible empty checkboxes, plain check marks in menus; clipped time fields fixed; drop-downs in Preferences match their labels; highlighted main dialog action, no stock icons on dialog buttons; "Create" in New Session; plainer labels; View menu lists only the visible pages' pane toggles; common region actions at the top of the region menu; larger Locations window; selected regions keep their track tint; muted Recorder lanes; outline star for non-favorite plugins, Insert works without "Add" — see `screenshots/menus-dialogs-before-after.png` |
 
 ## Screenshots and handoff
 
@@ -91,6 +92,7 @@ Scope agreed: colors + layout, with Inter as the UI font.
   plus `cues-playing` / `cues-queued` clip states).
 - `screenshots/before-after.png` – the three pages side by side.
 - `screenshots/topbar-before-after.png` – the top bar before/after round 5.
+- `screenshots/menus-dialogs-before-after.png` – menus and dialogs before/after round 6.
 
 Rebuild `before-after.png` after refreshing `screenshots/after/`:
 

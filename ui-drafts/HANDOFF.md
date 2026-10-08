@@ -109,6 +109,35 @@ QA → screenshot → fix), rounds 1–5. Round 5 builds; `run_static.sh` and `r
 pass (smoke 10/10, picker, colors, clip states, 150 %). Screenshots: `screenshots/after/`,
 `screenshots/before-after.png`, `screenshots/topbar-before-after.png`.
 
+Round 6 (branch `claude/wizardly-brahmagupta-jyh5oi`, not merged yet): fixes from a tour
+of every menu and dialog, sheet in `screenshots/menus-dialogs-before-after.png`.
+`run_static.sh` and `run_gui.sh` pass. Details worth knowing:
+
+- Widget drawing lives in `libs/clearlooks-newer` (a GTK engine, shared by all themes):
+  checkbox/radio borders mix in the text color; menus draw only a check mark (no box);
+  the "etched" copy of insensitive text is skipped on dark backgrounds.
+  `fg[INSENSITIVE]` in `clearlooks.rc.in` is a mix of fg and bg.
+- **Fonts:** rc `font_name` reaches labels and named widgets, but drop-downs
+  (`GtkComboBox` → `GtkCellView`), tree views and unnamed custom widgets end up with
+  the toolkit default "Sans 10" (larger than the UI's Inter 8). A rule like
+  `widget "*OptionsNotebook*"` does *not* fix the combos. What works: set the cell
+  renderers' `font_desc` (see `match_combo_fonts()` in `option_editor.cc`, the plugin list
+  in `plugin_selector.cc`). Setting `gtk-font-name` globally would also work but
+  shrinks many redesigned buttons, so it was not done.
+- `AudioClock` measures its size before realize with a stand-in label's font; it now
+  asks for a relayout in `on_realize()` when the real font gives a different size
+  (that was the clipped "0:00:00:0" in Session Properties / Locations).
+- Dialog buttons: `dialog_buttons.{h,cc}` — `plain_buttons()` (drops stock icons, called
+  from `ArdourDialog::on_show` and `ArdourMessageDialog::run/show`) and `set_primary()`
+  (rc style `primary_dialog_button`, accent fill).
+- View menu: `update_view_menu_pane_items()` in `ardour_ui_ed.cc` hides the pane toggles
+  of pages that are not on screen when the menu opens (actions and shortcuts unchanged).
+- Selected regions: background blended 60 % towards `selected region base`, waveform
+  keeps its track tint (`audio_region_view.cc`, `midi_region_view.cc`,
+  `time_axis_view_item.cc`).
+- Not done: Preferences sidebar is still larger than the page text (reads as navigation);
+  other tree views (editor list, etc.) still use the default font.
+
 Round 5 details worth knowing:
 
 - Top bar = `ApplicationBar` (`application_bar.cc`), one instance per page (editor, mixer,
@@ -172,6 +201,9 @@ with side-by-side images and let the user choose what to close next.
 ## Environment notes (cloud container)
 
 - apt downloads stall; use `tools/ui-qa/install_deps.sh`.
+- If `git describe` names `fork-point` instead of `9.0-…`, the build fails in
+  `set_version`; make the local `fork-point` tag lightweight (`git tag -f fork-point 608f15a4`)
+  so `git describe` (annotated tags only) finds `9.0`.
 - No git tags in the shallow clone; configure needs `git describe` → local annotated tag
   (see `CLAUDE.md`), never pushed.
 - Don't use `pkill -f <pattern>`/`rm` with globs in compound shell commands: `pkill -f`

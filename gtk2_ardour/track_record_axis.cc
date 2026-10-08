@@ -699,8 +699,8 @@ TrackRecordAxis::TrackSummary::render (Cairo::RefPtr<Cairo::Context> const& cr, 
 	if (g && g->is_color()) {
 		Gtkmm2ext::set_source_rgba (cr, GroupTabs::group_color (g));
 	} else {
-		/* the same muted tint as the editor's waveforms */
-		Gtkmm2ext::set_source_rgba (cr, UINT_INTERPOLATE (_track->presentation_info ().color (), UIConfiguration::instance ().color ("waveform fill"), 0.5));
+		/* muted towards the background, like the editor's track color swatches */
+		Gtkmm2ext::set_source_rgba (cr, UINT_INTERPOLATE (_track->presentation_info ().color (), UIConfiguration::instance ().color (X_("gtk_background")), 0.35));
 	}
 
 	double w = get_width();

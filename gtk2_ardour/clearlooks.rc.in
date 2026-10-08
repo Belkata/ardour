@@ -1078,6 +1078,7 @@ style "ardour_button" ="default_button"
 /* the main action of a dialog (Create, Add, Export, Insert ...) */
 style "primary_dialog_button" = "ardour_button"
 {
+	font_name = "@FONTFAMILY@ @FONT_NORMAL@" /* same as the other button labels */
 	bg[NORMAL]   = @bright_color
 	bg[PRELIGHT] = shade (1.15, @bright_color)
 	bg[ACTIVE]   = shade (0.85, @bright_color)
