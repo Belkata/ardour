@@ -61,7 +61,7 @@ using namespace ARDOUR_UI_UTILS;
 using namespace Gtkmm2ext;
 
 Pango::FontDescription TimeAxisViewItem::NAME_FONT;
-const double TimeAxisViewItem::NAME_X_OFFSET = 15.0;
+const double TimeAxisViewItem::NAME_X_OFFSET = 6.0;
 const double TimeAxisViewItem::GRAB_HANDLE_TOP = 0.0;
 const double TimeAxisViewItem::GRAB_HANDLE_WIDTH = 10.0;
 
@@ -69,6 +69,13 @@ int    TimeAxisViewItem::NAME_HEIGHT;
 double TimeAxisViewItem::NAME_Y_OFFSET;
 double TimeAxisViewItem::NAME_HIGHLIGHT_SIZE;
 double TimeAxisViewItem::NAME_HIGHLIGHT_THRESH;
+
+/* the name bar is always opaque, whatever alpha the item's base color has */
+static Gtkmm2ext::Color
+name_bar_color (Gtkmm2ext::Color c)
+{
+	return (c & 0xffffff00) | 0xff;
+}
 
 void
 TimeAxisViewItem::set_constant_heights ()
@@ -186,13 +193,21 @@ TimeAxisViewItem::init (ArdourCanvas::Item* parent, double fpp, uint32_t base_co
 		warning << "Time Axis Item Duration == 0" << endl;
 	}
 
+	bool const name_bar = UIConfiguration::instance().get_show_name_highlight() && (visibility & ShowNameHighlight);
+
 	if (visibility & ShowFrame) {
 		frame = new ArdourCanvas::Rectangle (group,
 		                                     ArdourCanvas::Rect (0.0, 0.0,
 		                                                         trackview.editor().duration_to_pixels (duration),
 		                                                         trackview.current_height()));
 
-		frame->set_outline_what (ArdourCanvas::Rectangle::What (ArdourCanvas::Rectangle::LEFT|ArdourCanvas::Rectangle::RIGHT));
+		if (name_bar) {
+			/* a "card": border all around, slightly rounded */
+			frame->set_outline_all ();
+			frame->set_corner_radius (3.0);
+		} else {
+			frame->set_outline_what (ArdourCanvas::Rectangle::What (ArdourCanvas::Rectangle::LEFT|ArdourCanvas::Rectangle::RIGHT));
+		}
 		frame->show ();
 
 		CANVAS_DEBUG_NAME (frame, string_compose ("frame for %1", get_item_name()));
@@ -204,14 +219,14 @@ TimeAxisViewItem::init (ArdourCanvas::Item* parent, double fpp, uint32_t base_co
 		}
 	}
 
-	if (UIConfiguration::instance().get_show_name_highlight() && (visibility & ShowNameHighlight)) {
+	if (name_bar) {
 
 		/* rectangle size will be set in ::manage_name_highlight() */
 		name_highlight = new ArdourCanvas::Rectangle (group);
 		CANVAS_DEBUG_NAME (name_highlight, string_compose ("name highlight for %1", get_item_name()));
 		name_highlight->set_data ("timeaxisviewitem", this);
-		name_highlight->set_outline_what (ArdourCanvas::Rectangle::TOP);
-		name_highlight->set_outline_color (RGBA_TO_UINT (0,0,0,255)); // this should use a theme color
+		name_highlight->set_outline (false);
+		name_highlight->set_corner_radius (2.0);
 
 	} else {
 		name_highlight = 0;
@@ -499,6 +514,9 @@ TimeAxisViewItem::set_selected(bool yn)
 			selection_frame->set_fill (false);
 			selection_frame->set_outline_color (UIConfiguration::instance().color ("selected time axis frame"));
 			selection_frame->set_ignore_events (true);
+			if (name_highlight) {
+				selection_frame->set_corner_radius (3.0);
+			}
 		}
 		selection_frame->set (frame->get().shrink (1.0, 0.0, 1.0, 0.0));
 		selection_frame->show ();
@@ -642,7 +660,7 @@ TimeAxisViewItem::set_colors()
 	set_frame_color ();
 
 	if (name_highlight) {
-		name_highlight->set_fill_color (fill_color);
+		name_highlight->set_fill_color (name_bar_color (fill_color));
 	}
 
 	set_name_text_color ();
@@ -663,7 +681,7 @@ TimeAxisViewItem::set_name_text_color ()
 		/* name text will always be on top of name highlight, which
 		   will always use our fill color.
 		*/
-		f = fill_color;
+		f = name_bar_color (fill_color);
 	} else {
 		/* name text will be on top of the item, whose color
 		   may vary depending on various conditions.
@@ -707,7 +725,12 @@ TimeAxisViewItem::set_frame_color()
 	set_frame_gradient ();
 
 	if (!_recregion) {
-		frame->set_outline_color (UIConfiguration::instance().color ("time axis frame"));
+		if (name_highlight) {
+			/* card border in the item's own color */
+			frame->set_outline_color (name_bar_color (fill_color));
+		} else {
+			frame->set_outline_color (UIConfiguration::instance().color ("time axis frame"));
+		}
 	}
 }
 
