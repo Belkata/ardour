@@ -91,6 +91,7 @@ AutomationRegionView::init (bool /*wfd*/)
 	set_colors ();
 
 	get_canvas_frame()->set_data ("linemerger", (LineMerger*) this);
+	content_rect()->set_data ("linemerger", (LineMerger*) this);
 }
 
 void
@@ -98,7 +99,7 @@ AutomationRegionView::create_line (std::shared_ptr<ARDOUR::AutomationList> list)
 {
 	_line = std::shared_ptr<EditorAutomationLine> (new MidiAutomationLine(
 				ARDOUR::EventTypeMap::instance().to_symbol(list->parameter()),
-				trackview, *this, *get_canvas_frame(), list,
+				trackview, *this, *content_group(), list,
 				std::dynamic_pointer_cast<ARDOUR::MidiRegion> (_region),
 				_parameter));
 	_line->set_colors();
@@ -147,9 +148,10 @@ AutomationRegionView::add_automation_event (GdkEvent* ev)
 	/* convert to item coordinates in the time axis view */
 	automation_view()->canvas_display()->canvas_to_item (x, y);
 
-	/* clamp y */
+	/* make y relative to the content area (below the name bar) and clamp it */
+	y -= content_y_offset ();
 	y = std::max (y, 0.0);
-	y = std::min (y, _height - NAME_HIGHLIGHT_SIZE);
+	y = std::min (y, _effective_height);
 
 	/* the time domain doesn't matter here, because the automation
 	 * list will force the position to its own time domain when

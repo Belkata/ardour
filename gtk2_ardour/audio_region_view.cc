@@ -192,7 +192,7 @@ AudioRegionView::init (bool wfd)
 	}
 
 	// needs to be created first, RegionView::init() calls set_height()
-	pending_peak_data = new ArdourCanvas::Rectangle (group);
+	pending_peak_data = new ArdourCanvas::Rectangle (_content_group);
 	CANVAS_DEBUG_NAME (pending_peak_data, string_compose ("pending peak rectangle for %1", region()->name()));
 	pending_peak_data->set_outline_color (Gtkmm2ext::rgba_to_color (0, 0, 0, 0.0));
 	pending_peak_data->set_pattern (pending_peak_pattern);
@@ -206,28 +206,28 @@ AudioRegionView::init (bool wfd)
 	create_waves ();
 
 	if (!_recregion) {
-		fade_in_handle = new ArdourCanvas::Rectangle (group);
+		fade_in_handle = new ArdourCanvas::Rectangle (_content_group);
 		CANVAS_DEBUG_NAME (fade_in_handle, string_compose ("fade in handle for %1", region()->name()));
 		fade_in_handle->set_outline_color (Gtkmm2ext::rgba_to_color (0, 0, 0, 1.0));
 		fade_in_handle->set_fill_color (UIConfiguration::instance().color ("inactive fade handle"));
 		fade_in_handle->set_data ("regionview", this);
 		fade_in_handle->hide ();
 
-		fade_out_handle = new ArdourCanvas::Rectangle (group);
+		fade_out_handle = new ArdourCanvas::Rectangle (_content_group);
 		CANVAS_DEBUG_NAME (fade_out_handle, string_compose ("fade out handle for %1", region()->name()));
 		fade_out_handle->set_outline_color (Gtkmm2ext::rgba_to_color (0, 0, 0, 1.0));
 		fade_out_handle->set_fill_color (UIConfiguration::instance().color ("inactive fade handle"));
 		fade_out_handle->set_data ("regionview", this);
 		fade_out_handle->hide ();
 
-		fade_in_trim_handle = new ArdourCanvas::Rectangle (group);
+		fade_in_trim_handle = new ArdourCanvas::Rectangle (_content_group);
 		CANVAS_DEBUG_NAME (fade_in_handle, string_compose ("fade in trim handle for %1", region()->name()));
 		fade_in_trim_handle->set_outline_color (Gtkmm2ext::rgba_to_color (0, 0, 0, 1.0));
 		fade_in_trim_handle->set_fill_color (UIConfiguration::instance().color ("inactive fade handle"));
 		fade_in_trim_handle->set_data ("regionview", this);
 		fade_in_trim_handle->hide ();
 
-		fade_out_trim_handle = new ArdourCanvas::Rectangle (group);
+		fade_out_trim_handle = new ArdourCanvas::Rectangle (_content_group);
 		CANVAS_DEBUG_NAME (fade_out_handle, string_compose ("fade out trim handle for %1", region()->name()));
 		fade_out_trim_handle->set_outline_color (Gtkmm2ext::rgba_to_color (0, 0, 0, 1.0));
 		fade_out_trim_handle->set_fill_color (UIConfiguration::instance().color ("inactive fade handle"));
@@ -282,6 +282,7 @@ AudioRegionView::init (bool wfd)
 	setup_waveform_visibility ();
 
 	get_canvas_frame()->set_data ("linemerger", (LineMerger*) this);
+	content_rect()->set_data ("linemerger", (LineMerger*) this);
 	_fx_line->canvas_group().raise_to_top ();
 
 	/* XXX sync mark drag? */
@@ -550,13 +551,13 @@ AudioRegionView::setup_fade_handle_positions()
 	}
 
 	if (fade_in_trim_handle) {
-		fade_in_trim_handle->set_y0 (_height - handle_size);
-		fade_in_trim_handle->set_y1 (_height);
+		fade_in_trim_handle->set_y0 (_effective_height - handle_size);
+		fade_in_trim_handle->set_y1 (_effective_height);
 	}
 
 	if (fade_out_trim_handle) {
-		fade_out_trim_handle->set_y0 (_height - handle_size );
-		fade_out_trim_handle->set_y1 (_height);
+		fade_out_trim_handle->set_y0 (_effective_height - handle_size );
+		fade_out_trim_handle->set_y1 (_effective_height);
 	}
 }
 
@@ -820,14 +821,14 @@ AudioRegionView::redraw_start_xfade_to (std::shared_ptr<AudioRegion> ar, samplec
 	}
 
 	if (!start_xfade_curve) {
-		start_xfade_curve = new ArdourCanvas::XFadeCurve (group, ArdourCanvas::XFadeCurve::Start);
+		start_xfade_curve = new ArdourCanvas::XFadeCurve (_content_group, ArdourCanvas::XFadeCurve::Start);
 		CANVAS_DEBUG_NAME (start_xfade_curve, string_compose ("xfade start out line for %1", region()->name()));
 		start_xfade_curve->set_fill_color (UIConfiguration::instance().color_mod ("active crossfade", "crossfade alpha"));
 		start_xfade_curve->set_outline_color (UIConfiguration::instance().color ("crossfade line"));
 		start_xfade_curve->set_ignore_events (true);
 	}
 	if (!start_xfade_rect) {
-		start_xfade_rect = new ArdourCanvas::Rectangle (group);
+		start_xfade_rect = new ArdourCanvas::Rectangle (_content_group);
 		CANVAS_DEBUG_NAME (start_xfade_rect, string_compose ("xfade start rect for %1", region()->name()));
 		start_xfade_rect->set_outline_color (UIConfiguration::instance().color ("crossfade line"));
 		start_xfade_rect->set_fill (false);
@@ -909,7 +910,7 @@ AudioRegionView::redraw_end_xfade_to (std::shared_ptr<AudioRegion> ar, samplecnt
 	}
 
 	if (!end_xfade_curve) {
-		end_xfade_curve = new ArdourCanvas::XFadeCurve (group, ArdourCanvas::XFadeCurve::End);
+		end_xfade_curve = new ArdourCanvas::XFadeCurve (_content_group, ArdourCanvas::XFadeCurve::End);
 		CANVAS_DEBUG_NAME (end_xfade_curve, string_compose ("xfade end out line for %1", region()->name()));
 		end_xfade_curve->set_fill_color (UIConfiguration::instance().color_mod ("active crossfade", "crossfade alpha"));
 		end_xfade_curve->set_outline_color (UIConfiguration::instance().color ("crossfade line"));
@@ -917,7 +918,7 @@ AudioRegionView::redraw_end_xfade_to (std::shared_ptr<AudioRegion> ar, samplecnt
 	}
 
 	if (!end_xfade_rect) {
-		end_xfade_rect = new ArdourCanvas::Rectangle (group);
+		end_xfade_rect = new ArdourCanvas::Rectangle (_content_group);
 		CANVAS_DEBUG_NAME (end_xfade_rect, string_compose ("xfade end rect for %1", region()->name()));
 		end_xfade_rect->set_outline_color (UIConfiguration::instance().color ("crossfade line"));
 		end_xfade_rect->set_fill (false);
@@ -1129,7 +1130,7 @@ AudioRegionView::set_region_gain_line ()
 		return;
 	}
 	const string line_name = _region->name() + ":gain";
-	_fx_line.reset (new AudioRegionGainLine (line_name, *this, *group, audio_region()->envelope()));
+	_fx_line.reset (new AudioRegionGainLine (line_name, *this, *_content_group, audio_region()->envelope()));
 	_fx_line->set_height (_effective_height - 2);
 	_fx_line->reset ();
 	_region_fx_connection.disconnect ();
@@ -1147,7 +1148,7 @@ void
 AudioRegionView::set_region_fx_line (std::shared_ptr<AutomationControl> ac, std::shared_ptr<RegionFxPlugin> rfx, uint32_t param_id)
 {
 	const string line_name = _region->name () + ":" + rfx->describe_parameter (Evoral::Parameter (PluginAutomation, 0, param_id));
-	_fx_line.reset (new RegionFxLine (line_name, *this, *group, ac));
+	_fx_line.reset (new RegionFxLine (line_name, *this, *_content_group, ac));
 	_fx_line->set_height (_effective_height - 2);
 	_fx_line->reset ();
 
@@ -1381,7 +1382,7 @@ AudioRegionView::create_one_wave (uint32_t which, bool direct)
 	/* first waveview starts at 1.0, not 0.0 since that will overlap the frame */
 	gdouble yoff = which * ht;
 
-	ArdourWaveView::WaveView *wave = new ArdourWaveView::WaveView (group, audio_region ());
+	ArdourWaveView::WaveView *wave = new ArdourWaveView::WaveView (_content_group, audio_region ());
 	CANVAS_DEBUG_NAME (wave, string_compose ("wave view for chn %1 of %2", which, get_item_name()));
 
 	wave->set_channel (which);
@@ -1799,7 +1800,7 @@ AudioRegionView::transients_changed ()
 	double y1 = _effective_height - 1;
 
 	while (feature_lines.size() < analysis_features.size()) {
-		ArdourCanvas::Line* canvas_item = new ArdourCanvas::Line(group);
+		ArdourCanvas::Line* canvas_item = new ArdourCanvas::Line(_content_group);
 		CANVAS_DEBUG_NAME (canvas_item, string_compose ("transient group for %1", region()->name()));
 		canvas_item->set_outline_color (UIConfiguration::instance().color ("zero line")); // also in Editor::leave_handler()
 

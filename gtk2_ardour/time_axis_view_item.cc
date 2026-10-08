@@ -98,7 +98,9 @@ TimeAxisViewItem::set_constant_heights ()
 	NAME_HEIGHT = height;
 
 	/* Config->get_show_name_highlight) == true:
-	        Y_OFFSET is measured from bottom of the time axis view item.
+	        the name bar sits at the top of the item and the item's content
+	        lives below it (see _content_group). Y_OFFSET is the height of
+	        the bar minus 1px of padding.
 	   Config->get_show_name_highlight) == false:
 	        Y_OFFSET is measured from the top of the time axis view item.
 	*/
@@ -185,6 +187,10 @@ TimeAxisViewItem::init (ArdourCanvas::Item* parent, double fpp, uint32_t base_co
 	visibility = vis;
 	_sensitive = true;
 	name_text_width = 0;
+	_content_group = 0;
+	_content_rect = 0;
+	_effective_height = 0.0;
+	_content_y_offset = 0.0;
 	last_item_width = 0;
 	wide_enough_for_name = wide;
 	high_enough_for_name = high;
@@ -236,7 +242,7 @@ TimeAxisViewItem::init (ArdourCanvas::Item* parent, double fpp, uint32_t base_co
 		name_text = new ArdourCanvas::Text (group);
 		CANVAS_DEBUG_NAME (name_text, string_compose ("name text for %1", get_item_name()));
 		if (UIConfiguration::instance().get_show_name_highlight()) {
-			name_text->set_position (ArdourCanvas::Duple (NAME_X_OFFSET, trackview.current_height() - NAME_Y_OFFSET));
+			name_text->set_position (ArdourCanvas::Duple (NAME_X_OFFSET, 1.0));
 		} else {
 			name_text->set_position (ArdourCanvas::Duple (NAME_X_OFFSET, NAME_Y_OFFSET));
 		}
@@ -270,6 +276,20 @@ TimeAxisViewItem::init (ArdourCanvas::Item* parent, double fpp, uint32_t base_co
 
 	//set_duration (item_duration, this);
 	//set_position (start, this);
+
+	/* Parent for everything that is drawn "inside" the item (waveforms,
+	 * notes, gain lines, fades, markers ...). It is translated down by the
+	 * height of the name bar (see set_height()), so that the content
+	 * occupies y in [0, _effective_height] in its own coordinates. It is
+	 * created last so that it stacks above the frame and trim handles.
+	 */
+	_content_group = new ArdourCanvas::Container (group);
+	CANVAS_DEBUG_NAME (_content_group, string_compose ("TAVI content group for %1", get_item_name()));
+	_content_rect = new ArdourCanvas::Rectangle (_content_group);
+	CANVAS_DEBUG_NAME (_content_rect, string_compose ("TAVI content rect for %1", get_item_name()));
+	_content_rect->set_fill (false);
+	_content_rect->set_outline (false);
+	_content_rect->set_ignore_events (true);
 
 	group->Event.connect (sigc::mem_fun (*this, &TimeAxisViewItem::canvas_group_event));
 	//Config->ParameterChanged.connect (*this, invalidator (*this), std::bind (&TimeAxisViewItem::parameter_changed, this, _1), gui_context ());
@@ -564,16 +584,24 @@ TimeAxisViewItem::set_height (double height)
 {
 	_height = height;
 	_effective_height = height;
+	_content_y_offset = 0.0;
 
 	if (height >= NAME_HIGHLIGHT_THRESH) {
+		/* the name bar is at the top; content goes below it */
+		_content_y_offset = NAME_HIGHLIGHT_SIZE;
 		_effective_height -= NAME_HIGHLIGHT_SIZE;
+	}
+
+	if (_content_group) {
+		_content_group->set_y_position (_content_y_offset);
+		update_content_rect ();
 	}
 
 	manage_name_highlight ();
 
 	if (visibility & ShowNameText) {
 		if (UIConfiguration::instance().get_show_name_highlight()) {
-			name_text->set_y_position (height - NAME_Y_OFFSET);
+			name_text->set_y_position (1.0);
 		} else {
 			name_text->set_y_position (NAME_Y_OFFSET);
 		}
@@ -592,6 +620,14 @@ TimeAxisViewItem::set_height (double height)
 		if (selection_frame) {
 			selection_frame->set (frame->get().shrink (1.0, 0.0, 1.0, 0.0));
 		}
+	}
+}
+
+void
+TimeAxisViewItem::update_content_rect ()
+{
+	if (_content_rect) {
+		_content_rect->set (ArdourCanvas::Rect (0.0, 0.0, std::max (1.0, _width), _effective_height));
 	}
 }
 
@@ -617,7 +653,7 @@ TimeAxisViewItem::manage_name_highlight ()
 	if (name_highlight && wide_enough_for_name && high_enough_for_name) {
 
 		name_highlight->show();
-		name_highlight->set (ArdourCanvas::Rect (1.0, _effective_height,  _width - 1.0, _height));
+		name_highlight->set (ArdourCanvas::Rect (1.0, 0.0, _width - 1.0, NAME_HIGHLIGHT_SIZE));
 
 	} else {
 		name_highlight->hide();
@@ -838,6 +874,7 @@ TimeAxisViewItem::reset_width_dependent_items (double pixel_width)
 {
 	_width = pixel_width;
 
+	update_content_rect ();
 	manage_name_highlight ();
 	manage_name_text ();
 

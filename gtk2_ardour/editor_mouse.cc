@@ -1103,8 +1103,8 @@ Editor::button_press_handler_1 (ArdourCanvas::Item* item, GdkEvent* event, ItemT
 				RegionView* rv;
 				if ((rv = dynamic_cast<RegionView*> (clicked_regionview))) {
 					/* MidiAutomationLine */
-					ArdourCanvas::Rectangle* r = dynamic_cast<ArdourCanvas::Rectangle*> (rv->get_canvas_frame());
-					_drags->set (new AutomationDrawDrag (*this, rv->get_canvas_group(), *r, true, Temporal::AudioTime,
+					ArdourCanvas::Rectangle* r = rv->content_rect();
+					_drags->set (new AutomationDrawDrag (*this, rv->content_group(), *r, true, Temporal::AudioTime,
 														 [&](GdkEvent* ev, timepos_t const & pos) { return rb_click (ev, pos); }), event);
 					break;
 				}
@@ -1142,8 +1142,8 @@ Editor::button_press_handler_1 (ArdourCanvas::Item* item, GdkEvent* event, ItemT
 			{
 				RegionView* rv;
 				if ((rv = dynamic_cast<RegionView*> (clicked_regionview))) {
-					ArdourCanvas::Rectangle* r = dynamic_cast<ArdourCanvas::Rectangle*> (rv->get_canvas_frame());
-					_drags->set (new AutomationDrawDrag (*this, rv->get_canvas_group(), *r, true, Temporal::AudioTime,
+					ArdourCanvas::Rectangle* r = rv->content_rect();
+					_drags->set (new AutomationDrawDrag (*this, rv->content_group(), *r, true, Temporal::AudioTime,
 					                                     [&](GdkEvent* ev, timepos_t const & pos) { return rb_click (ev, pos); }), event);
 					return true;
 				}
@@ -2366,6 +2366,8 @@ Editor::update_join_object_range_location (double y)
 			double track_height = entered_route_view->view()->child_height();
 			if (UIConfiguration::instance().get_show_name_highlight()) {
 				track_height -= TimeAxisViewItem::NAME_HIGHLIGHT_SIZE;
+				/* the name bar is at the top of regions; content is below it */
+				cy -= TimeAxisViewItem::NAME_HIGHLIGHT_SIZE;
 			}
 			double const c = cy / track_height;
 

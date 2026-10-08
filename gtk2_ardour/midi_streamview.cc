@@ -81,6 +81,9 @@ MidiStreamView::MidiStreamView (MidiTimeAxisView& tv)
 		           _note_lines, &_trackview));
 
 
+	/* regions have their name bar at the top; keep the lanes aligned with the notes */
+	_note_lines->set_y_position (TimeAxisViewItem::NAME_HIGHLIGHT_SIZE);
+
 	color_handler ();
 
 	UIConfiguration::instance().ColorsChanged.connect(sigc::mem_fun(*this, &MidiStreamView::color_handler));

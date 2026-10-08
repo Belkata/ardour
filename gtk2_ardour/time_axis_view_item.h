@@ -88,6 +88,10 @@ public:
 
 	ArdourCanvas::Item* get_canvas_frame();
 	ArdourCanvas::Item* get_canvas_group() const;
+	ArdourCanvas::Container* content_group() const { return _content_group; }
+	/** invisible rectangle covering the content area, for drags that need its geometry */
+	ArdourCanvas::Rectangle* content_rect() const { return _content_rect; }
+	double content_y_offset() const { return _content_y_offset; }
 	ArdourCanvas::Item* get_name_highlight();
 
 	virtual void set_samples_per_pixel (double);
@@ -211,6 +215,9 @@ protected:
 	bool high_enough_for_name;
 
 	ArdourCanvas::Container* group;
+	/** child of group, translated below the name bar; parent of all item content */
+	ArdourCanvas::Container* _content_group;
+	ArdourCanvas::Rectangle* _content_rect;
 
 	ArdourCanvas::Rectangle* frame;
 	ArdourCanvas::Rectangle* selection_frame;
@@ -225,6 +232,8 @@ protected:
 
 	double _height;
 	double _effective_height;
+	/** y offset of the content area (the name bar height, or 0) */
+	double _content_y_offset;
 	Visibility visibility;
 	std::string fill_color_name;
 	bool _recregion;
@@ -233,6 +242,7 @@ protected:
 	double _width;
 
 	void manage_name_text ();
+	void update_content_rect ();
 
 private:
 	void parameter_changed (std::string);

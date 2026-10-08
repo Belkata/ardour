@@ -218,7 +218,7 @@ RegionView::init (bool wfd)
 	_region->captured_xruns (xrp, true);
 	int arrow_size = (int)(7.0 * UIConfiguration::instance ().get_ui_scale ()) & ~1;
 	for (long x : xrp) {
-		auto* canvas_item = new ArdourCanvas::Arrow(group);
+		auto* canvas_item = new ArdourCanvas::Arrow(_content_group);
 		canvas_item->set_color (UIConfiguration::instance().color ("neutral:background"));
 		canvas_item->set_show_head (1, true);
 		canvas_item->set_show_head (0, false);
@@ -298,7 +298,7 @@ RegionView::set_silent_frames (const AudioIntervalResult& silences, double /*thr
 	uint32_t const color = UIConfiguration::instance().color_mod ("silence", "silence");
 
 	for (const auto& silence : silences) {
-		auto* cr = new ArdourCanvas::Rectangle (group);
+		auto* cr = new ArdourCanvas::Rectangle (_content_group);
 		cr->set_ignore_events (true);
 		_silent_frames.push_back (cr);
 
@@ -307,7 +307,7 @@ RegionView::set_silent_frames (const AudioIntervalResult& silences, double /*thr
 		cr->set_x0 (trackview.editor ().sample_to_pixel (silence.first - _region->start_sample ()));
 		cr->set_x1 (trackview.editor ().sample_to_pixel (silence.second - _region->start_sample ()));
 		cr->set_y0 (1);
-		cr->set_y1 (_height - 2);
+		cr->set_y1 (_effective_height - 2);
 		cr->set_outline (false);
 		cr->set_fill_color (color);
 
@@ -332,7 +332,7 @@ RegionView::set_silent_frames (const AudioIntervalResult& silences, double /*thr
 		shortest_audible = min (shortest_audible, dur);
 	}
 
-	_silence_text = new ArdourCanvas::Text (group);
+	_silence_text = new ArdourCanvas::Text (_content_group);
 	_silence_text->set_ignore_events (true);
 	_silence_text->set_font_description (get_font_for_style (N_("SilenceText")));
 	_silence_text->set_color (UIConfiguration::instance().color ("silence text"));
@@ -597,7 +597,7 @@ RegionView::update_cue_markers ()
 
 			/* Create a new ViewCueMarker */
 
-			auto* mark = new ArdourMarker (trackview.editor(), *group, "region mark" , model_marker.text(), ArdourMarker::RegionCue, timepos_t (start.distance (model_marker.position())), true, this);
+			auto* mark = new ArdourMarker (trackview.editor(), *_content_group, "region mark" , model_marker.text(), ArdourMarker::RegionCue, timepos_t (start.distance (model_marker.position())), true, this);
 			mark->set_points_color ("region mark");
 			mark->set_show_line (true);
 			/* make sure the line has a clean end, before the frame
@@ -835,9 +835,9 @@ RegionView::region_sync_changed ()
 
 		/* points set below */
 
-		sync_mark = new ArdourCanvas::Polygon (group);
+		sync_mark = new ArdourCanvas::Polygon (_content_group);
 		CANVAS_DEBUG_NAME (sync_mark, string_compose ("sync mark for %1", get_item_name()));
-		sync_line = new ArdourCanvas::Line (group);
+		sync_line = new ArdourCanvas::Line (_content_group);
 		CANVAS_DEBUG_NAME (sync_line, string_compose ("sync mark for %1", get_item_name()));
 
 		set_sync_mark_color ();
@@ -961,7 +961,7 @@ RegionView::set_height (double h)
 	}
 
 	for (auto& _silent_frame : _silent_frames) {
-		_silent_frame->set_y1 (h + 1);
+		_silent_frame->set_y1 (_effective_height + 1);
 	}
 
 	for (auto& _cue_marker : _cue_markers) {

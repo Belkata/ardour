@@ -64,7 +64,8 @@ public:
 	~MidiStreamView ();
 
 	int contents_height() const { return StreamView::contents_height(); }
-	int y_position() const { return StreamView::y_position(); }
+	/* origin of the note area: below the region name bar */
+	int y_position() const { return StreamView::y_position() + TimeAxisViewItem::NAME_HIGHLIGHT_SIZE; }
 
 	void get_regions_with_selected_data (RegionSelection&);
 
