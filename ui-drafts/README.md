@@ -10,6 +10,7 @@ PW_MOD=$(npm root -g)/playwright node src/render.js src/mixer.html 04-mixer-rede
 PW_MOD=$(npm root -g)/playwright node src/render.js "src/editor.html#add" 05-quick-add-track.png 1680 1000 --clean
 PW_MOD=$(npm root -g)/playwright node src/render.js src/palette.html 06-color-palette.png 1680 660
 PW_MOD=$(npm root -g)/playwright node src/render.js src/topbar.html 09-topbar-redesign.png 1680 575   # crops: src/topbar-*.png from screenshots/after/editor.png
+PW_MOD=$(npm root -g)/playwright node src/render.js src/topbar-icons.html 10-topbar-icons.png 1680 860   # crop: src/topbar-icons-row.png = editor.png y 26..74
 ```
 
 ## Prior art (what others have tried)
@@ -31,6 +32,7 @@ Nobody has published a fork that restyles or reorganizes the GTK UI itself, so t
 - `04-mixer-redesign` – mixer strips
 - `05-quick-add-track` – inline add-track popover
 - `06-color-palette` – current vs proposed palette
+- `10-topbar-icons` – top-bar icons: play range, loop, auto return (playhead icon, options A/B), Lua example buttons; today vs proposed
 
 ## Feasibility (from reading the code)
 

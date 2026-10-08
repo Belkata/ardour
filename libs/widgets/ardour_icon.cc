@@ -619,54 +619,155 @@ icon_transport_panic (cairo_t* cr, const int width, const int height, const uint
 	VECTORICONSTROKEFILLFG (0.9);
 }
 
-/** various combinations of lines and triangles "|>|", ">|" "|>" */
+/* Flat transport icons (start, end, range, loop, auto-return) are drawn on a
+ * 24 x 24 grid, scaled to the same size as play/stop (~.63 of the button).
+ */
 static void
-icon_transport_ck (cairo_t*                                   cr,
-                   const enum ArdourWidgets::ArdourIcon::Icon icon,
-                   const int width, const int height, const uint32_t fg_color)
+icon_grid24 (cairo_t* cr, const int width, const int height)
 {
-	// small play triangle
-	int          wh = std::min (width, height);
-	const double y  = height * .5;
-	const double x  = width * .5;
-	wh *= .18;
-	const double tri = ceil (.577 * wh * 2); // 1/sqrt(3)
-
-	const float ln = std::min (width, height) * .07;
-
-	if (icon == TransportStart || icon == TransportRange) {
-		cairo_rectangle (cr,
-		                 x - wh - ln, y - tri * 1.7,
-		                 ln * 2, tri * 3.4);
-
-		VECTORICONSTROKEFILLFG (1.0);
-	}
-
-	if (icon == TransportEnd || icon == TransportRange) {
-		cairo_rectangle (cr,
-		                 x + wh - ln, y - tri * 1.7,
-		                 ln * 2, tri * 3.4);
-
-		VECTORICONSTROKEFILLFG (1.0);
-	}
-
-	if (icon == TransportStart) {
-		cairo_move_to (cr, x - wh, y);
-		cairo_line_to (cr, x + wh, y - tri);
-		cairo_line_to (cr, x + wh, y + tri);
-	} else {
-		cairo_move_to (cr, x + wh, y);
-		cairo_line_to (cr, x - wh, y - tri);
-		cairo_line_to (cr, x - wh, y + tri);
-	}
-
-	cairo_close_path (cr);
-	VECTORICONSTROKEFILLFG (1.0);
+	const double wh = std::min (width, height) * .63;
+	cairo_translate (cr, (width - wh) * .5, (height - wh) * .5);
+	cairo_scale (cr, wh / 24., wh / 24.);
 }
 
-/** loop spiral */
+/** fill a path, slightly rounding its corners */
+static void
+icon_grid24_fill (cairo_t* cr)
+{
+	cairo_set_line_join (cr, CAIRO_LINE_JOIN_ROUND);
+	cairo_set_line_width (cr, 1.2);
+	cairo_fill_preserve (cr);
+	cairo_stroke (cr);
+}
+
+static void
+icon_grid24_stroke (cairo_t* cr, double lw)
+{
+	cairo_set_line_cap (cr, CAIRO_LINE_CAP_ROUND);
+	cairo_set_line_join (cr, CAIRO_LINE_JOIN_ROUND);
+	cairo_set_line_width (cr, lw);
+	cairo_stroke (cr);
+}
+
+/** "|<" and ">|" (go to start / end) */
+static void
+icon_transport_start_end (cairo_t* cr, const bool end, const int width, const int height, const uint32_t fg_color)
+{
+	cairo_save (cr);
+	icon_grid24 (cr, width, height);
+	if (end) {
+		cairo_translate (cr, 24, 0);
+		cairo_scale (cr, -1, 1);
+	}
+	Gtkmm2ext::set_source_rgba (cr, fg_color);
+
+	cairo_rectangle (cr, 5, 5.5, 2.6, 13);
+	icon_grid24_fill (cr);
+
+	cairo_move_to (cr, 19, 6);
+	cairo_line_to (cr, 19, 18);
+	cairo_line_to (cr, 9.3, 12);
+	cairo_close_path (cr);
+	icon_grid24_fill (cr);
+	cairo_restore (cr);
+}
+
+/** play triangle above a bracketed stretch of timeline (play range) */
+static void
+icon_transport_range (cairo_t* cr, const int width, const int height, const uint32_t fg_color)
+{
+	cairo_save (cr);
+	icon_grid24 (cr, width, height);
+	Gtkmm2ext::set_source_rgba (cr, fg_color);
+
+	cairo_move_to (cr, 8.5, 3.6);
+	cairo_line_to (cr, 8.5, 13.4);
+	cairo_line_to (cr, 16.6, 8.5);
+	cairo_close_path (cr);
+	icon_grid24_fill (cr);
+
+	cairo_rectangle (cr, 3, 16, 2.2, 6);
+	cairo_rectangle (cr, 18.8, 16, 2.2, 6);
+	cairo_rectangle (cr, 3, 18, 18, 2.2);
+	icon_grid24_fill (cr);
+	cairo_restore (cr);
+}
+
+/** two arrows chasing each other (the common "repeat" symbol) */
 static void
 icon_transport_loop (cairo_t* cr, const int width, const int height, const uint32_t fg_color)
+{
+	cairo_save (cr);
+	icon_grid24 (cr, width, height);
+	Gtkmm2ext::set_source_rgba (cr, fg_color);
+
+	cairo_move_to (cr, 17, 2.5);
+	cairo_line_to (cr, 20.5, 6);
+	cairo_line_to (cr, 17, 9.5);
+
+	cairo_move_to (cr, 3.5, 11.5);
+	cairo_arc (cr, 7.5, 10, 4, M_PI, 1.5 * M_PI);
+	cairo_line_to (cr, 20.5, 6);
+
+	cairo_move_to (cr, 7, 21.5);
+	cairo_line_to (cr, 3.5, 18);
+	cairo_line_to (cr, 7, 14.5);
+
+	cairo_move_to (cr, 20.5, 12.5);
+	cairo_arc (cr, 16.5, 14, 4, 0, .5 * M_PI);
+	cairo_line_to (cr, 3.5, 18);
+
+	icon_grid24_stroke (cr, 2.2);
+	cairo_restore (cr);
+}
+
+/** playhead (line with a triangle cap) at the start, a faded one where
+ * playback stopped, and an arrow back to the start (auto return)
+ */
+static void
+icon_transport_auto_return (cairo_t* cr, const int width, const int height, const uint32_t fg_color)
+{
+	cairo_save (cr);
+	icon_grid24 (cr, width, height);
+	Gtkmm2ext::set_source_rgba (cr, fg_color);
+
+	cairo_move_to (cr, 1.5, 3);
+	cairo_line_to (cr, 9, 3);
+	cairo_line_to (cr, 5.25, 7.2);
+	cairo_close_path (cr);
+	icon_grid24_fill (cr);
+
+	cairo_move_to (cr, 5.25, 6);
+	cairo_line_to (cr, 5.25, 21);
+	icon_grid24_stroke (cr, 2.2);
+
+	cairo_move_to (cr, 15.5, 13.5);
+	cairo_line_to (cr, 9, 13.5);
+	cairo_move_to (cr, 12, 10.5);
+	cairo_line_to (cr, 9, 13.5);
+	cairo_line_to (cr, 12, 16.5);
+	icon_grid24_stroke (cr, 2.2);
+
+	cairo_set_source_rgba (cr, UINT_RGBA_R_FLT (fg_color), UINT_RGBA_G_FLT (fg_color), UINT_RGBA_B_FLT (fg_color), UINT_RGBA_A_FLT (fg_color) * .45);
+	cairo_move_to (cr, 16.5, 3);
+	cairo_line_to (cr, 23.5, 3);
+	cairo_line_to (cr, 20, 7);
+	cairo_close_path (cr);
+	icon_grid24_fill (cr);
+
+	const double dashes[] = { 2.2, 2.6 };
+	cairo_set_dash (cr, dashes, 2, 0);
+	cairo_move_to (cr, 20, 6);
+	cairo_line_to (cr, 20, 21);
+	cairo_set_line_cap (cr, CAIRO_LINE_CAP_BUTT);
+	cairo_set_line_width (cr, 2);
+	cairo_stroke (cr);
+	cairo_restore (cr);
+}
+
+/** circular arrow (refresh) */
+static void
+icon_refresh (cairo_t* cr, const int width, const int height, const uint32_t fg_color)
 {
 	const double x = width * .5;
 	const double y = height * .5;
@@ -703,7 +804,7 @@ icon_transport_metronom (cairo_t* cr, const int width, const int height, const u
 	if (wh > 15) {
 		wh *= 0.68; // = 0.55 / 0.8 (height icon_transport_stop/play = 0.55)
 	} else {
-		wh *= 0.88; // match icon_transport_ck rect height
+		wh *= 0.88; // match the height of the other transport icons
 	}
 	const double h  = wh * .80;
 	const double w  = wh * .55;
@@ -776,38 +877,6 @@ icon_transport_loop_mode (cairo_t* cr, const int width, const int height, const 
 	cairo_line_to (cr, x-r2, y-r+r2);
 	cairo_close_path (cr);
 	VECTORICONSTROKEFILLFG (1.0);
-}
-
-/** half loop  */
-static void
-icon_transport_auto_return (cairo_t* cr, const int width, const int height, const uint32_t fg_color)
-{
-	const double x = width * .5;
-	const double y = height * .5;
-	const double r = std::min (x, y);
-
-	cairo_arc (cr, x, y, r * .58, -0.75 * M_PI, 0.50 * M_PI);
-	cairo_rel_line_to(cr, -0.45 * r , 0);
-	cairo_rel_line_to(cr, 0, -0.28 * r);
-	cairo_rel_line_to(cr, 0.45 * r, 0);
-	cairo_arc_negative (cr, x, y, r * .30, 0.50 * M_PI, -0.75 * M_PI);
-
-	VECTORICONSTROKEFILLFG (1.0);
-
-#define ARCARROW(rad, ang) \
-	x + (rad)*sin ((ang)*2.0 * M_PI), y + (rad)*cos ((ang)*2.0 * M_PI)
-
-	cairo_move_to (cr, ARCARROW (r * .30, .5));
-	cairo_line_to (cr, ARCARROW (r * .11, .5));
-	cairo_line_to (cr, ARCARROW (r * .55, 0.62));
-	cairo_line_to (cr, ARCARROW (r * .74, .5));
-	cairo_line_to (cr, ARCARROW (r * .58, .5));
-
-	cairo_set_source_rgba (cr, 0, 0, 0, 1.0);
-	cairo_stroke_preserve (cr);
-	cairo_close_path (cr);
-	VECTORICONSTROKEFILLFG (1.0);
-#undef ARCARROW
 }
 
 /** triangle phead between brackets  */
@@ -2226,11 +2295,13 @@ ArdourWidgets::ArdourIcon::render (cairo_t*                                   cr
 			icon_show_eye (cr, width, height, fg_color);
 			break;
 		case TransportStart:
-			[[fallthrough]];
+			icon_transport_start_end (cr, false, width, height, fg_color);
+			break;
 		case TransportEnd:
-			[[fallthrough]];
+			icon_transport_start_end (cr, true, width, height, fg_color);
+			break;
 		case TransportRange:
-			icon_transport_ck (cr, icon, width, height, fg_color);
+			icon_transport_range (cr, width, height, fg_color);
 			break;
 		case RecButton:
 			icon_rec_enable (cr, width, height, state, fg_color);
@@ -2392,6 +2463,9 @@ ArdourWidgets::ArdourIcon::render (cairo_t*                                   cr
 			break;
 		case TrackGroup:
 			icon_track_group (cr, width, height, fg_color);
+			break;
+		case Refresh:
+			icon_refresh (cr, width, height, fg_color);
 			break;
 		case NoIcon:
 			rv = false;

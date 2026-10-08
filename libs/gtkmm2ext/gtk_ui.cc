@@ -425,6 +425,10 @@ UI::set_tip (Widget *w, const gchar *tip, const gchar *hlp)
 		if (bindings) {
 			Bindings::Operation op;
 			KeyboardKey kb = bindings->get_binding_for_action (action, op);
+			if (kb == KeyboardKey::null_key () && global_bindings && bindings != global_bindings) {
+				/* e.g. transport actions on a page's toolbar: their keys are global */
+				kb = global_bindings->get_binding_for_action (action, op);
+			}
 			string shortcut = kb.display_label ();
 			if (!shortcut.empty()) {
 				replace_all (shortcut, "<", "");

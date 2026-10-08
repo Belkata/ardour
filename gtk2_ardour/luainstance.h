@@ -150,8 +150,6 @@ private:
 	void init ();
 	void set_dirty ();
 	void session_going_away ();
-	void pre_seed_scripts ();
-	void pre_seed_script (std::string const&, int&);
 
 	LuaState lua;
 

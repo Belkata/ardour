@@ -1,0 +1,149 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+@font-face { font-family: Inter; src: url(../../gtk2_ardour/fonts/Inter-Regular.otf); font-weight: 400; }
+@font-face { font-family: Inter; src: url(../../gtk2_ardour/fonts/Inter-Medium.otf); font-weight: 500; }
+@font-face { font-family: Inter; src: url(../../gtk2_ardour/fonts/Inter-SemiBold.otf); font-weight: 600; }
+@font-face { font-family: Inter; src: url(../../gtk2_ardour/fonts/Inter-Bold.otf); font-weight: 700; }
+body { width: 1680px; overflow: hidden; background: var(--bg0); position: relative; padding-bottom: 18px; }
+h2 { font-size: 13px; font-weight: 600; color: var(--fg2); padding: 16px 16px 8px; letter-spacing: .3px; }
+h2 span { color: var(--fg4); font-weight: 400; margin-left: 8px; }
+
+/* real top bar crop (screenshots/after/editor.png, y 26..74); buttons are at y 11..37 */
+.row { position: relative; width: 1680px; height: 48px; background: url(topbar-icons-row.png); }
+.cover { position: absolute; top: 13px; width: 23px; height: 23px; border-radius: 3px; background: #3b3f47; display: flex; align-items: center; justify-content: center; }
+.gone { position: absolute; top: 9px; height: 31px; background: var(--surf2); }
+.cover svg { width: 17px; height: 17px; }
+
+/* icons */
+svg.ic { fill: #e4e6ea; stroke: none; }
+svg.mx { color: #e4e6ea; }
+.new.on svg.mx { color: #17181c; }
+.real { width: 27px; height: 27px; border-radius: 4px; background: #3b3f47; box-shadow: inset 0 0 0 1px #18191d; display: flex; align-items: center; justify-content: center; }
+.real svg { width: 17px; height: 17px; }
+.opt { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.opt .cap { width: auto; }
+svg.st { fill: none; stroke: #e4e6ea; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* comparison table */
+table { border-collapse: collapse; margin: 0 16px; }
+th { text-align: left; font-size: 11px; font-weight: 600; color: var(--fg3); text-transform: uppercase; letter-spacing: .6px; padding: 0 18px 8px 0; }
+td { padding: 8px 18px 8px 0; vertical-align: middle; border-top: 1px solid var(--line); }
+td.name { width: 150px; font-size: 14px; font-weight: 600; color: var(--fg); }
+td.name small { display: block; font-size: 11px; font-weight: 400; color: var(--fg3); margin-top: 3px; }
+td.why { width: 560px; color: var(--fg2); font-size: 12.5px; line-height: 1.45; }
+td.why i { font-style: normal; color: var(--fg); font-weight: 600; }
+td.arrow { color: var(--fg4); font-size: 22px; padding-right: 18px; }
+.big { width: 81px; height: 81px; border-radius: 12px; }
+.now { background-image: url(topbar-icons-row.png); background-size: 5040px 144px; image-rendering: pixelated; }
+.new { background: #3b3f47; box-shadow: inset 0 0 0 3px #18191d; display: flex; align-items: center; justify-content: center; }
+.new svg { width: 51px; height: 51px; }
+.new.on { background: #4cc46a; }
+.new.on svg.ic { fill: #17181c; } .new.on svg.st { stroke: #17181c; }
+.pair { display: flex; gap: 10px; align-items: center; }
+.pair .cap { font-size: 11px; color: var(--fg3); width: 40px; }
+.textbtn { height: 81px; padding: 0 26px; border-radius: 12px; background: #3b3f47; box-shadow: inset 0 0 0 3px #18191d; display: flex; align-items: center; font: 500 30px Inter, sans-serif; color: #e4e6ea; }
+.removed { width: 81px; height: 81px; border-radius: 12px; border: 2px dashed var(--fg4); display: flex; align-items: center; justify-content: center; color: var(--fg4); font-size: 11px; text-align: center; }
+.tip { display: block; width: fit-content; background: #0b0c0e; color: var(--fg); border: 1px solid var(--line); border-radius: 5px; padding: 5px 9px; font-size: 12px; margin-top: 6px; }
+.tip kbd { font: 600 11px "DejaVu Sans Mono", monospace; background: var(--widget); color: var(--fg); border-radius: 3px; padding: 1px 5px; margin-left: 6px; }
+.keep { display: flex; gap: 22px; align-items: center; padding: 4px 16px 0; color: var(--fg3); font-size: 12px; }
+.keep .k { display: flex; align-items: center; gap: 8px; }
+.small { width: 54px; height: 54px; border-radius: 8px; background-size: 3360px 96px; }
+</style></head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <!-- 24×24, filled shapes -->
+    <symbol id="start" viewBox="0 0 24 24"><rect x="5" y="5.5" width="2.6" height="13" rx=".6"/><path d="M19 5.8v12.4a.6.6 0 0 1-.9.5L8.9 12.5a.6.6 0 0 1 0-1l9.2-6.2a.6.6 0 0 1 .9.5z"/></symbol>
+    <symbol id="end" viewBox="0 0 24 24"><rect x="16.4" y="5.5" width="2.6" height="13" rx=".6"/><path d="M5 5.8v12.4a.6.6 0 0 0 .9.5l9.2-6.2a.6.6 0 0 0 0-1L5.9 5.3a.6.6 0 0 0-.9.5z"/></symbol>
+    <!-- play range: play triangle above a selected stretch of timeline -->
+    <symbol id="range" viewBox="0 0 24 24"><path d="M8.5 3.6v9.8a.6.6 0 0 0 .9.5l7.3-4.9a.6.6 0 0 0 0-1L9.4 3.1a.6.6 0 0 0-.9.5z"/><rect x="3" y="16" width="2.2" height="6" rx=".5"/><rect x="18.8" y="16" width="2.2" height="6" rx=".5"/><rect x="3" y="18" width="18" height="2.2" rx=".5"/></symbol>
+    <!-- stroked shapes -->
+    <symbol id="loop" viewBox="0 0 24 24"><path d="M17 2.5l3.5 3.5L17 9.5"/><path d="M3.5 11.5V10a4 4 0 0 1 4-4h13"/><path d="M7 21.5L3.5 18 7 14.5"/><path d="M20.5 12.5V14a4 4 0 0 1-4 4h-13"/></symbol>
+    <!-- auto return: playhead (line + triangle cap, as on the timeline) with an arrow back to it -->
+    <symbol id="retA" viewBox="0 0 24 24"><path d="M2.5 3h8l-4 4.5z" fill="currentColor"/><path d="M6.5 6v15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M14.5 10l-4 4 4 4M10.5 14h10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="retB" viewBox="0 0 24 24"><path d="M1.5 3h7.5l-3.75 4.2z" fill="currentColor"/><path d="M5.25 6v15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><g opacity=".45"><path d="M16.5 3h7l-3.5 4z" fill="currentColor"/><path d="M20 6v15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="2.2 2.6"/></g><path d="M15.5 13.5H9M12 10.5l-3 3 3 3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<h2>Today <span>the top bar as built (round 6) — the four marked buttons are the confusing ones</span></h2>
+<div class="row">
+  <div class="callout" style="left:133px;top:-6px">1</div>
+  <div class="callout" style="left:203px;top:-6px">2</div>
+  <div class="callout" style="left:262px;top:-6px">3</div>
+  <div class="callout" style="left:1294px;top:-6px">4</div>
+</div>
+
+<h2>Proposed <span>same bar, only those icons changed — everything else stays as it is</span></h2>
+<div class="row">
+  <div class="cover" style="left:5px"><svg class="ic"><use href="#start"/></svg></div>
+  <div class="cover" style="left:34px"><svg class="ic"><use href="#end"/></svg></div>
+  <div class="cover" style="left:133px"><svg class="ic"><use href="#range"/></svg></div>
+  <div class="cover" style="left:203px"><svg class="st"><use href="#loop"/></svg></div>
+  <div class="cover" style="left:261px"><svg class="mx"><use href="#retA"/></svg></div>
+  <div class="gone" style="left:1276px;width:60px"></div>
+</div>
+
+<h2>Button by button <span>today (real pixels, 3×) → proposed (3×)</span></h2>
+<table>
+  <tr><th></th><th>Today</th><th></th><th>Proposed</th><th>Why</th></tr>
+
+  <tr>
+    <td class="name">1 · Play range<small>plays the selected range</small></td>
+    <td><div class="big now" style="background-position:-393px -33px"></div></td>
+    <td class="arrow">→</td>
+    <td><div class="big new"><svg class="ic"><use href="#range"/></svg></div></td>
+    <td class="why">Today it is ▶ between two bars — almost identical to <i>Go to end</i> (▶ followed by a bar), and in media players it means "next track". Proposed: play ▶ over a <i>marked stretch of the timeline</i>, which is what it plays.
+      <div class="tip">Play range <kbd>Alt+Space</kbd></div></td>
+  </tr>
+
+  <tr>
+    <td class="name">2 · Loop<small>plays the loop range over and over</small></td>
+    <td><div class="big now" style="background-position:-603px -33px"></div></td>
+    <td class="arrow">→</td>
+    <td><div class="pair"><div class="big new"><svg class="st"><use href="#loop"/></svg></div><div class="big new on"><svg class="st"><use href="#loop"/></svg></div><span class="cap">off / on</span></div></td>
+    <td class="why">Today a circle with one arrow, which reads as <i>refresh / reload</i>. Proposed: the <i>repeat</i> symbol (two arrows chasing each other) used by Logic, Cubase, Ableton, Reaper and every music player.
+      <div class="tip">Loop <kbd>L</kbd></div></td>
+  </tr>
+
+  <tr>
+    <td class="name">3 · Auto return<small>on stop, jump back to where play started</small></td>
+    <td><div class="big now" style="background-position:-777px -33px"></div></td>
+    <td class="arrow">→</td>
+    <td><div class="pair">
+      <div class="opt"><div class="pair"><div class="big new"><svg class="mx"><use href="#retA"/></svg></div><div class="big new on"><svg class="mx"><use href="#retA"/></svg></div></div><div class="pair"><span class="cap">A</span><div class="real"><svg class="mx"><use href="#retA"/></svg></div><span class="cap">real size</span></div></div>
+      <div class="opt" style="margin-left:22px"><div class="big new"><svg class="mx"><use href="#retB"/></svg></div><div class="pair"><span class="cap">B</span><div class="real"><svg class="mx"><use href="#retB"/></svg></div><span class="cap">real size</span></div></div>
+    </div></td>
+    <td class="why">Today a curved arrow that looks exactly like <i>Undo</i>. Proposed: show the thing that moves — the <i>playhead</i> (line with a triangle on top, as on the timeline) and an arrow back to it. <b style="color:var(--fg)">A</b>: playhead + arrow (shown in the bar above, off / on). <b style="color:var(--fg)">B</b>: also a faded playhead where playback stopped. <i>Pick one.</i>
+      <div class="tip">Auto return: on stop, go back to where playback started <kbd>7</kbd></div></td>
+  </tr>
+
+  <tr>
+    <td class="name">4 · Two script buttons<small>"Mixer Screenshot", "List Plugins"</small></td>
+    <td><div class="pair"><div class="big now" style="background-position:-3834px -33px"></div><div class="big now" style="background-position:-3921px -33px"></div></div></td>
+    <td class="arrow">→</td>
+    <td><div class="removed">not shown<br>by default</div></td>
+    <td class="why">These are not Ardour features but two <i>example Lua scripts</i> that every new setup gets pre-assigned; their icons mean nothing to a new user. Proposed: don't pre-assign them. The slots appear as soon as you assign a script (Edit › Lua Scripts › Script Manager).</td>
+  </tr>
+
+  <tr>
+    <td class="name">Go to start / end<small>small polish</small></td>
+    <td><div class="pair"><div class="big now" style="background-position:-9px -33px"></div><div class="big now" style="background-position:-96px -33px"></div></div></td>
+    <td class="arrow">→</td>
+    <td><div class="pair"><div class="big new"><svg class="ic"><use href="#start"/></svg></div><div class="big new"><svg class="ic"><use href="#end"/></svg></div></div></td>
+    <td class="why">Already the standard "skip back / skip forward" symbols, just drawn heavier and with the bar touching the triangle. Redrawn flat and lighter so the set matches.
+      <div class="tip">Go to start <kbd>Home</kbd> &nbsp; · &nbsp; Go to end <kbd>End</kbd></div></td>
+  </tr>
+</table>
+
+<h2>Unchanged <span>already standard</span></h2>
+<div class="keep">
+  <div class="k"><div class="small now" style="background-position:-146px -22px"></div>Stop</div>
+  <div class="k"><div class="small now" style="background-position:-204px -22px"></div>Play</div>
+  <div class="k"><div class="small now" style="background-position:-320px -22px"></div>Record</div>
+  <div class="k"><div class="small now" style="background-position:-460px -22px"></div>Metronome</div>
+  <div class="k"><div class="small now" style="background-position:-2680px -22px"></div><div class="small now" style="background-position:-2738px -22px"></div><div class="small now" style="background-position:-2796px -22px"></div>Show left list / right list / bottom pane</div>
+  <div class="k" style="margin-left:auto;max-width:430px">Also: every transport button's tooltip gets its keyboard shortcut (as in the examples above).</div>
+</div>
+</body></html>
