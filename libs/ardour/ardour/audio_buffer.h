@@ -172,7 +172,9 @@ public:
 	void accumulate_with_ramped_gain_from (const Sample* src, samplecnt_t len, gain_t initial, gain_t target, sampleoffset_t dst_offset = 0)
 	{
 		assert (_capacity > 0);
+		assert (dst_offset >= 0);
 		assert (len <= _capacity);
+		assert (dst_offset + len <= _capacity);
 
 		if (initial == 0 && target == 0) {
 			return;

@@ -1311,6 +1311,15 @@ LaunchPadX::pad_release (Pad& pad)
 void
 LaunchPadX::trigger_property_change (PropertyChange pc, Trigger* t)
 {
+	/* t may already be queued for (async) deletion by the time this
+	 * cross-thread signal is handled here. Guard against dereferencing a
+	 * dangling pointer -- see Trigger::still_exists() for details.
+	 */
+	std::lock_guard<std::mutex> lg (Trigger::registry_mutex ());
+	if (!Trigger::still_exists (t)) {
+		return;
+	}
+
 	int x = t->box().order();
 	int y = t->index();
 

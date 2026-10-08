@@ -217,6 +217,23 @@ Trigger * const Trigger::MagicClearPointerValue = reinterpret_cast<Trigger*> (st
 PBD::Signal<void(PropertyChange,Trigger*)> Trigger::TriggerPropertyChange;
 PBD::Signal<void(Trigger const *)> Trigger::TriggerArmChanged;
 
+namespace {
+	std::mutex trigger_registry_mutex;
+	std::set<Trigger const*> live_triggers;
+}
+
+std::mutex&
+Trigger::registry_mutex ()
+{
+	return trigger_registry_mutex;
+}
+
+bool
+Trigger::still_exists (Trigger const * t)
+{
+	return live_triggers.find (t) != live_triggers.end ();
+}
+
 Trigger::Trigger (uint32_t n, TriggerBox& b)
 	: _launch_style (Properties::launch_style, Toggle)
 	, _follow_action0 (Properties::follow_action0, FollowAction (FollowAction::Again))
@@ -283,6 +300,24 @@ Trigger::Trigger (uint32_t n, TriggerBox& b)
 	add_property (_stretch_mode);
 
 	copy_to_ui_state ();
+
+	{
+		std::lock_guard<std::mutex> lg (registry_mutex ());
+		live_triggers.insert (this);
+	}
+}
+
+Trigger::~Trigger ()
+{
+	/* Belt-and-suspenders for Triggers that are never routed through
+	 * request_trigger_delete() (e.g. the initial slot-fill triggers created
+	 * with std::make_shared, which are destroyed synchronously by shared_ptr
+	 * rather than via the deferred worker). request_trigger_delete() already
+	 * erases the entry for the deferred-deletion case, well before this
+	 * destructor runs.
+	 */
+	std::lock_guard<std::mutex> lg (registry_mutex ());
+	live_triggers.erase (this);
 }
 
 std::shared_ptr<TriggerBox>
@@ -294,6 +329,18 @@ Trigger::boxptr() const
 void
 Trigger::request_trigger_delete (Trigger* t)
 {
+	/* This is invoked as the shared_ptr<Trigger> custom deleter, i.e. as
+	 * soon as the last owning reference is dropped -- but actual deletion
+	 * happens later, asynchronously, on the TriggerBoxThread worker. Remove
+	 * it from the live-trigger registry now, so that any consumer holding a
+	 * raw Trigger* from an already-queued TriggerPropertyChange (see
+	 * still_exists()) will correctly treat it as gone well before ~Trigger()
+	 * actually runs.
+	 */
+	{
+		std::lock_guard<std::mutex> lg (registry_mutex ());
+		live_triggers.erase (t);
+	}
 	TriggerBox::worker->request_delete_trigger (t);
 }
 
