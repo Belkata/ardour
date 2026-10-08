@@ -221,7 +221,7 @@ MixerStrip::init ()
 	solo_isolated_led->set_name (X_("solo isolate"));
 	solo_isolated_led->add_events (Gdk::BUTTON_PRESS_MASK|Gdk::BUTTON_RELEASE_MASK);
 	solo_isolated_led->signal_button_release_event().connect (sigc::mem_fun (*this, &RouteUI::solo_isolate_button_release), false);
-	UI::instance()->set_tip (solo_isolated_led, _("Isolate Solo"), "");
+	UI::instance()->set_tip (solo_isolated_led, _("Solo Isolate: this track stays audible even when another track is soloed"), "");
 
 	solo_safe_led = manage (new ArdourButton (ArdourButton::led_default_elements));
 	solo_safe_led->show ();
@@ -229,7 +229,7 @@ MixerStrip::init ()
 	solo_safe_led->set_name (X_("solo safe"));
 	solo_safe_led->add_events (Gdk::BUTTON_PRESS_MASK|Gdk::BUTTON_RELEASE_MASK);
 	solo_safe_led->signal_button_release_event().connect (sigc::mem_fun (*this, &RouteUI::solo_safe_button_release), false);
-	UI::instance()->set_tip (solo_safe_led, _("Lock Solo Status"), "");
+	UI::instance()->set_tip (solo_safe_led, _("Solo Safe: protects this track from being muted or soloed by Solo/Mute actions on other tracks"), "");
 
 	solo_safe_led->set_text (S_("SoloLock|Lock"));
 	solo_isolated_led->set_text (_("Iso"));
@@ -286,10 +286,10 @@ MixerStrip::init ()
 	name_button.set_text_ellipsize (Pango::ELLIPSIZE_END);
 	name_button.signal_size_allocate().connect (sigc::mem_fun (*this, &MixerStrip::name_button_resized));
 
-	set_tooltip (&group_button, _("Mix group"));
+	set_tooltip (&group_button, _("No group - click to assign this track to a mix group"));
 	group_button.set_name ("mixer strip button");
 
-	set_tooltip (rta_button, _("Realtime Analyzer\nLeft-click to toggle track analysis\nRight-click to toggle RTA window visibility"));
+	set_tooltip (rta_button, _("Spectrum Analyzer (RTA)\nLeft-click to toggle track analysis\nRight-click to toggle RTA window visibility"));
 	rta_button->set_name ("mixer strip button");
 
 	Gtk::Requisition mpb_size = gpm.meter_point_button.size_request();
@@ -410,7 +410,7 @@ MixerStrip::init ()
 	_visibility.add (&rec_mon_table, X_("RecMon"), _("Record & Monitor"), false, std::bind (&MixerStrip::override_rec_mon_visibility, this));
 	_visibility.add (&solo_iso_table, X_("SoloIsoLock"), _("Solo Iso / Lock"), false);
 	_visibility.add (&output_button, X_("Output"), _("Output"), false);
-	_visibility.add (&_comment_button, X_("Comments"), _("Comments"), false);
+	_visibility.add (&_comment_button, X_("Comments"), _("Comments"), false, std::bind (&MixerStrip::override_comment_visibility, this));
 	_visibility.add (&control_slave_ui, X_("VCA"), _("VCA Assigns"), false);
 	_visibility.add (&_tmaster_widget, X_("TriggerMaster"), _("Trigger Master"), false);
 
@@ -702,7 +702,7 @@ MixerStrip::set_route (std::shared_ptr<Route> rt)
 	input_button.set_route (route (), this);
 	output_button.set_route (route (), this);
 
-	gpm.meter_point_button.set_text (meter_point_string (_route->meter_point()));
+	update_meter_point_button ();
 
 	delete route_ops_menu;
 	route_ops_menu = 0;
@@ -988,6 +988,11 @@ MixerStrip::setup_comment_button ()
 
 	set_tooltip (_comment_button, comment.empty() ? _("Click to add/edit comments") : _route->comment());
 
+	/* re-evaluate whether the Comments button should be shown even though it may
+	 * be hidden by default -- a route with a comment should stay visible.
+	 */
+	_visibility.update ();
+
 	if (comment.empty ()) {
 		_comment_button.set_name ("mixer strip button");
 		_comment_button.set_text (_width  == Wide ? _("Comments") : _("Cmt"));
@@ -1048,6 +1053,7 @@ MixerStrip::route_group_changed ()
 
 	if (rg) {
 		group_button.set_text (PBD::short_version (rg->name(), 5));
+		set_tooltip (&group_button, string_compose (_("Mix group: %1 - click to change"), rg->name()));
 	} else {
 		switch (_width) {
 		case Wide:
@@ -1057,6 +1063,7 @@ MixerStrip::route_group_changed ()
 			group_button.set_text (_("~G"));
 			break;
 		}
+		set_tooltip (&group_button, _("No group - click to assign this track to a mix group"));
 	}
 }
 
@@ -1595,6 +1602,38 @@ MixerStrip::meter_point_string (MeterPoint mp)
 	return string();
 }
 
+/** Full-word description of a metering point, for the meter-point button's tooltip. */
+string
+MixerStrip::meter_point_tooltip (MeterPoint mp)
+{
+	switch (mp) {
+	case MeterInput:
+		return _("Meter point: Input - shows the level arriving at this track");
+	case MeterPreFader:
+		return _("Meter point: Pre-fader - shows the level before the fader");
+	case MeterPostFader:
+		return _("Meter point: Post-fader - shows the level after the fader");
+	case MeterOutput:
+		return _("Meter point: Output - shows the level leaving this track");
+	case MeterCustom:
+	default:
+		return _("Meter point: Custom - shows the level at a chosen point in the processor box");
+	}
+}
+
+/** Set the meter-point button's text and tooltip to match the route's current meter point. */
+void
+MixerStrip::update_meter_point_button ()
+{
+	if (_route) {
+		gpm.meter_point_button.set_text (meter_point_string (_route->meter_point()));
+		set_tooltip (&gpm.meter_point_button, meter_point_tooltip (_route->meter_point()) + _("\nClick to change, right-click for a menu"));
+	} else {
+		gpm.meter_point_button.set_text ("");
+		set_tooltip (&gpm.meter_point_button, _("Meter point"));
+	}
+}
+
 /** Called when the monitor-section state */
 void
 MixerStrip::monitor_changed ()
@@ -1632,7 +1671,7 @@ MixerStrip::monitor_section_added_or_removed ()
 void
 MixerStrip::meter_changed ()
 {
-	gpm.meter_point_button.set_text (meter_point_string (_route->meter_point()));
+	update_meter_point_button ();
 	gpm.setup_meters ();
 	// reset peak when meter point changes
 	gpm.reset_peak_display();
@@ -1802,11 +1841,7 @@ MixerStrip::set_button_names ()
 		break;
 	}
 
-	if (_route) {
-		gpm.meter_point_button.set_text (meter_point_string (_route->meter_point()));
-	} else {
-		gpm.meter_point_button.set_text ("");
-	}
+	update_meter_point_button ();
 }
 
 PluginSelector*
@@ -1907,6 +1942,23 @@ MixerStrip::override_rec_mon_visibility () const
 {
 	if (is_master ()) {
 		return std::optional<bool> (false);
+	}
+
+	return std::optional<bool> ();
+}
+
+/** Called to decide whether the Comments button visibility should be overridden
+ *  from that configured by the user.  We force it visible whenever the route
+ *  actually has a comment, even if "Comments" is hidden by default, so that an
+ *  existing comment is never silently hidden from the user.
+ *
+ *  @return optional value that is present if visibility state should be overridden.
+ */
+std::optional<bool>
+MixerStrip::override_comment_visibility () const
+{
+	if (_route && !_route->comment().empty ()) {
+		return std::optional<bool> (true);
 	}
 
 	return std::optional<bool> ();

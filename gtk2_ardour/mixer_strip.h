@@ -317,6 +317,7 @@ private:
 	VisibilityGroup _visibility;
 	std::optional<bool> override_solo_visibility () const;
 	std::optional<bool> override_rec_mon_visibility () const;
+	std::optional<bool> override_comment_visibility () const;
 
 	PBD::ScopedConnectionList _config_connection;
 
@@ -333,6 +334,8 @@ private:
 	PBD::ScopedConnection _level_meter_connection;
 
 	std::string meter_point_string (ARDOUR::MeterPoint);
+	std::string meter_point_tooltip (ARDOUR::MeterPoint);
+	void update_meter_point_button ();
 
 	void update_track_number_visibility ();
 

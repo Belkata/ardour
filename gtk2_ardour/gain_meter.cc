@@ -170,7 +170,8 @@ GainMeterBase::GainMeterBase (Session* s, bool horizontal, int fader_length, int
 	gain_automation_state_button.set_name ("mixer strip button");
 
 	set_tooltip (gain_automation_state_button, _("Fader automation mode"));
-	set_tooltip (peak_display, _("dBFS - Digital Peak Hold. Click to reset."));
+	set_tooltip (gain_display, _("Gain, in dB. Type a value and press Enter."));
+	set_tooltip (peak_display, _("Peak level, in dBFS. Click to reset."));
 
 	gain_automation_state_button.set_can_focus (false);
 
