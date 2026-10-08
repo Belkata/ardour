@@ -122,7 +122,8 @@ MixerStrip::MixerStrip (Mixer_UI& mx, Session* sess, bool in_mixer)
 	, solo_iso_table (1, 2)
 	, mute_solo_table (1, 2)
 	, master_volume_table (2, 2)
-	, bottom_button_table (2, 2)
+	, bottom_button_table (1, 2)
+	, meter_rta_table (1, 2)
 	, input_button (true)
 	, output_button (false)
 	, monitor_section_button (0)
@@ -159,7 +160,8 @@ MixerStrip::MixerStrip (Mixer_UI& mx, Session* sess, std::shared_ptr<Route> rt, 
 	, solo_iso_table (1, 2)
 	, mute_solo_table (1, 2)
 	, master_volume_table (1, 2)
-	, bottom_button_table (2, 2)
+	, bottom_button_table (1, 2)
+	, meter_rta_table (1, 2)
 	, input_button (true)
 	, output_button (false)
 	, monitor_section_button (0)
@@ -211,7 +213,7 @@ MixerStrip::init ()
 	input_button_box.set_spacing(2);
 	input_button_box.pack_start (input_button, true, true);
 
-	bottom_button_table.attach (gpm.meter_point_button, 1, 2, 0, 1);
+	meter_rta_table.attach (gpm.meter_point_button, 0, 1, 0, 1);
 
 	hide_button.set_events (hide_button.get_events() & ~(Gdk::ENTER_NOTIFY_MASK|Gdk::LEAVE_NOTIFY_MASK));
 
@@ -279,8 +281,10 @@ MixerStrip::init ()
 	bottom_button_table.set_spacings (2);
 	bottom_button_table.set_homogeneous (true);
 	bottom_button_table.attach (gpm.gain_automation_state_button, 0, 1, 0, 1);
-	bottom_button_table.attach (group_button, 0, 1, 1, 2);
-	bottom_button_table.attach (*rta_button,   1, 2, 1, 2);
+	bottom_button_table.attach (group_button, 1, 2, 0, 1);
+	meter_rta_table.set_spacings (2);
+	meter_rta_table.set_homogeneous (true);
+	meter_rta_table.attach (*rta_button, 1, 2, 0, 1);
 
 	name_button.set_name ("mixer strip button");
 	name_button.set_text_ellipsize (Pango::ELLIPSIZE_END);
@@ -346,6 +350,7 @@ MixerStrip::init ()
 	global_vpacker.pack_start (gpm, Gtk::PACK_SHRINK);
 	global_vpacker.pack_start (control_slave_ui, Gtk::PACK_SHRINK);
 	global_vpacker.pack_start (bottom_button_table, Gtk::PACK_SHRINK);
+	global_vpacker.pack_start (meter_rta_table, Gtk::PACK_SHRINK);
 	global_vpacker.pack_start (output_button, Gtk::PACK_SHRINK);
 	global_vpacker.pack_start (_comment_button, Gtk::PACK_SHRINK);
 
@@ -413,6 +418,7 @@ MixerStrip::init ()
 	_visibility.add (&_comment_button, X_("Comments"), _("Comments"), false, std::bind (&MixerStrip::override_comment_visibility, this));
 	_visibility.add (&control_slave_ui, X_("VCA"), _("VCA Assigns"), false);
 	_visibility.add (&_tmaster_widget, X_("TriggerMaster"), _("Trigger Master"), false);
+	_visibility.add (&meter_rta_table, X_("MeterPoint"), _("Meter Point and Analysis"), false);
 
 	parameter_changed (X_("mixer-element-visibility"));
 	UIConfiguration::instance().ParameterChanged.connect (sigc::mem_fun (*this, &MixerStrip::parameter_changed));
@@ -569,7 +575,7 @@ MixerStrip::set_route (std::shared_ptr<Route> rt)
 		solo_button->hide ();
 		mute_button->show ();
 		mute_solo_table.attach (*mute_button, 0, 2, 0, 1);
-		bottom_button_table.attach (*rta_button,   1, 2, 1, 2);
+		meter_rta_table.attach (*rta_button, 1, 2, 0, 1);
 		if (Config->get_use_master_volume ()) {
 			master_volume_table.show ();
 		}
@@ -591,8 +597,8 @@ MixerStrip::set_route (std::shared_ptr<Route> rt)
 		mute_button->show ();
 		master_volume_table.hide ();
 	} else {
-		bottom_button_table.attach (group_button, 0, 1, 1, 2);
-		bottom_button_table.attach (*rta_button,   1, 2, 1, 2);
+		bottom_button_table.attach (group_button, 1, 2, 0, 1);
+		meter_rta_table.attach (*rta_button, 1, 2, 0, 1);
 		mute_solo_table.attach (*mute_button, 0, 1, 0, 1);
 		mute_solo_table.attach (*solo_button, 1, 2, 0, 1);
 		mute_button->show ();
@@ -762,6 +768,7 @@ MixerStrip::set_route (std::shared_ptr<Route> rt)
 	global_vpacker.show();
 	mute_solo_table.show();
 	bottom_button_table.show();
+	meter_rta_table.show();
 	gpm.show_all ();
 	gpm.meter_point_button.show();
 	input_button_box.show_all();

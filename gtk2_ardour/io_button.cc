@@ -145,7 +145,7 @@ IOButtonBase::guess_main_type (std::shared_ptr<IO> io)
  *   out 1 -> system:playback_1
  *   out 2 -> system:playback_2
  *   out 3 -> system:playback_3
- *   Display as: 1/2/3
+ *   Display as: In 1-3 (inputs) / Out 1-3 (outputs); two ports: In 1+2
  *
  * Case 2: Each output has one connection, all connections are to ardour:track_x
  *   out 1 -> ardour:track_x/in 1
@@ -167,7 +167,7 @@ IOButtonBase::guess_main_type (std::shared_ptr<IO> io)
  *  this include internal one to many connections which show as "ardour"
  *
  * Case 4: No connections (Disconnected)
- *   Display as: -
+ *   Display as: No input / No output
  *
  * Default case (unusual routing):
  *   Display as: *number of connections*
@@ -247,7 +247,7 @@ IOButtonBase::set_label (IOButtonBase& self, ARDOUR::Session& session, std::shar
 	}
 
 	if (typed_connection_count == 0) {
-		label << "-";
+		label << (input ? _("No input") : _("No output"));
 		have_label = true;
 	}
 
@@ -299,7 +299,9 @@ IOButtonBase::set_label (IOButtonBase& self, ARDOUR::Session& session, std::shar
 	if (!have_label && each_typed_port_has_one_connection) {
 		ostringstream  temp_label;
 		vector<string> phys;
+		vector<string> names;
 		string         playorcapture;
+		bool           all_numbers = true;
 		if (input) {
 			session.engine ().get_physical_inputs (dt, phys);
 			playorcapture = "capture_";
@@ -327,13 +329,35 @@ IOButtonBase::set_label (IOButtonBase& self, ARDOUR::Session& session, std::shar
 			}
 
 			if (pn.empty ()) {
-				temp_label.str (""); /* erase the failed attempt */
+				names.clear (); /* erase the failed attempt */
 				break;
 			}
-			if (port != ps->begin (dt)) {
-				temp_label << "/";
+			all_numbers &= (pn.find_first_not_of ("0123456789") == string::npos);
+			names.push_back (pn);
+		}
+
+		if (all_numbers && !names.empty ()) {
+			/* plain hardware channel numbers: "In 1", "In 1+2", "Out 1-4" */
+			bool consecutive = names.size () > 2;
+			for (size_t i = 1; i < names.size () && consecutive; ++i) {
+				consecutive = (atoi (names[i].c_str ()) == atoi (names[i - 1].c_str ()) + 1);
 			}
-			temp_label << pn;
+			if (dt == DataType::MIDI) {
+				temp_label << (input ? _("MIDI ") : _("MIDI Out "));
+			} else {
+				temp_label << (input ? _("In ") : _("Out "));
+			}
+			if (consecutive) {
+				temp_label << names.front () << "-" << names.back ();
+			} else {
+				for (size_t i = 0; i < names.size (); ++i) {
+					temp_label << (i > 0 ? "+" : "") << names[i];
+				}
+			}
+		} else {
+			for (size_t i = 0; i < names.size (); ++i) {
+				temp_label << (i > 0 ? "/" : "") << Gtkmm2ext::markup_escape_text (names[i]);
+			}
 		}
 
 		if (!temp_label.str ().empty ()) {
@@ -430,7 +454,8 @@ IOButtonBase::set_label (IOButtonBase& self, ARDOUR::Session& session, std::shar
 		label << u8"\u2295"; /* circled plus */
 	}
 
-	self.set_text (label.str ());
+	/* dim "IN"/"OUT" prefix; every label part above is markup-escaped */
+	self.set_text (string_compose (X_("<span alpha=\"55%\">%1</span>  %2"), input ? _("IN") : _("OUT"), label.str ()), true);
 	set_tooltip (&self, tooltip.str ());
 }
 

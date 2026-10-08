@@ -202,6 +202,7 @@ private:
 	Gtk::Table mute_solo_table;
 	Gtk::Table master_volume_table;
 	Gtk::Table bottom_button_table;
+	Gtk::Table meter_rta_table;
 
 	void vca_assign (std::shared_ptr<ARDOUR::VCA>);
 	void vca_unassign (std::shared_ptr<ARDOUR::VCA>);

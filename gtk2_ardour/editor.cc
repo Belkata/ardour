@@ -514,8 +514,50 @@ Editor::Editor ()
 	edit_packer.set_name ("EditorWindow");
 
 	time_bars_event_box.add (time_bars_vbox);
-	time_bars_event_box.set_events (Gdk::BUTTON_PRESS_MASK|Gdk::BUTTON_RELEASE_MASK);
+	time_bars_event_box.set_events (Gdk::BUTTON_PRESS_MASK|Gdk::BUTTON_RELEASE_MASK|Gdk::POINTER_MOTION_MASK|Gdk::LEAVE_NOTIFY_MASK);
 	time_bars_event_box.signal_button_release_event().connect (sigc::mem_fun(*this, &Editor::ruler_label_button_release));
+
+	/* The < + > buttons of the marker rulers are only drawn while the pointer is over
+	 * their ruler label row. They keep their size (sizing text), so labels don't jump.
+	 */
+	{
+		using ArdourWidgets::ArdourButton;
+		struct MarkerRow {
+			Gtk::HBox*    box;
+			ArdourButton* prev;
+			ArdourButton* add;
+			ArdourButton* next;
+		};
+		std::vector<MarkerRow> rows;
+		rows.push_back ({ &_ruler_box_range,   &_ruler_btn_range_prev,   &_ruler_btn_range_add,   &_ruler_btn_range_next });
+		rows.push_back ({ &_ruler_box_marker,  &_ruler_btn_loc_prev,     &_ruler_btn_loc_add,     &_ruler_btn_loc_next });
+		rows.push_back ({ &_ruler_box_section, &_ruler_btn_section_prev, &_ruler_btn_section_add, &_ruler_btn_section_next });
+
+		for (auto const& r : rows) {
+			r.prev->set_sizing_text ("<");
+			r.add->set_sizing_text ("+");
+			r.next->set_sizing_text (">");
+		}
+
+		auto hover = [rows] (int y) {
+			for (auto const& r : rows) {
+				Gtk::Allocation a (r.box->get_allocation ());
+				bool const over = (y >= 0) && r.box->get_visible () && y >= a.get_y () && y < a.get_y () + a.get_height ();
+				r.prev->set_text (over ? "<" : "");
+				r.add->set_text (over ? "+" : "");
+				r.next->set_text (over ? ">" : "");
+			}
+		};
+
+		time_bars_event_box.signal_motion_notify_event().connect ([hover] (GdkEventMotion* ev) { hover ((int) ev->y); return false; });
+		time_bars_event_box.signal_leave_notify_event().connect ([hover] (GdkEventCrossing* ev) {
+			if (ev->detail != GDK_NOTIFY_INFERIOR) {
+				hover (-1);
+			}
+			return false;
+		});
+		hover (-1);
+	}
 
 #ifndef MIXBUS
 	ArdourWidgets::ArdourDropShadow *axis_view_shadow = manage (new (ArdourWidgets::ArdourDropShadow));
