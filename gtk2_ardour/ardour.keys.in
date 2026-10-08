@@ -172,6 +172,7 @@ This mode provides many different operations on both regions and control points,
 @vis|Editor/show-editor-mixer|                             <@TERTIARY@>e|toggle editor window mixer
 @mmode|Editing/set-mouse-mode-range|                                    r|range mode
 @wvis|Common/show-recorder|                               <@SECONDARY@>r|show recorder page
+@wvis|Common/command-palette|                   <@PRIMARY@><@TERTIARY@>p|find command
 @editing|Editing/redo|                                       <@PRIMARY@>r|redo
 @edit|Editor/select-from-regions|               <@PRIMARY@><@TERTIARY@>r|set Range to selected regions
 @edit|Editor/add-range-marker-from-selection| <@SECONDARY@><@TERTIARY@>r|Add single Range marker from selection

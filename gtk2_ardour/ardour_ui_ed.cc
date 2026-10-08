@@ -67,6 +67,7 @@
 #include "actions.h"
 #include "meter_patterns.h"
 #include "meterbridge.h"
+#include "command_palette.h"
 #include "keyeditor.h"
 #include "luawindow.h"
 #include "mixer_ui.h"
@@ -294,6 +295,7 @@ ARDOUR_UI::install_actions ()
 	common_actions = ActionManager::create_action_group (global_bindings, X_("Common"));
 	ActionManager::register_action (common_actions, X_("Quit"), _("Quit"), (hide_return (sigc::mem_fun(*this, &ARDOUR_UI::finish))));
 	ActionManager::register_action (common_actions, X_("Hide"), _("Hide"), sigc::mem_fun (*this, &ARDOUR_UI::hide_application));
+	ActionManager::register_action (common_actions, X_("command-palette"), _("Find Command..."), sigc::ptr_fun (&CommandPalette::show_palette));
 
 	if (Profile->get_mixbus()) {
 		ActionManager::register_action (common_actions, X_("show-ui-prefs"), _("Show more UI preferences"), sigc::mem_fun (*this, &ARDOUR_UI::show_ui_prefs));
