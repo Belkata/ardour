@@ -42,7 +42,7 @@ RegionUISettings::RegionUISettings ()
 	, mouse_mode (MouseContent)
 	, note_mode (ARDOUR::Sustained)
 	, x_origin (0)
-	, recording_length (1, 0, 0)
+	, recording_length (4, 0, 0) /* match cue-record default (triggerbox.cc); fallback when no trigger ref */
 	, color_mode (ARDOUR::MeterColors)
 	, automation (nullptr)
 	, width (-1)

@@ -23,6 +23,8 @@
 #include <atomic>
 #include <map>
 #include <memory>
+#include <mutex>
+#include <set>
 #include <vector>
 #include <string>
 
@@ -140,9 +142,23 @@ class LIBARDOUR_API Trigger : public PBD::Stateful {
 	};
 
 	Trigger (uint32_t index, TriggerBox&);
-	virtual ~Trigger() {}
+	virtual ~Trigger();
 
 	static void make_property_quarks ();
+
+	/* Cross-thread consumers of TriggerPropertyChange (surfaces etc.) receive a
+	 * raw Trigger*. The Trigger it points to may be scheduled for deferred
+	 * deletion (see request_trigger_delete()) by the time the signal is
+	 * actually handled on another thread, since the signal is marshalled
+	 * through an async queue independent of the deletion queue. A consumer
+	 * MUST hold registry_mutex() for as long as it uses the pointer, and MUST
+	 * call still_exists() first and bail out if it returns false. This is kept
+	 * in sync with request_trigger_delete(), which removes the entry as soon
+	 * as a Trigger is handed off for deletion (i.e. before, not after, the
+	 * deferred ~Trigger() actually runs).
+	 */
+	static std::mutex& registry_mutex ();
+	static bool        still_exists (Trigger const *);
 
   protected:
 	/* properties controllable by the user */
@@ -176,14 +192,14 @@ class LIBARDOUR_API Trigger : public PBD::Stateful {
 	struct UIState {
 		std::atomic<unsigned int> generation; /* used for CAS */
 
-		LaunchStyle launch_style = OneShot;
+		LaunchStyle launch_style = Toggle;
 		FollowAction follow_action0 = FollowAction (FollowAction::Again);
 		FollowAction follow_action1 = FollowAction (FollowAction::Stop);
 		int follow_action_probability = 0;
 		uint32_t follow_count = 1;
 		Temporal::BBT_Offset quantization = Temporal::BBT_Offset (1, 0, 0);
 		Temporal::BBT_Offset follow_length = Temporal::BBT_Offset (1, 0, 0);
-		Temporal::BBT_Offset capture_duration = Temporal::BBT_Offset (1, 0, 0);
+		Temporal::BBT_Offset capture_duration = Temporal::BBT_Offset (4, 0, 0); /* default cue-record length: 4 bars */
 		bool use_follow_length = false;
 		bool legato = false;
 		gain_t gain = 1.0;
