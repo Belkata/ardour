@@ -23,7 +23,7 @@ prog = [[60, 64, 67], [57, 60, 64], [53, 57, 60], [55, 59, 62]]   # C Am F G
 chords, bass, melody, drums = [], [], [], []
 for bar in range (8):
 	c = prog[bar % 4]; b0 = bar * 4
-	for k in c: chords.append ((b0, 3.75, k, 70 + (bar % 2) * 12))
+	for i, k in enumerate (c): chords.append ((b0, 3.75, k, (96, 64, 78)[i] - (bar % 2) * 14))   # root loudest, every other bar softer
 	for i, off in enumerate ((0, 1.5, 2, 3, 3.5)):
 		bass.append ((b0 + off, .45, c[0] - 24 + (12 if i == 3 else 0), 90 - i * 6))
 	for beat in range (4):

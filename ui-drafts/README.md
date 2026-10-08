@@ -11,6 +11,7 @@ PW_MOD=$(npm root -g)/playwright node src/render.js "src/editor.html#add" 05-qui
 PW_MOD=$(npm root -g)/playwright node src/render.js src/palette.html 06-color-palette.png 1680 660
 PW_MOD=$(npm root -g)/playwright node src/render.js src/topbar.html 09-topbar-redesign.png 1680 575   # crops: src/topbar-*.png from screenshots/after/editor.png
 PW_MOD=$(npm root -g)/playwright node src/render.js src/topbar-icons.html 10-topbar-icons.png 1680 860   # crop: src/topbar-icons-row.png = editor.png y 26..74
+PW_MOD=$(npm root -g)/playwright node src/render.js src/midi.html 11-midi-editor.png 1680 2090   # crops: src/midi-*.png from screenshots/midi-before/
 ```
 
 ## Prior art (what others have tried)
@@ -33,6 +34,7 @@ Nobody has published a fork that restyles or reorganizes the GTK UI itself, so t
 - `05-quick-add-track` – inline add-track popover
 - `06-color-palette` – current vs proposed palette
 - `10-topbar-icons` – top-bar icons: play range, loop, auto return (playhead icon, options A/B), Lua example buttons; today vs proposed
+- `11-midi-editor` – MIDI editor (bottom pane / Pianoroll window): toolbar, keyboard + range bar, velocity as brightness, velocity lane, Edit MIDI in window (Alt+P), beat grid in MIDI regions
 
 ## Feasibility (from reading the code)
 

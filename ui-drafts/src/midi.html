@@ -1,0 +1,241 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+@font-face { font-family: Inter; src: url(../../gtk2_ardour/fonts/Inter-Regular.otf); font-weight: 400; }
+@font-face { font-family: Inter; src: url(../../gtk2_ardour/fonts/Inter-Medium.otf); font-weight: 500; }
+@font-face { font-family: Inter; src: url(../../gtk2_ardour/fonts/Inter-SemiBold.otf); font-weight: 600; }
+@font-face { font-family: Inter; src: url(../../gtk2_ardour/fonts/Inter-Bold.otf); font-weight: 700; }
+body { width: 1680px; overflow: hidden; background: var(--bg0); position: relative; padding-bottom: 20px; }
+h2 { font-size: 13px; font-weight: 600; color: var(--fg2); padding: 16px 16px 8px; letter-spacing: .3px; }
+h2 span { color: var(--fg4); font-weight: 400; margin-left: 8px; }
+h2 b { display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #ff3d8b; color: #fff; font: 700 11px/20px Inter, sans-serif; text-align: center; margin-right: 8px; }
+img.real { display: block; }
+.rel { position: relative; }
+
+/* ---- proposed pane ---- */
+.pane { background: var(--surf2); width: 1680px; }
+.tbar { height: 36px; display: flex; align-items: center; gap: 6px; padding: 0 8px; border-bottom: 1px solid var(--bg0); }
+.b { height: 24px; min-width: 24px; padding: 0 8px; border-radius: 5px; background: var(--widget); color: var(--fg); display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 11.5px; white-space: nowrap; }
+.b.icon { padding: 0; width: 26px; }
+.b.on { background: #4b4f58; box-shadow: inset 0 0 0 1px #6c717c; }
+.b.acc { background: #2c3a57; color: #9dbbf5; box-shadow: inset 0 0 0 1px #5b8def; }
+.b svg { width: 14px; height: 14px; }
+.b .chev { color: var(--fg3); font-size: 9px; }
+.b .k { color: var(--fg3); }
+.lbl { color: var(--fg3); font-size: 11px; margin-left: 2px; }
+.sep { width: 1px; height: 20px; background: #3f434b; margin: 0 4px; }
+.grow { flex: 1; }
+svg.ic { fill: currentColor; stroke: none; }
+svg.st { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* notes */
+.notes { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 40px; padding: 4px 24px 0 24px; color: var(--fg2); font-size: 12.5px; line-height: 1.45; }
+.notes li i { font-style: normal; color: var(--fg); font-weight: 600; }
+.cmp { display: flex; gap: 30px; align-items: flex-start; padding: 0 16px; }
+.cmp .cap { font-size: 11px; color: var(--fg3); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
+.menu { width: 300px; background: #24262b; border: 1px solid #3a3d44; border-radius: 6px; padding: 4px 0; font-size: 12px; color: var(--fg); box-shadow: 0 8px 24px rgba(0,0,0,.5); }
+.menu div { display: flex; justify-content: space-between; padding: 4px 14px; }
+.menu .hl { background: #2c3a57; color: #fff; }
+.menu .k { color: var(--fg3); }
+.menu hr { border: 0; border-top: 1px solid #3a3d44; margin: 4px 0; }
+.menu .dim { color: var(--fg4); }
+</style></head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+ <defs>
+  <symbol id="play" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></symbol>
+  <symbol id="loop" viewBox="0 0 24 24"><path d="M17 2.5l3.5 3.5L17 9.5M3.5 11.5V10a4 4 0 0 1 4-4h13M7 21.5L3.5 18 7 14.5M20.5 12.5V14a4 4 0 0 1-4 4h-13"/></symbol>
+  <symbol id="pencil" viewBox="0 0 24 24"><path d="M4 20l1-5L16 4l4 4L9 19z"/></symbol>
+  <symbol id="cursor" viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.5L10 19z"/></symbol>
+  <symbol id="panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></symbol>
+  <symbol id="drum" viewBox="0 0 24 24"><ellipse cx="12" cy="8" rx="8" ry="3"/><path d="M4 8v8c0 1.7 3.6 3 8 3s8-1.3 8-3V8"/></symbol>
+  <symbol id="follow" viewBox="0 0 24 24"><path d="M6 4h12l-6 6z" fill="currentColor"/><path d="M12 9v11"/></symbol>
+  <symbol id="zin" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M7.5 10.5h6M10.5 7.5v6"/></symbol>
+  <symbol id="zout" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M7.5 10.5h6"/></symbol>
+  <symbol id="fit" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+ </defs>
+</svg>
+
+<template id="toolbar">
+ <div class="tbar">
+  <div class="b acc"><svg class="st"><use href="#panel"/></svg>Tools</div>
+  <div class="sep"></div>
+  <div class="b icon"><svg class="ic"><use href="#play"/></svg></div>
+  <div class="b icon"><svg class="st"><use href="#loop"/></svg></div>
+  <div class="b icon" style="font-weight:600">S</div>
+  <div class="sep"></div>
+  <div class="b on"><svg class="ic"><use href="#pencil"/></svg>Draw</div>
+  <div class="b icon"><svg class="ic"><use href="#cursor"/></svg></div>
+  <div class="sep"></div>
+  <span class="lbl">Grid</span><div class="b">1/4 note <span class="chev">▼</span></div><div class="b on">Snap</div>
+  <span class="lbl">Note length</span><div class="b">Auto <span class="chev">▼</span></div>
+  <span class="lbl">Velocity</span><div class="b">Auto <span class="chev">▼</span></div>
+  <span class="lbl">Channel</span><div class="b">1 <span class="chev">▼</span></div>
+  <div class="b"><svg class="st"><use href="#drum"/></svg>Drums</div>
+  <div class="grow"></div>
+  <div class="b">Lanes: Velocity <span class="chev">▼</span></div>
+  <div class="b"><span class="k">Colors:</span> Track <span class="chev">▼</span></div>
+  <div class="b">View <span class="chev">▼</span></div>
+  <div class="sep"></div>
+  <div class="b icon" style="background:#2f4a37;color:#4cc46a"><svg class="st"><use href="#follow"/></svg></div>
+  <div class="b icon"><svg class="st"><use href="#zout"/></svg></div>
+  <div class="b icon"><svg class="st"><use href="#zin"/></svg></div>
+  <div class="b icon"><svg class="st"><use href="#fit"/></svg></div>
+ </div>
+</template>
+
+<h2>Today <span>bottom pane with the keys region selected (real screenshot)</span></h2>
+<img class="real" src="midi-pane-today.png">
+
+<h2>Proposed <span>same region; numbers refer to the sections below</span></h2>
+<div class="rel">
+ <div class="pane" id="pane"></div>
+ <div class="callout" style="left:-2px;top:-10px">1</div>
+ <div class="callout" style="left:40px;top:44px">2</div>
+ <div class="callout" style="left:700px;top:150px">3</div>
+ <div class="callout" style="left:100px;top:368px">3</div>
+</div>
+
+<h2><b>1</b>Toolbar <span>today (real) → proposed: words instead of riddles, never wider than the window</span></h2>
+<img class="real" src="midi-toolbar-today.png">
+<div style="height:6px"></div>
+<div class="pane" id="tb2"></div>
+<ul class="notes">
+ <li><i>"&lt;" → "Tools"</i>: opens the side panel (chords, quantize, region properties); highlighted while open.</li>
+ <li><i>Draw / edit tool</i>: the active one shows its name, like the main editor's tools.</li>
+ <li><i>"Grid · Note length · Velocity · Channel"</i> spelled out (today "1/4 Note", "Len:", "Vel:", "Ch:").</li>
+ <li><i>Grey blob → "Drums"</i> toggle (drum-style note drawing).</li>
+ <li><i>"A" → "Lanes: Velocity ▾"</i> shows which lanes are open; <i>"Track" → "Colors: Track ▾"</i>.</li>
+ <li><i>"View ▾"</i> collects zoom focus ("Left"), which regions are editable ("Active Region") and the region list — the region list shows only when more than one region is open.</li>
+ <li><i>Never widens the window</i>: the toolbar may shrink (it scrolls instead of pushing the window past the screen), and the tools panel takes its width from the canvas.</li>
+ <li>Zoom − / + / fit and follow-playhead stay, grouped at the right.</li>
+</ul>
+
+<h2><b>2</b>Keyboard <span>today (real, 2×) → proposed (2×)</span></h2>
+<div class="cmp">
+ <div><div class="cap">Today</div><img class="real" src="midi-keys-today.png" style="width:660px;height:400px;image-rendering:pixelated"></div>
+ <div><div class="cap">Proposed</div><div id="keys2" style="width:660px;height:400px;overflow:hidden;position:relative"></div></div>
+ <ul class="notes" style="grid-template-columns:1fr;padding-top:24px;max-width:300px">
+  <li><i>Names on the keys</i>, in their own row — no separate, mostly empty name column, no misalignment.</li>
+  <li><i>The pink block was the "scroomer"</i>: a scroll + zoom handle for the whole 0–127 range, drawn behind the row names. It becomes a <i>thin range bar</i> at the far left that looks like a scrollbar (drag = scroll, drag the ends = zoom).</li>
+  <li>Hovered key highlighted; C rows get a stronger line. Drum maps (MIDNAM) still widen the keys to fit names like "Kick".</li>
+ </ul>
+</div>
+
+<h2><b>3</b>Notes and velocity <span>see the proposed pane above</span></h2>
+<ul class="notes">
+ <li><i>Velocity = brightness</i>: loud notes solid, soft notes faded (in the track's color), instead of a thin dark line inside each note.</li>
+ <li><i>Selected notes</i>: white outline (bar 3 above), not just a slightly different fill.</li>
+ <li><i>Velocity lane</i>: 0 / 64 / 127 scale; <i>chord notes side by side</i> instead of one lollipop hiding the others; default height about a quarter of the pane.</li>
+ <li>Area after the region end stays shaded; bar numbers unchanged.</li>
+</ul>
+
+<h2><b>4</b>Easier to reach <span>region menu and MIDI regions in the editor</span></h2>
+<div class="cmp">
+ <div>
+  <div class="cap">Right-click a MIDI region</div>
+  <div class="menu">
+   <div class="hl"><span>Edit MIDI in window…</span><span class="k" style="color:#c9d6f5">Alt+P</span></div>
+   <hr>
+   <div><span>Split/Separate</span><span class="k">S</span></div>
+   <div><span>Duplicate</span><span class="k"></span></div>
+   <div><span>Mute</span><span class="k">Alt+1</span></div>
+   <div><span>Rename…</span><span class="k">Alt+9</span></div>
+   <div><span>Remove</span><span class="k"></span></div>
+   <hr>
+   <div class="dim"><span>…</span><span></span></div>
+  </div>
+  <div class="cap" style="margin-top:10px;text-transform:none;letter-spacing:0;max-width:300px;line-height:1.4">Today it is Region › Edit › Edit in separate window… with no shortcut. The window opens <i style="font-style:normal;color:var(--fg)">zoomed to the region</i> (today: 24 bars for an 8-bar region).</div>
+ </div>
+ <div><div class="cap">MIDI region in the editor — today</div><img class="real" src="midi-track-today.png"></div>
+ <div><div class="cap">Proposed: faint beat and bar lines inside MIDI regions</div><div class="rel" style="width:400px;height:330px"><img class="real" src="midi-track-today.png"><div id="grid4" style="position:absolute;inset:0"></div></div></div>
+</div>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+const isBlack = n => [1, 3, 6, 8, 10].includes(n % 12);
+const names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const nname = n => names[n % 12] + (Math.floor(n / 12) - 1);
+const prog = [[60, 64, 67], [57, 60, 64], [53, 57, 60], [55, 59, 62]];
+const notes = [];
+for (let bar = 0; bar < 8; ++bar) prog[bar % 4].forEach((k, i) => notes.push({ s: bar * 4, d: 3.75, k, v: [96, 64, 78][i] - (bar % 2) * 14, sel: bar === 2 }));
+
+for (const id of ['pane', 'tb2']) document.getElementById(id).appendChild(document.getElementById('toolbar').content.cloneNode(true));
+
+/* keyboard: range bar + keys with names */
+function keyboard (svg, x0, y0, top, rows, rh, kw, hover) {
+	const H = rows * rh;
+	el('rect', { x: x0, y: y0, width: 10, height: H, fill: '#17181c' }, svg);
+	const ht = y0 + (1 - top / 127) * H, hh = rows / 127 * H;
+	el('rect', { x: x0 + 1.5, y: ht, width: 7, height: Math.max (hh, 14), rx: 3.5, fill: 'rgba(91,141,239,.35)', stroke: '#5b8def', 'stroke-width': 1 }, svg);
+	for (let r = 0; r < rows; ++r) {
+		const n = top - r, y = y0 + r * rh, b = isBlack (n);
+		el('rect', { x: x0 + 12, y, width: kw, height: rh, fill: n === hover ? '#5b8def' : (b ? '#26282d' : '#c3c7ce') }, svg);
+		el('line', { x1: x0 + 12, x2: x0 + 12 + kw, y1: y + rh, y2: y + rh, stroke: n % 12 === 0 ? '#111215' : (b ? '#26282d' : '#a3a8b1'), 'stroke-width': n % 12 === 0 ? 1.5 : .6 }, svg);
+		const t = el('text', { x: x0 + 12 + kw - 5, y: y + rh / 2 + 3.4, 'text-anchor': 'end', 'font-size': 9.5, 'font-family': 'Inter', 'font-weight': n % 12 === 0 ? 700 : 500, fill: n === hover ? '#fff' : (b ? '#b6bbc4' : '#1d1f23') }, svg);
+		t.textContent = nname (n);
+	}
+}
+
+/* proposed pane */
+(function () {
+	const W = 1680, top = 69, rows = 19, rh = 16, gx = 80, ruler = 18, vel = 80;
+	const H = ruler + rows * rh + vel + 14;
+	const svg = el('svg', { width: W, height: H, style: 'display:block' }, document.getElementById('pane'));
+	const bw = (W - gx) / 9, beat = bw / 4, y0 = ruler, nh = rows * rh;
+	el('rect', { x: 0, y: 0, width: W, height: H, fill: '#2c2f35' }, svg);
+	el('rect', { x: gx, y: 0, width: W - gx, height: ruler, fill: '#1d1f23' }, svg);
+	for (let b = 0; b <= 9; ++b) { const t = el('text', { x: gx + b * bw + 4, y: 13, 'font-size': 10.5, 'font-family': 'Inter', fill: '#b6bbc4' }, svg); t.textContent = b + 1; }
+	for (let r = 0; r < rows; ++r) el('rect', { x: gx, y: y0 + r * rh, width: W - gx, height: rh, fill: isBlack (top - r) ? '#2b333f' : '#363b42' }, svg);
+	for (let i = 0; i <= 36; ++i) el('line', { x1: gx + i * beat, x2: gx + i * beat, y1: y0, y2: y0 + nh, stroke: i % 4 ? '#454a52' : '#80858e', 'stroke-width': i % 4 ? .7 : 1 }, svg);
+	el('rect', { x: gx + 8 * bw, y: y0, width: W - gx - 8 * bw, height: nh, fill: 'rgba(17,18,21,.45)' }, svg);
+	keyboard (svg, 4, y0, top, rows, rh, 64, 64);
+	for (const n of notes) {
+		const x = gx + n.s * beat + 1, y = y0 + (top - n.k) * rh + 1, w = n.d * beat - 2;
+		const a = .12 + .88 * Math.pow (n.v / 127, 1.6);
+		el('rect', { x, y, width: w, height: rh - 2, rx: 2, fill: `rgba(214,207,140,${a})`, stroke: n.sel ? '#ffffff' : 'rgba(17,18,21,.6)', 'stroke-width': n.sel ? 1.6 : .8 }, svg);
+	}
+	/* velocity lane */
+	const vy = y0 + nh + 6, vh = vel;
+	el('rect', { x: gx, y: vy, width: W - gx, height: vh, fill: '#25272c' }, svg);
+	for (const [v, lab] of [[127, '127'], [64, '64'], [0, '0']]) {
+		const yy = vy + vh - v / 127 * (vh - 6) - 3;
+		el('line', { x1: gx, x2: W, y1: yy, y2: yy, stroke: '#3a3d44', 'stroke-dasharray': v === 64 ? '3 3' : '', 'stroke-width': 1 }, svg);
+		const t = el('text', { x: gx - 6, y: yy + 3.5, 'text-anchor': 'end', 'font-size': 9.5, 'font-family': 'Inter', fill: '#7d828d' }, svg); t.textContent = lab;
+	}
+	const lt = el('text', { x: 8, y: vy + 14, 'font-size': 11, 'font-family': 'Inter', fill: '#b6bbc4' }, svg); lt.textContent = '× Velocity';
+	for (let i = 0; i <= 36; i += 4) el('line', { x1: gx + i * beat, x2: gx + i * beat, y1: vy, y2: vy + vh, stroke: '#3a3d44' }, svg);
+	const byStart = {};
+	for (const n of notes) (byStart[n.s] = byStart[n.s] || []).push (n);
+	for (const s in byStart) {
+		const grp = byStart[s].sort ((a, b) => a.k - b.k);
+		grp.forEach ((n, i) => {
+			const x = gx + s * beat + 5 + i * 7, yy = vy + vh - n.v / 127 * (vh - 6) - 3;
+			el('line', { x1: x, x2: x, y1: vy + vh, y2: yy, stroke: n.sel ? '#ffffff' : '#d6cf8c', 'stroke-width': 1.5 }, svg);
+			el('circle', { cx: x, cy: yy, r: 3.2, fill: n.sel ? '#ffffff' : '#d6cf8c' }, svg);
+		});
+	}
+})();
+
+/* keyboard 2x comparison: same rows as the "today" crop (G#4 .. B3, 19 px rows) */
+(function () {
+	const svg = el('svg', { width: 330, height: 200, style: 'transform:scale(2);transform-origin:0 0;display:block' }, document.getElementById('keys2'));
+	el('rect', { x: 0, y: 0, width: 330, height: 200, fill: '#2c2f35' }, svg);
+	el('rect', { x: 0, y: 0, width: 330, height: 16, fill: '#1d1f23' }, svg);
+	const top = 68, rh = 19, y0 = 16, rows = 10, gx = 78;
+	for (let r = 0; r < rows; ++r) el('rect', { x: gx, y: y0 + r * rh, width: 330 - gx, height: rh, fill: isBlack (top - r) ? '#2b333f' : '#363b42' }, svg);
+	for (let i = 0; i < 4; ++i) el('line', { x1: gx + 2 + i * 40, x2: gx + 2 + i * 40, y1: y0, y2: 200, stroke: i ? '#454a52' : '#80858e' }, svg);
+	keyboard (svg, 4, y0, top, rows, rh, 62, -1);
+	for (const [k, x, w] of [[67, 0, 148], [64, 0, 148], [64, 160, 160], [60, 0, 148], [60, 160, 160]]) el('rect', { x: gx + 2 + x, y: y0 + (top - k) * rh + 1.5, width: w, height: rh - 3, rx: 2, fill: 'rgba(214,207,140,.9)', stroke: 'rgba(17,18,21,.6)', 'stroke-width': .8 }, svg);
+})();
+
+/* beat grid over the editor's MIDI region (region x 22..395 in the crop = 8 bars) */
+(function () {
+	const svg = el('svg', { width: 400, height: 330 }, document.getElementById('grid4'));
+	const x0 = 22, bar = (395 - 22) / 8;
+	for (let i = 0; i <= 32; ++i) { const x = x0 + i * bar / 4; el('line', { x1: x, x2: x, y1: 0, y2: 330, stroke: i % 4 ? 'rgba(255,255,255,.05)' : 'rgba(255,255,255,.14)', 'stroke-width': 1 }, svg); }
+})();
+</script>
+</body></html>
