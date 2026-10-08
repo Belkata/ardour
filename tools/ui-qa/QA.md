@@ -35,13 +35,14 @@ Our changes are almost entirely in `gtk2_ardour` (plus one file in
 | `check_screenshot_colors.py <png>…` | – | every large area of a screenshot is a `modern` palette color (or a declared-alpha composite over a background), and none looks like the old `dark` theme – i.e. the theme reaches every widget. Verified to fail on stock screenshots. |
 | `check_cue_states.py <shots-dir>` | – | the Clips page shows clip states: green launch icons while scene B plays, an amber outline on **every** queued clip of scene D (also on tracks whose current clip is still playing), no amber when nothing is queued. Counts theme-colored pixels in the cue grid of `cues*.png` from `shoot.sh`. Verified to fail on the round-3 shots (transport stopped by an extra Space; queued outline missing behind playing clips). |
 | `screenshots/shoot.sh <tree> <label>` | yes | editor/mixer/cue page screenshots of a reproducible demo session (5 stems, a bus, 19 clips); `UI_SCALE=150` for HiDPI |
-| `run_gui.sh [tree] [out]` | yes | smoke test + screenshots + color check + 150 % screenshots |
+| `quick_add_input.sh <tree> <out>` | yes | Quick Add "Record from": picks Stereo + "Input 3 + 4", adds a track, asserts it is connected to exactly `system:capture_3/4`; also screenshots the "Solo active" top-bar pill (`solo.png`) |
+| `run_gui.sh [tree] [out]` | yes | smoke test + Quick Add input picker + screenshots + color check + 150 % screenshots |
 
 Run before every push that touches `gtk2_ardour`:
 
 ```sh
 tools/ui-qa/run_static.sh          # seconds, no build
-./waf && tools/ui-qa/run_gui.sh    # ~6 minutes, headless
+./waf && tools/ui-qa/run_gui.sh    # ~7 minutes, headless
 ```
 
 Things learned while building the GUI harness (Xvfb, no window manager):

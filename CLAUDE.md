@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 Fork of the Ardour DAW (`belkata/ardour`, default branch `master`). Current work: a UI
-redesign (colors + layout + Inter font), merged into `master` as `9afe9e82`.
+redesign (colors + layout + Inter font), merged into `master` (PRs #1 and #3; round 5 = top bar + Quick Add "Record from").
 **Read `ui-drafts/HANDOFF.md` first** — it has the status, decisions and next steps.
 
 ## Layout
@@ -73,7 +73,9 @@ There is no sound card and no window manager in the container:
 
 ```sh
 tools/ui-qa/run_static.sh                      # theme integrity + contrast, no build needed
+tools/ui-qa/run_gui.sh . /tmp/ui-qa-run        # all GUI checks (~7 min, needs a build)
 tools/ui-qa/smoke.sh . /tmp/ui-qa              # headless GUI smoke test (needs a build)
+tools/ui-qa/quick_add_input.sh . /tmp/qai      # Quick Add "Record from" + solo pill
 tools/ui-qa/smoke.sh . /tmp/c compat <x.ardour># open an existing session
 tools/ui-qa/screenshots/shoot.sh . after       # editor/mixer/cues screenshots
 tools/ui-qa/visual_diff.sh <base-dir> <new-dir>

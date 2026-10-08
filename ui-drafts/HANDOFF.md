@@ -4,9 +4,16 @@ State of the Ardour UI redesign, so a
 new session can continue without re-deriving anything. See `CLAUDE.md` for how
 to build, run headless and test.
 
-**Status: merged.** The redesign was squash-merged into `master` as `9afe9e82`
-([Belkata/ardour#1](https://github.com/Belkata/ardour/pull/1)), on top of upstream
-`608f15a4` (the fork point). `git diff 608f15a4 master` shows the whole redesign.
+**Status: merged.** Everything below is in `master`:
+
+| PR | Commit | Content |
+|---|---|---|
+| [#1](https://github.com/Belkata/ardour/pull/1) | `9afe9e82` | the redesign, rounds 1–4 |
+| [#2](https://github.com/Belkata/ardour/pull/2) | `ea1f697` | this handoff |
+| [#3](https://github.com/Belkata/ardour/pull/3) | `79d6274` | round 5: top bar in one row, Quick Add "Record from" |
+
+It sits on top of upstream `608f15a4` (the fork point); `git diff 608f15a4 master`
+shows the whole redesign.
 
 Git setup for follow-up work:
 
@@ -57,7 +64,9 @@ render with `src/render.js` (Playwright + preinstalled Chromium; commands in `RE
 `README.md` has the research table, feasibility table and the **implementation status table**
 (keep it updated).
 
-## What is implemented (all in `master`, commit 9afe9e82)
+## What is implemented (all in `master`)
+
+### Rounds 1–4 (PR #1)
 
 | Area | Files |
 |---|---|
@@ -77,7 +86,10 @@ render with `src/render.js` (Playwright + preinstalled Chromium; commands in `RE
 | Clips page plain-language labels/tooltips | `trigger_ui.cc`, `slot_properties_box.cc` |
 | QA tools | `tools/ui-qa/` |
 
-### Round 5 (branch `ccr-d562df24-x2zqd5`, not merged yet)
+### Round 5 (PR #3)
+
+The user found the top bar "confusing and a bit messy"; draft 09 was approved as drawn
+("implement it as drafted"), then the user asked for the Quick Add input picker.
 
 | Area | Files |
 |---|---|
@@ -88,15 +100,33 @@ render with `src/render.js` (Playwright + preinstalled Chromium; commands in `RE
 | Solo / Audition / Feedback alerts shown only while active ("Solo active", "Auditioning", "Feedback loop" / "No alignment") | `application_bar.cc` (`update_alert_visibility`) |
 | Only assigned Lua action buttons shown (still limited by `action-table-columns`) | `application_bar.cc` (`update_action_script_visibility`) |
 | Quick Add "Record from" picker: Automatic / No input / hardware input (pairs for stereo, "Input 3 + 4"); several audio tracks take consecutive inputs, MIDI tracks share the device; passes `input_auto_connect=false` when an input is chosen | `quick_add_route.{h,cc}` |
+| QA: `quick_add_input.sh` (picker connects exactly the chosen inputs; solo pill screenshot), added to `run_gui.sh` | `tools/ui-qa/` |
 
 ## Current state / where it stopped
 
-Round 5 (top bar + Quick Add "Record from") builds; `run_static.sh` and `run_gui.sh` pass.
-Picker verified headless: choosing "Input 3 + 4" connects the new track to exactly
-`system:capture_3/4`. Screenshots: `screenshots/after/`, `screenshots/topbar-before-after.png`.
-Menu labels from port names must escape `_` (GTK mnemonics) — see `refill_inputs`.
+A working prototype, merged. Iteration loop (draft → approve → implement → build →
+QA → screenshot → fix), rounds 1–5. Round 5 builds; `run_static.sh` and `run_gui.sh`
+pass (smoke 10/10, picker, colors, clip states, 150 %). Screenshots: `screenshots/after/`,
+`screenshots/before-after.png`, `screenshots/topbar-before-after.png`.
 
-A working prototype, merged. Iteration loop (screenshot → QA → fix → rebuild), rounds 1–4:
+Round 5 details worth knowing:
+
+- Top bar = `ApplicationBar` (`application_bar.cc`), one instance per page (editor, mixer,
+  recorder, cue page) — layout is a one-row `Gtk::Table`; optional groups are
+  `no_show_all` and toggled in `repack_transport_hbox()` from `show-toolbar-*` prefs.
+  The page switcher and pane toggles live in the `Tabbable` header (`ardour_ui2.cc`,
+  `libs/widgets/tabbable.cc`), not in the bar.
+- Alerts: `blink_handler()` → `update_alert_visibility()` shows/hides the pills. The solo
+  pill is red (theme's `rude solo`); the draft showed it green — the user wasn't asked
+  yet whether to change it (one line in `modern-ardour.colors`).
+- Lua buttons: unassigned slots are hidden, so "right-click an empty slot to assign" is
+  gone; assigning goes through Edit › Lua Scripts › Script Manager.
+- Changing a default in `ui_config_vars.inc.h` affects fresh configs only.
+- GTK menu labels built from port names must escape `_` (mnemonics), see `refill_inputs()`.
+- Pretty port names come from `AudioEngine::get_pretty_name_by_name()`; the Dummy backend
+  has none, so the fallback turns `system:capture_3` into "Input 3".
+
+Rounds 1–4:
 
 - Everything builds; `tools/ui-qa/run_static.sh` and `tools/ui-qa/run_gui.sh` pass
   (smoke 10/10, theme colors in screenshots, clip states, 150 % HiDPI).
@@ -111,13 +141,16 @@ A working prototype, merged. Iteration loop (screenshot → QA → fix → rebui
   width; editor list Name column min 90 px; quieter "Show Sends" fill; cue-page gain
   sliders in the track color.
 
-Harness lessons: launching a cue (F1–F8) starts the transport by itself — pressing Space
+Harness lessons: after choosing from an `ArdourDropdown` menu the keyboard focus stays on
+the drop-down — click the target entry before typing. Launching a cue (F1–F8) starts the transport by itself — pressing Space
 afterwards stops it. Queued clips start at the next bar (< 2 s at 120 bpm), so capture
 the queued state immediately.
 
 ## Next steps (the user picks what to close next)
 
-1. Ask the user which remaining draft gaps to close. Not implemented yet:
+1. Ask the user which remaining draft gaps to close (they choose; last time they chose
+   their own topic, the top bar). Open questions from round 5: solo pill red vs green;
+   whether to merge the editor tool row into the top bar. Not implemented yet:
    - mixer plugin "cards", send bars, fader restyle (`processor_box.cc`, `mixer_strip.cc`)
    - region drawing ("region cards")
    - follow actions as one sentence; named scenes; clip library BPM/length
@@ -143,4 +176,14 @@ with side-by-side images and let the user choose what to close next.
   (see `CLAUDE.md`), never pushed.
 - Don't use `pkill -f <pattern>`/`rm` with globs in compound shell commands: `pkill -f`
   matched the agent's own shell, and a safety check blocks `cd … && rm …*`.
-- Full build ≈ 37 min; header changes rebuild most of `gtk2_ardour`.
+- Full build ≈ 34–37 min; header changes rebuild most of `gtk2_ardour`. Editing
+  sources while a build runs is fine (waf hashes each file when it reaches it), but run
+  `./waf build` once more afterwards and compare object vs source mtimes if unsure.
+- Session setup that worked in round 5, in order: `sudo tools/ui-qa/install_deps.sh`
+  (~3 min), local `9.0` tag, `./waf configure ...` (see `CLAUDE.md`), then the build as a
+  background task with `tee` (user wants to see progress).
+- `before-after.png` is a `montage` of before/after editor, mixer, Clips (see README).
+- GitHub: no CI runs on this repo; PRs are squash-merged with the GitHub MCP tools
+  after `run_static.sh` + `run_gui.sh` pass locally. After a merge, reset the session
+  branch to `origin/master` and push it with `--force-with-lease` (it only held merged
+  history), otherwise the stop hook reports unpushed commits.
