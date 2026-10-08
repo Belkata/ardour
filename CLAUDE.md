@@ -1,8 +1,8 @@
 # CLAUDE.md
 
-Fork of the Ardour DAW (`belkata/ardour`). Current work: a UI redesign
-(colors + layout + Inter font). **Read `ui-drafts/HANDOFF.md` first** — it has
-the status, decisions and next steps.
+Fork of the Ardour DAW (`belkata/ardour`, default branch `master`). Current work: a UI
+redesign (colors + layout + Inter font), merged into `master` as `9afe9e82`.
+**Read `ui-drafts/HANDOFF.md` first** — it has the status, decisions and next steps.
 
 ## Layout
 
@@ -17,8 +17,9 @@ the status, decisions and next steps.
 
 ## Fork point / diff against upstream
 
-The redesign starts from upstream commit `608f15a4` (tag `fork-point`). After merging
-into `master`, see our changes with:
+The redesign starts from upstream commit `608f15a4` (tag `fork-point` — not on GitHub
+until the user pushes it; cloud sessions can't push tags, so use the hash meanwhile).
+See our changes with:
 
 ```sh
 git remote add upstream https://github.com/Ardour/ardour.git   # once

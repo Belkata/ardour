@@ -4,7 +4,22 @@ State of the Ardour UI redesign, so a
 new session can continue without re-deriving anything. See `CLAUDE.md` for how
 to build, run headless and test.
 
-Branch: `claude/wizardly-brahmagupta-jyh5oi` (push only there; no PR opened).
+**Status: merged.** The redesign was squash-merged into `master` as `9afe9e82`
+([Belkata/ardour#1](https://github.com/Belkata/ardour/pull/1)), on top of upstream
+`608f15a4` (the fork point). `git diff 608f15a4 master` shows the whole redesign.
+
+Git setup for follow-up work:
+
+- Start each piece of work on a fresh branch from `master` (the session gives the
+  branch name). Don't reuse the old `claude/wizardly-brahmagupta-jyh5oi` history:
+  its 14 commits were squashed, so git doesn't see them as merged.
+- Open a PR and merge it only when the user asks. Squash-merging through the GitHub
+  tools worked; pushing straight to `master` isn't possible from a session.
+- Tag `fork-point` (on `608f15a4`) is **not on GitHub yet**: cloud sessions can't
+  push tags (the server hangs up). The user pushes it from their own clone:
+  `git tag -a fork-point 608f15a4 -m "..." && git push origin fork-point`.
+- Upstream Ardour: `git remote add upstream https://github.com/Ardour/ardour.git`;
+  `git diff upstream/master...master` shows this fork's changes (see `CLAUDE.md`).
 
 ## Goal and decisions (from the user)
 
@@ -42,7 +57,7 @@ render with `src/render.js` (Playwright + preinstalled Chromium; commands in `RE
 `README.md` has the research table, feasibility table and the **implementation status table**
 (keep it updated).
 
-## What is implemented (commits b7e48fc9, 9f09a753)
+## What is implemented (all in `master`, commit 9afe9e82)
 
 | Area | Files |
 |---|---|
@@ -64,7 +79,7 @@ render with `src/render.js` (Playwright + preinstalled Chromium; commands in `RE
 
 ## Current state / where it stopped
 
-Iteration loop (screenshot → QA → fix → rebuild), rounds 1–4 committed:
+A working prototype, merged. Iteration loop (screenshot → QA → fix → rebuild), rounds 1–4:
 
 - Everything builds; `tools/ui-qa/run_static.sh` and `tools/ui-qa/run_gui.sh` pass
   (smoke 10/10, theme colors in screenshots, clip states, 150 % HiDPI).
@@ -83,15 +98,18 @@ Harness lessons: launching a cue (F1–F8) starts the transport by itself — pr
 afterwards stops it. Queued clips start at the next bar (< 2 s at 120 bpm), so capture
 the queued state immediately.
 
-## Next steps
+## Next steps (the user picks what to close next)
 
-1. Save the after screenshots to `ui-drafts/screenshots/after/` and show the user
-   before / after / draft side by side.
-2. Remaining draft items not implemented: mixer plugin "cards"/send bars/fader restyle,
-   region drawing, follow actions as one sentence, named scenes, clip library BPM/length,
-   Quick Add "Record from" input picker, bottom status bar. Windows Inter registration
-   (`bundle_env_mingw.cc`) not done (falls back to system font).
-3. When stable: update `ui-drafts/README.md` status table, ask the user before opening a PR.
+1. Ask the user which remaining draft gaps to close. Not implemented yet:
+   - mixer plugin "cards", send bars, fader restyle (`processor_box.cc`, `mixer_strip.cc`)
+   - region drawing ("region cards")
+   - follow actions as one sentence; named scenes; clip library BPM/length
+   - Quick Add "Record from" input picker; bottom status bar
+   - Windows Inter registration (`bundle_env_mingw.cc`; falls back to the system font)
+2. For any change: build, `tools/ui-qa/run_static.sh`, `tools/ui-qa/run_gui.sh`, and
+   compare screenshots with `ui-drafts/screenshots/after/` (`visual_diff.sh`). Refresh
+   the after shots and `before-after.png` when the look changes.
+3. Keep `ui-drafts/README.md` (status table) and this file up to date.
 
 ## Expectation set with the user
 
