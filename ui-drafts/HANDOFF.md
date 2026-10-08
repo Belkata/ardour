@@ -11,6 +11,8 @@ to build, run headless and test.
 | [#1](https://github.com/Belkata/ardour/pull/1) | `9afe9e82` | the redesign, rounds 1–4 |
 | [#2](https://github.com/Belkata/ardour/pull/2) | `ea1f697` | this handoff |
 | [#3](https://github.com/Belkata/ardour/pull/3) | `79d6274` | round 5: top bar in one row, Quick Add "Record from" |
+| [#4](https://github.com/Belkata/ardour/pull/4) | `b53c75f` | handoff after round 5; Quick Add input picker QA script |
+| [#5](https://github.com/Belkata/ardour/pull/5) | (squash) | round 6: menus, dialogs and windows; this handoff update |
 
 It sits on top of upstream `608f15a4` (the fork point); `git diff 608f15a4 master`
 shows the whole redesign.
@@ -105,11 +107,12 @@ The user found the top bar "confusing and a bit messy"; draft 09 was approved as
 ## Current state / where it stopped
 
 A working prototype, merged. Iteration loop (draft → approve → implement → build →
-QA → screenshot → fix), rounds 1–5. Round 5 builds; `run_static.sh` and `run_gui.sh`
-pass (smoke 10/10, picker, colors, clip states, 150 %). Screenshots: `screenshots/after/`,
-`screenshots/before-after.png`, `screenshots/topbar-before-after.png`.
+QA → screenshot → fix), rounds 1–6, all merged. Round 6 builds; `run_static.sh` and
+`run_gui.sh` pass (smoke 10/10, picker, colors, clip states, 150 %). Screenshots:
+`screenshots/after/`, `screenshots/before-after.png`, `screenshots/topbar-before-after.png`,
+`screenshots/menus-dialogs-before-after.png`.
 
-Round 6 (branch `claude/wizardly-brahmagupta-jyh5oi`, not merged yet): fixes from a tour
+Round 6 (PR #5): fixes from a tour
 of every menu and dialog, sheet in `screenshots/menus-dialogs-before-after.png`.
 `run_static.sh` and `run_gui.sh` pass. Details worth knowing:
 
@@ -186,6 +189,9 @@ the queued state immediately.
    - bottom status bar
    - editor tool row (Edit mode, tools, Snap) merged into the top bar as in draft 02 (not requested yet)
    - Windows Inter registration (`bundle_env_mingw.cc`; falls back to the system font)
+   - left over from round 6: Preferences sidebar text larger than the page text; other
+     tree views (editor list, etc.) still in the toolkit default font (see the round 6
+     font notes above for the fix pattern)
 2. For any change: build, `tools/ui-qa/run_static.sh`, `tools/ui-qa/run_gui.sh`, and
    compare screenshots with `ui-drafts/screenshots/after/` (`visual_diff.sh`). Refresh
    the after shots and `before-after.png` when the look changes.

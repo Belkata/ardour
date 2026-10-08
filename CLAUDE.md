@@ -1,7 +1,8 @@
 # CLAUDE.md
 
 Fork of the Ardour DAW (`belkata/ardour`, default branch `master`). Current work: a UI
-redesign (colors + layout + Inter font), merged into `master` (PRs #1 and #3; round 5 = top bar + Quick Add "Record from").
+redesign (colors + layout + Inter font), merged into `master` (PRs #1, #3 and #5; round 5 = top bar + Quick Add "Record from",
+round 6 = menus, dialogs and windows).
 **Read `ui-drafts/HANDOFF.md` first** — it has the status, decisions and next steps.
 
 ## Layout
