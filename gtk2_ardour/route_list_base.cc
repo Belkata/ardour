@@ -150,7 +150,7 @@ RouteListBase::add_name_column ()
 {
 	Gtk::TreeViewColumn* tvc = manage (new Gtk::TreeViewColumn ("", _columns.text));
 
-	setup_col (tvc, _("Name"), ("Track/Bus name"), true);
+	setup_col (tvc, _("Name"), _("Name: the name of the track or bus. Double-click to rename it"), true);
 
 	CellRendererText* cell = dynamic_cast<CellRendererText*> (tvc->get_first_cell ());
 	cell->signal_editing_started ().connect (sigc::mem_fun (*this, &RouteListBase::name_edit_started));
@@ -169,7 +169,7 @@ void
 RouteListBase::append_col_rec_enable ()
 {
 	CellRendererPixbufMulti* cell;
-	cell = append_cell (S_("Rec|R"), _("Record enabled"), _columns.rec_state, _columns.is_track, sigc::mem_fun (*this, &RouteListBase::on_tv_rec_enable_changed));
+	cell = append_cell (S_("Rec|R"), _("Record: arm this track for recording"), _columns.rec_state, _columns.is_track, sigc::mem_fun (*this, &RouteListBase::on_tv_rec_enable_changed));
 	cell->set_pixbuf (0, ::get_icon ("record-normal-disabled"));
 	cell->set_pixbuf (1, ::get_icon ("record-normal-in-progress"));
 	cell->set_pixbuf (2, ::get_icon ("record-normal-enabled"));
@@ -180,7 +180,7 @@ void
 RouteListBase::append_col_rec_safe ()
 {
 	CellRendererPixbufMulti* cell;
-	cell = append_cell (S_("Rec|RS"), _("Record Safe"), _columns.rec_safe, _columns.is_track, sigc::mem_fun (*this, &RouteListBase::on_tv_rec_safe_toggled));
+	cell = append_cell (S_("Rec|RS"), _("Record Safe: protect this track from being armed or recorded onto by accident"), _columns.rec_safe, _columns.is_track, sigc::mem_fun (*this, &RouteListBase::on_tv_rec_safe_toggled));
 	cell->set_pixbuf (0, ::get_icon ("rec-safe-disabled"));
 	cell->set_pixbuf (1, ::get_icon ("rec-safe-enabled"));
 }
@@ -189,7 +189,7 @@ void
 RouteListBase::append_col_input_active ()
 {
 	CellRendererPixbufMulti* cell;
-	cell = append_cell (S_("MidiInput|I"), _("MIDI input enabled"), _columns.is_input_active, _columns.is_midi, sigc::mem_fun (*this, &RouteListBase::on_tv_input_active_changed));
+	cell = append_cell (S_("MidiInput|In"), _("MIDI Input: let this MIDI track receive notes from your MIDI devices"), _columns.is_input_active, _columns.is_midi, sigc::mem_fun (*this, &RouteListBase::on_tv_input_active_changed));
 	cell->set_pixbuf (0, ::get_icon ("midi-input-inactive"));
 	cell->set_pixbuf (1, ::get_icon ("midi-input-active"));
 }
@@ -198,7 +198,7 @@ void
 RouteListBase::append_col_mute ()
 {
 	CellRendererPixbufMulti* cell;
-	cell = append_cell (S_("Mute|M"), _("Muted"), _columns.mute_state, _columns.noop_true, sigc::mem_fun (*this, &RouteListBase::on_tv_mute_enable_toggled));
+	cell = append_cell (S_("Mute|M"), _("Mute: silence this track or bus"), _columns.mute_state, _columns.noop_true, sigc::mem_fun (*this, &RouteListBase::on_tv_mute_enable_toggled));
 	cell->set_pixbuf (Gtkmm2ext::Off, ::get_icon ("mute-disabled"));
 	cell->set_pixbuf (Gtkmm2ext::ImplicitActive, ::get_icon ("muted-by-others"));
 	cell->set_pixbuf (Gtkmm2ext::ExplicitActive, ::get_icon ("mute-enabled"));
@@ -208,16 +208,16 @@ void
 RouteListBase::append_col_solo ()
 {
 	CellRendererPixbufMulti* cell;
-	cell = append_cell (S_("Solo|S"), _("Soloed"), _columns.solo_state, _columns.solo_visible, sigc::mem_fun (*this, &RouteListBase::on_tv_solo_enable_toggled));
+	cell = append_cell (S_("Solo|S"), _("Solo: listen to this track or bus on its own"), _columns.solo_state, _columns.solo_visible, sigc::mem_fun (*this, &RouteListBase::on_tv_solo_enable_toggled));
 	cell->set_pixbuf (Gtkmm2ext::Off, ::get_icon ("solo-disabled"));
 	cell->set_pixbuf (Gtkmm2ext::ExplicitActive, ::get_icon ("solo-enabled"));
 	cell->set_pixbuf (Gtkmm2ext::ImplicitActive, ::get_icon ("soloed-by-others"));
 
-	cell = append_cell (S_("SoloIso|SI"), _("Solo Isolated"), _columns.solo_isolate_state, _columns.solo_lock_iso_visible, sigc::mem_fun (*this, &RouteListBase::on_tv_solo_isolate_toggled));
+	cell = append_cell (S_("SoloIso|SI"), _("Solo Isolate: keep this track or bus audible when other tracks are soloed"), _columns.solo_isolate_state, _columns.solo_lock_iso_visible, sigc::mem_fun (*this, &RouteListBase::on_tv_solo_isolate_toggled));
 	cell->set_pixbuf (0, ::get_icon ("solo-isolate-disabled"));
 	cell->set_pixbuf (1, ::get_icon ("solo-isolate-enabled"));
 
-	cell = append_cell (S_("SoloLock|SS"), _("Solo Safe (Locked)"), _columns.solo_safe_state, _columns.solo_lock_iso_visible, sigc::mem_fun (*this, &RouteListBase::on_tv_solo_safe_toggled));
+	cell = append_cell (S_("SoloLock|SS"), _("Solo Safe: lock the solo state of this track or bus so it cannot be changed by accident"), _columns.solo_safe_state, _columns.solo_lock_iso_visible, sigc::mem_fun (*this, &RouteListBase::on_tv_solo_safe_toggled));
 	cell->set_pixbuf (0, ::get_icon ("solo-safe-disabled"));
 	cell->set_pixbuf (1, ::get_icon ("solo-safe-enabled"));
 }

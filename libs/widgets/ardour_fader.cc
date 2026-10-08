@@ -19,6 +19,7 @@
  */
 
 
+#include <algorithm>
 #include <iostream>
 #include <assert.h>
 
@@ -267,15 +268,19 @@ ArdourFader::render (Cairo::RefPtr<Cairo::Context> const& ctx, cairo_rectangle_t
 	cairo_rectangle (cr, 0, 0, w, h);
 	cairo_fill(cr);
 
-	cairo_set_line_width (cr, 2);
-	Gtkmm2ext::set_source_rgba (cr, outline_color);
-
+	const bool header_style = (_tweaks & TrackHeaderStyle) && _orien == HORIZ;
 
 	cairo_matrix_t matrix;
-	Gtkmm2ext::rounded_rectangle (cr, CORNER_OFFSET, CORNER_OFFSET, w-CORNER_SIZE, h-CORNER_SIZE, CORNER_RADIUS);
-	// we use a 'trick' here: The stoke is off by .5px but filling the interior area
-	// after a stroke of 2px width results in an outline of 1px
-	cairo_stroke_preserve(cr);
+
+	if (!header_style) {
+		cairo_set_line_width (cr, 2);
+		Gtkmm2ext::set_source_rgba (cr, outline_color);
+
+		Gtkmm2ext::rounded_rectangle (cr, CORNER_OFFSET, CORNER_OFFSET, w-CORNER_SIZE, h-CORNER_SIZE, CORNER_RADIUS);
+		// we use a 'trick' here: The stoke is off by .5px but filling the interior area
+		// after a stroke of 2px width results in an outline of 1px
+		cairo_stroke_preserve(cr);
+	}
 
 	if (_orien == VERT) {
 
@@ -313,7 +318,43 @@ ArdourFader::render (Cairo::RefPtr<Cairo::Context> const& ctx, cairo_rectangle_t
 		 * thus: translation = (w - ds)
 		 */
 
-		if (!CairoWidget::flat_buttons() ) {
+		if (header_style) {
+			/* thin groove + translucent fill + a brighter handle line,
+			 * so a track-colored fader reads as a slider control and
+			 * not as a solid color swatch */
+			const double gx0 = CORNER_OFFSET;
+			const double gx1 = w - CORNER_SIZE;
+			const double groove_h = std::max (4.0, h * 0.34);
+			const double groove_y = (h - groove_h) / 2.0;
+
+			Gdk::Color track_col = fg_color (get_state());
+
+			/* neutral groove across the whole span: the background color
+			 * with a faint wash of the foreground so it stands out from
+			 * the track header */
+			CairoWidget::set_source_rgb_a (cr, bg_color (get_state()), 1.0);
+			Gtkmm2ext::rounded_rectangle (cr, gx0, groove_y, gx1 - gx0, groove_h, groove_h / 2.0);
+			cairo_fill_preserve (cr);
+			cairo_set_source_rgba (cr, track_col.get_red_p(), track_col.get_green_p(), track_col.get_blue_p(), 0.18);
+			cairo_fill (cr);
+
+			/* filled portion, translucent so it reads as a level, not a block */
+			const double fill_w = std::min (gx1 - gx0, std::max (0.0, (double) ds - gx0));
+			if (fill_w > 1.0) {
+				cairo_set_source_rgba (cr, track_col.get_red_p(), track_col.get_green_p(), track_col.get_blue_p(), 0.55);
+				Gtkmm2ext::rounded_rectangle (cr, gx0, groove_y, fill_w, groove_h, groove_h / 2.0);
+				cairo_fill (cr);
+			}
+
+			/* handle: a brighter marker at the current value */
+			const double hx = std::min (std::max ((double) ds, gx0 + 1.0), gx1 - 1.0);
+			cairo_set_line_width (cr, 2.0);
+			cairo_set_line_cap (cr, CAIRO_LINE_CAP_ROUND);
+			cairo_set_source_rgba (cr, track_col.get_red_p(), track_col.get_green_p(), track_col.get_blue_p(), 1.0);
+			cairo_move_to (cr, hx, 1.5);
+			cairo_line_to (cr, hx, h - 1.5);
+			cairo_stroke (cr);
+		} else if (!CairoWidget::flat_buttons() ) {
 			cairo_set_source (cr, _pattern);
 			cairo_matrix_init_translate (&matrix, w - ds, 0);
 			cairo_pattern_set_matrix (_pattern, &matrix);

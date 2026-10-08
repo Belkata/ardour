@@ -28,9 +28,9 @@ EditorRoutes::EditorRoutes ()
 void
 EditorRoutes::init ()
 {
-	setup_col (append_toggle (_columns.visible, _columns.noop_true, sigc::mem_fun (*this, &EditorRoutes::on_tv_visible_changed)), S_("Visible|V"), _("Track/Bus visible ?"));
-	setup_col (append_toggle (_columns.trigger, _columns.is_track, sigc::mem_fun (*this, &EditorRoutes::on_tv_trigger_changed)),  S_("Cues|C"), _("Visible on Cues window ?"));
-	setup_col (append_toggle (_columns.active, _columns.activatable, sigc::mem_fun (*this, &EditorRoutes::on_tv_active_changed)), S_("Active|A"),  _("Track/Bus active ?"));
+	setup_col (append_toggle (_columns.visible, _columns.noop_true, sigc::mem_fun (*this, &EditorRoutes::on_tv_visible_changed)), S_("Visible|V"), _("Visible: show this track or bus in the editor"));
+	setup_col (append_toggle (_columns.trigger, _columns.is_track, sigc::mem_fun (*this, &EditorRoutes::on_tv_trigger_changed)),  S_("Cues|Cue"), _("Cues: show this track in the Cues window"));
+	setup_col (append_toggle (_columns.active, _columns.activatable, sigc::mem_fun (*this, &EditorRoutes::on_tv_active_changed)), S_("Active|On"),  _("Active: turn this track or bus on or off (an inactive one uses no CPU)"));
 
 	append_col_input_active ();
 	append_col_rec_enable ();
@@ -38,5 +38,5 @@ EditorRoutes::init ()
 	append_col_mute ();
 	append_col_solo ();
 
-	setup_col (append_toggle (_columns.rta_enabled, _columns.active, sigc::mem_fun (*this, &EditorRoutes::on_tv_rta_enable_toggled)), S_("RTA|RA"),  _("Realtime Analyzer active?"));
+	setup_col (append_toggle (_columns.rta_enabled, _columns.active, sigc::mem_fun (*this, &EditorRoutes::on_tv_rta_enable_toggled)), S_("RTA|RTA"),  _("RTA: show the real-time analyzer for this track or bus"));
 }

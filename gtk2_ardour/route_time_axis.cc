@@ -165,6 +165,7 @@ RouteTimeAxisView::set_route (std::shared_ptr<Route> rt)
 	gm.get_level_meter().set_no_show_all();
 	gm.get_level_meter().setup_meters(50, meter_width);
 	gm.update_gain_sensitive ();
+	gm.set_fader_track_header_style ();
 
 	uint32_t height;
 	if (get_gui_property ("height", height)) {
