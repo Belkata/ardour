@@ -120,7 +120,7 @@ TriggerClipPicker::TriggerClipPicker ()
 	_open_library_btn.set_no_show_all ();
 
 	_refresh_btn.set_name ("generic button");
-	_refresh_btn.set_icon (ArdourWidgets::ArdourIcon::TransportLoop);
+	_refresh_btn.set_icon (ArdourWidgets::ArdourIcon::Refresh);
 	_refresh_btn.signal_clicked.connect (sigc::mem_fun (*this, &TriggerClipPicker::refresh_library));
 
 	_show_plugin_btn.set_name ("generic button");

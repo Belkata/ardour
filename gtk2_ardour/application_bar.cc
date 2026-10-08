@@ -482,6 +482,8 @@ ApplicationBar::ui_actions_ready ()
 
 	act = ActionManager::get_action ("Transport", "ToggleAutoReturn");
 	_auto_return_button.set_related_action (act);
+	/* after set_related_action, so the tooltip includes the shortcut */
+	set_tooltip (_auto_return_button, _("Auto return: when playback stops, go back to where it started"));
 
 	/* CANNOT sigc::bind these to clicked or toggled, must use pressed or released */
 	act = ActionManager::get_action (X_("Main"), X_("cancel-solo"));

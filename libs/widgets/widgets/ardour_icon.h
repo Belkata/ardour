@@ -95,6 +95,7 @@ namespace ArdourWidgets { namespace ArdourIcon {
 		TrackPlaylist,
 		TrackAutomation,
 		TrackGroup,
+		Refresh,
 		NoIcon //< Last
 	};
 
