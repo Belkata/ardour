@@ -104,6 +104,27 @@ The user found the top bar "confusing and a bit messy"; draft 09 was approved as
 | Quick Add "Record from" picker: Automatic / No input / hardware input (pairs for stereo, "Input 3 + 4"); several audio tracks take consecutive inputs, MIDI tracks share the device; passes `input_auto_connect=false` when an input is chosen | `quick_add_route.{h,cc}` |
 | QA: `quick_add_input.sh` (picker connects exactly the chosen inputs; solo pill screenshot), added to `run_gui.sh` | `tools/ui-qa/` |
 
+### Round 7 (branch `claude/topbar-icons`, not merged yet)
+
+The user found the top-bar icons confusing and asked for more standard ones. Draft
+`10-topbar-icons.png` (approved; auto return option **B** chosen: playhead + arrow +
+faded playhead where playback stopped). Result: `screenshots/topbar-icons-before-after.png`.
+
+| Area | Files |
+|---|---|
+| Flat 24-unit-grid icons: go to start/end, play range (▶ over a bracket), loop (repeat symbol), auto return (playhead) | `libs/widgets/ardour_icon.cc` |
+| New `ArdourIcon::Refresh` (old circular arrow) for the clip picker's refresh button, which used `TransportLoop` | `ardour_icon.h`, `trigger_clip_picker.cc` |
+| Fresh configs no longer pre-assign the "Mixer Screenshot" / "List Plugins" Lua buttons | `luainstance.{h,cc}` |
+| Tooltip shortcuts fall back to global bindings (a toolbar inside a page only searched the page's bindings, so auto return "7", punch in/out had no shortcut line); clearer auto return tooltip on the action | `libs/gtkmm2ext/gtk_ui.cc`, `ardour_ui_ed.cc` |
+
+Environment notes from this round (Debian trixie container, 2 vCPU, no root):
+user-space Xvfb/xdotool/Chromium/ImageMagick in `~/.cache/xroot` (`. ~/.cache/xroot/env.sh`;
+`Xvfb` must be the patched `Xvfb-user`, symlinked from `~/.local/bin/Xvfb`), `python`
+symlink in `~/.local/bin`, missing jpeg/curl dev headers in `~/.cache/devroot` (configure with
+`PKG_CONFIG_PATH`, `CFLAGS`/`CXXFLAGS=-I…`, `LINKFLAGS=-L…`), Inter copied to
+`~/.local/share/fonts`. Full `-j2` build: 1 h 10 min. Button text renders slightly smaller
+here than in the round-6 screenshots (different system libraries), so compare icons, not text size.
+
 ## Current state / where it stopped
 
 A working prototype, merged. Iteration loop (draft → approve → implement → build →
