@@ -340,8 +340,8 @@
     <ColorAlias name="processor control knob" alias="theme:bg"/>
     <ColorAlias name="processor control knob: arc end" alias="widget:blue"/>
     <ColorAlias name="processor control knob: arc start" alias="widget:blue"/>
-    <ColorAlias name="processor fader: fill" alias="widget:bg active"/>
-    <ColorAlias name="processor fader: fill active" alias="widget:bg active"/>
+    <ColorAlias name="processor fader: fill" alias="neutral:background"/>
+    <ColorAlias name="processor fader: fill active" alias="neutral:background"/>
     <ColorAlias name="processor fader: led active" alias="alert:green"/>
     <ColorAlias name="processor postfader: fill" alias="widget:plugin post"/>
     <ColorAlias name="processor postfader: fill active" alias="widget:plugin post"/>
