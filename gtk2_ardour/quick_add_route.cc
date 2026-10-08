@@ -24,6 +24,7 @@
 
 #include "pbd/compose.h"
 #include "pbd/error.h"
+#include "pbd/replace_all.h"
 
 #include "ardour/audio_track.h"
 #include "ardour/audioengine.h"
@@ -213,11 +214,27 @@ QuickAddRouteWindow::input_label (int i) const
 	string const& port = _phys_inputs[i];
 	string        pn   = AudioEngine::instance ()->get_pretty_name_by_name (port);
 	if (pn.empty ()) {
-		/* e.g. "system:capture_1" -> "capture_1" */
+		/* e.g. "system:capture_3" -> "Input 3" */
 		string::size_type colon = port.find (':');
 		pn = (colon != string::npos) ? port.substr (colon + 1) : port;
+		if (pn.compare (0, 8, X_("capture_")) == 0 && pn.size () > 8) {
+			pn = string_compose (_("Input %1"), pn.substr (8));
+		}
 	}
 	return pn;
+}
+
+std::string
+QuickAddRouteWindow::input_pair_label (int i) const
+{
+	string const a = input_label (i);
+	string const b = input_label (i + 1);
+	/* "Input 3" + "Input 4" -> "Input 3 + 4" */
+	string::size_type sp = a.rfind (' ');
+	if (sp != string::npos && b.compare (0, sp + 1, a, 0, sp + 1) == 0) {
+		return string_compose (_("%1 + %2"), a, b.substr (sp + 1));
+	}
+	return string_compose (_("%1 + %2"), a, b);
 }
 
 void
@@ -242,10 +259,9 @@ QuickAddRouteWindow::refill_inputs ()
 	}
 	/* stereo: pairs of adjacent inputs (1+2, 3+4, ...) */
 	for (int i = 0; i + (stereo ? 1 : 0) < n; i += (stereo ? 2 : 1)) {
-		string label = input_label (i);
-		if (stereo) {
-			label = string_compose (_("%1 + %2"), label, input_label (i + 1));
-		}
+		string label = stereo ? input_pair_label (i) : input_label (i);
+		/* menu labels use '_' for mnemonics, port names may contain it */
+		replace_all (label, "_", "__");
 		_input_selector.add_menu_elem (MenuElem (label, sigc::bind (sigc::mem_fun (*this, &QuickAddRouteWindow::set_input), i)));
 	}
 
@@ -270,7 +286,7 @@ QuickAddRouteWindow::set_input (int i)
 			break;
 		default:
 			if (_kind != MidiTrack && _stereo_button.get_active ()) {
-				_input_selector.set_text (string_compose (_("%1 + %2"), input_label (i), input_label (i + 1)));
+				_input_selector.set_text (input_pair_label (i));
 			} else {
 				_input_selector.set_text (input_label (i));
 			}

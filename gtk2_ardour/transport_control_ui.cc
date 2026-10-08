@@ -124,7 +124,7 @@ TransportControlUI::setup (TransportControlProvider* ui)
 		 * MIDI panic is not packed: it looked like an error indicator,
 		 * and remains available in the Transport menu.
 		 */
-		const int gap = PX_SCALE (6);
+		const int gap = PX_SCALE (10);
 		pack_start (_goto_start_button, true, true);
 		pack_start (_goto_end_button, true, true, 0);
 		pack_start (*manage (new Gtk::Label ("")), false, false, gap / 2);

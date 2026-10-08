@@ -72,6 +72,7 @@ private:
 	void refill_inputs ();
 	void set_input (int);
 	std::string input_label (int) const;
+	std::string input_pair_label (int) const;
 	void connect_inputs (ARDOUR::RouteList const&);
 
 	Kind _kind;

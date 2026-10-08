@@ -90,4 +90,5 @@ Scope agreed: colors + layout, with Inter as the UI font.
 - `screenshots/after/` – the redesign build, same demo session (`editor`, `mixer`, `cues`,
   plus `cues-playing` / `cues-queued` clip states).
 - `screenshots/before-after.png` – the three pages side by side.
+- `screenshots/topbar-before-after.png` – the top bar before/after round 5.
 - `HANDOFF.md` – status, decisions, next steps for continuing in a new session.
