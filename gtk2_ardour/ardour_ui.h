@@ -572,8 +572,13 @@ private:
 	Gtk::Label   pdc_info_label;
 	void session_latency_updated (bool);
 
+	/* health pills at the right of the bottom status bar */
 	Gtk::Label  dsp_load_label;
+	Gtk::Label  xrun_label;
+	Gtk::Label  disk_health_label;
+	bool        _disk_problem = false;
 	void update_cpu_load ();
+	void reset_health_counters ();
 
 	Gtk::Label   peak_thread_work_label;
 	void update_peak_thread_work ();
