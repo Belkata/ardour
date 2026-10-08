@@ -3033,6 +3033,14 @@ RCOptionEditor::RCOptionEditor ()
 
 	add_option (_("Appearance/Application Bar"),
 	     new BoolOption (
+		     "show-toolbar-shuttle",
+		     _("Display Sync Source and Shuttle/Varispeed Controls"),
+		     sigc::mem_fun (UIConfiguration::instance(), &UIConfiguration::get_show_toolbar_shuttle),
+		     sigc::mem_fun (UIConfiguration::instance(), &UIConfiguration::set_show_toolbar_shuttle)
+		     ));
+
+	add_option (_("Appearance/Application Bar"),
+	     new BoolOption (
 		     "show-toolbar-latency",
 		     _("Display Plugin Delay Compensation Control and Info"),
 		     sigc::mem_fun (UIConfiguration::instance(), &UIConfiguration::get_show_toolbar_latency),

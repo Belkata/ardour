@@ -9,6 +9,7 @@ PW_MOD=$(npm root -g)/playwright node src/render.js src/editor.html 03-editor-re
 PW_MOD=$(npm root -g)/playwright node src/render.js src/mixer.html 04-mixer-redesign.png
 PW_MOD=$(npm root -g)/playwright node src/render.js "src/editor.html#add" 05-quick-add-track.png 1680 1000 --clean
 PW_MOD=$(npm root -g)/playwright node src/render.js src/palette.html 06-color-palette.png 1680 660
+PW_MOD=$(npm root -g)/playwright node src/render.js src/topbar.html 09-topbar-redesign.png 1680 575   # crops: src/topbar-*.png from screenshots/after/editor.png
 ```
 
 ## Prior art (what others have tried)
@@ -69,7 +70,7 @@ Scope agreed: colors + layout, with Inter as the UI font.
 | 10 Plain-language status | Done | e.g. "DSP 12% · 3 xruns", "Record time left: 9 h" |
 | Mixer: colored strip headers | Done | name button in track color |
 | Mixer: quieter plugin colors | Done | pre/post-fader distinction kept, softened |
-| Quick-add "Record from" input picker | Not done | inputs follow the auto-connect preference; use "More options…" |
+| Quick-add "Record from" input picker | Done | "Automatic" (auto-connect preference), "No input", or a hardware input (pairs for stereo); several audio tracks take consecutive inputs, MIDI tracks share the chosen device |
 | Clips page: clip tiles tinted by clip color | Done | stronger tint while playing, readable white names |
 | Clips page: play / queued / selected states | Done | outline in clip color / amber / white; green launch icon while playing; queued clips waiting behind a playing clip are outlined too |
 | Track colors used widely | Done | distinct default palette; faders, mixer headers and Clips-page gain sliders in the track color; master stays neutral |
@@ -78,6 +79,9 @@ Scope agreed: colors + layout, with Inter as the UI font.
 | Clips page: follow actions as words | Partly | options read "Play next clip", "Play again", ...; the panel is relabelled ("When the clip ends", "Then act after"), not rebuilt as one sentence |
 | Clips page: column headers in track color | Already in Ardour | |
 | Clips page: named scenes, library BPM/length | Not done | scenes keep their letters; library unchanged |
+| Top bar (draft 09): single row | Done | transport grouped (locate · stop/play/range/record · loop/click/auto return); tempo/meter beside the clock; Punch In/Out + record mode in one row; pane toggles in one row |
+| Top bar: hide cryptic controls | Done | sync "Int.", shuttle, "VS" hidden by default (Preferences › Appearance › Application Bar › "Display Sync Source and Shuttle/Varispeed Controls"); MIDI panic only in the Transport menu; unassigned Lua slots hidden |
+| Top bar: alerts only when active | Done | "Solo active" / "Auditioning" / "Feedback loop" appear only while relevant |
 
 ## Screenshots and handoff
 
@@ -86,4 +90,5 @@ Scope agreed: colors + layout, with Inter as the UI font.
 - `screenshots/after/` – the redesign build, same demo session (`editor`, `mixer`, `cues`,
   plus `cues-playing` / `cues-queued` clip states).
 - `screenshots/before-after.png` – the three pages side by side.
+- `screenshots/topbar-before-after.png` – the top bar before/after round 5.
 - `HANDOFF.md` – status, decisions, next steps for continuing in a new session.

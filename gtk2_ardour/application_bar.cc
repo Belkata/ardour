@@ -117,9 +117,9 @@ ApplicationBar::ApplicationBar ()
 	, _auto_return_button (ArdourButton::default_elements)
 	, _primary_clock  (X_("primary"), X_("transport"), MainClock::PrimaryClock)
 	, _secondary_clock (X_("secondary"), X_("secondary"), MainClock::SecondaryClock)
-	, _auditioning_alert_button (_("Audition"))
-	, _solo_alert_button (_("Solo"))
-	, _feedback_alert_button (_("Feedback"))
+	, _auditioning_alert_button (_("Auditioning"))
+	, _solo_alert_button (_("Solo active"))
+	, _feedback_alert_button (_("Feedback loop"))
 	, _cue_rec_enable (_("Rec Cues"), ArdourButton::led_default_elements)
 	, _cue_play_enable (_("Play Cues"), ArdourButton::led_default_elements)
 	, _time_info_box (0)
@@ -155,17 +155,16 @@ ApplicationBar::on_parent_changed (Gtk::Widget*)
 	_sync_button.signal_button_press_event().connect (sigc::mem_fun (*this, &ApplicationBar::sync_button_clicked), false);
 	_sync_button.set_sizing_text (S_("LogestSync|M-Clk"));
 
-	/* sub-layout for Sync | Shuttle (grow) */
-	HBox* ssbox = manage (new HBox);
-	ssbox->set_spacing (PX_SCALE(2));
-	ssbox->pack_start (_auto_return_button, false, false, 0);
+	/* sub-layout for Sync | Shuttle (grow); optional, see "show-toolbar-shuttle" */
+	_shuttle_hbox.set_spacing (PX_SCALE(2));
+	_shuttle_hbox.set_size_request (PX_SCALE(220), -1);
+	HBox* ssbox = &_shuttle_hbox;
 	ssbox->pack_start (_sync_button, false, false, 0);
 	ssbox->pack_start (_shuttle_box, true, true, 0);
 	ssbox->pack_start (*_shuttle_box.vari_button(), false, false, 0);
 	ssbox->pack_start (*_shuttle_box.info_button(), false, false, 0);
 
-	_punch_label.set_text (_("Punch:"));
-	_layered_label.set_text (_("Rec:"));
+	_punch_label.set_text (_("Punch"));
 
 	_punch_in_button.set_text (S_("Punch|In"));
 	_punch_out_button.set_text (S_("Punch|Out"));
@@ -180,18 +179,20 @@ ApplicationBar::on_parent_changed (Gtk::Widget*)
 	_auto_return_button.set_text(_("Auto Return"));
 	_auto_return_button.set_icon (ArdourIcon::TransportAutoReturn);
 
-	/* alert box sub-group */
-	VBox* alert_box = manage (new VBox);
-	alert_box->set_homogeneous (true);
-	alert_box->set_spacing (1);
+	/* alert box sub-group: each alert is only shown while it is active
+	 * (see update_alert_visibility) */
+	HBox* alert_box = manage (new HBox);
+	alert_box->set_spacing (PX_SCALE(4));
 	alert_box->set_border_width (0);
-	alert_box->pack_start (_solo_alert_button, true, true);
-	alert_box->pack_start (_auditioning_alert_button, true, true);
-	alert_box->pack_start (_feedback_alert_button, true, true);
+	alert_box->pack_start (_solo_alert_button, false, false);
+	alert_box->pack_start (_auditioning_alert_button, false, false);
+	alert_box->pack_start (_feedback_alert_button, false, false);
+	_solo_alert_button.set_no_show_all ();
+	_auditioning_alert_button.set_no_show_all ();
+	_feedback_alert_button.set_no_show_all ();
 
 	/* monitor section sub-group */
-	VBox* monitor_box = manage (new VBox);
-	monitor_box->set_homogeneous (true);
+	HBox* monitor_box = manage (new HBox);
 	monitor_box->set_spacing (1);
 	monitor_box->set_border_width (0);
 	monitor_box->pack_start (_monitor_mono_button, true, true);
@@ -208,97 +209,123 @@ ApplicationBar::on_parent_changed (Gtk::Widget*)
 
 	_time_info_box = new TimeInfoBox ("ToolbarTimeInfo", false);
 
+	/* everything in a single row:
+	 * transport | clock (+ tempo/meter) | punch + record mode | latency | cues
+	 * | (flexible: mini-timeline, editor meter, selection clock) | monitor | alerts | lua actions
+	 */
 	int vpadding = 1;
 	int hpadding = 2;
 	int col = 0;
+	const int gap = PX_SCALE(6);
 #define TCOL col, col + 1
 
-	_table.attach (_transport_ctrl, TCOL, 0, 1 , SHRINK, SHRINK, 0, 0);
-	_table.attach (*ssbox,         TCOL, 1, 2 , FILL,   SHRINK, 0, 0);
+	HBox* tbox = manage (new HBox);
+	tbox->set_spacing (PX_SCALE(2));
+	tbox->pack_start (_transport_ctrl, false, false, 0);
+	tbox->pack_start (_auto_return_button, false, false, 0);
+	_table.attach (*tbox,           TCOL, 0, 1 , SHRINK, SHRINK, 0, 0);
 	++col;
 
-	_table.attach (_recpunch_spacer, TCOL, 0, 2 , SHRINK, EXPAND|FILL, 3, 0);
+	_table.attach (_shuttle_hbox,   TCOL, 0, 1 , FILL,   SHRINK, gap, 0);
+	_shuttle_hbox.set_no_show_all ();
+	_shuttle_hbox.show_all_children ();
 	++col;
 
-	_table.attach (_punch_label, TCOL, 0, 1 , FILL, SHRINK, 3, 0);
-	_table.attach (_layered_label, TCOL, 1, 2 , FILL, SHRINK, 3, 0);
+	_table.attach (_primary_clock_spacer, TCOL, 0, 1 , SHRINK, EXPAND|FILL, 3, 0);
 	++col;
 
-	_table.attach (_punch_in_button,      col,      col + 1, 0, 1 , FILL, SHRINK, hpadding, vpadding);
-	_table.attach (_punch_space,          col + 1,  col + 2, 0, 1 , FILL, SHRINK, 0, vpadding);
-	_table.attach (_punch_out_button,     col + 2,  col + 3, 0, 1 , FILL, SHRINK, hpadding, vpadding);
-	_table.attach (_record_mode_selector, col,      col + 3, 1, 2 , FILL, SHRINK, hpadding, vpadding);
-	col += 3;
-
-	_table.attach (_latency_spacer, TCOL, 0, 2 , SHRINK, EXPAND|FILL, 3, 0);
+	/* tempo and meter buttons stacked next to the clock, not in a second row */
+	VBox* clock1_btns = manage (new VBox);
+	clock1_btns->set_homogeneous (true);
+	clock1_btns->set_spacing (1);
+	clock1_btns->pack_start (*(_primary_clock.left_btn()), true, true);
+	clock1_btns->pack_start (*(_primary_clock.right_btn()), true, true);
+	_table.attach (_primary_clock, TCOL, 0, 1 , FILL, SHRINK, gap, 0);
+	++col;
+	_table.attach (*clock1_btns,   TCOL, 0, 1 , FILL, SHRINK, 0, 0);
 	++col;
 
-	_table.attach (_latency_disable_button, TCOL, 0, 1 , FILL, SHRINK, hpadding, vpadding);
-	_table.attach (_route_latency_value, TCOL, 1, 2 , SHRINK, EXPAND|FILL, hpadding, 0);
+	if (!ARDOUR::Profile->get_small_screen()) {
+		_table.attach (_secondary_clock_spacer, TCOL, 0, 1 , SHRINK, EXPAND|FILL, 3, 0);
+		++col;
+
+		VBox* clock2_btns = manage (new VBox);
+		clock2_btns->set_homogeneous (true);
+		clock2_btns->set_spacing (1);
+		clock2_btns->pack_start (*(_secondary_clock.left_btn()), true, true);
+		clock2_btns->pack_start (*(_secondary_clock.right_btn()), true, true);
+		_table.attach (_secondary_clock, TCOL, 0, 1 , FILL, SHRINK, gap, 0);
+		++col;
+		_table.attach (*clock2_btns,     TCOL, 0, 1 , FILL, SHRINK, 0, 0);
+		++col;
+		(ARDOUR_UI::instance()->secondary_clock)->set_no_show_all (true);
+		(ARDOUR_UI::instance()->secondary_clock)->left_btn()->set_no_show_all (true);
+		(ARDOUR_UI::instance()->secondary_clock)->right_btn()->set_no_show_all (true);
+	}
+
+	_table.attach (_recpunch_spacer, TCOL, 0, 1 , SHRINK, EXPAND|FILL, gap, 0);
+	++col;
+
+	/* Punch [In][Out] [record mode] in one row */
+	HBox* punch_box = manage (new HBox);
+	punch_box->set_spacing (PX_SCALE(2));
+	punch_box->pack_start (_punch_label, false, false, 3);
+	punch_box->pack_start (_punch_in_button, false, false);
+	punch_box->pack_start (_punch_out_button, false, false);
+	punch_box->pack_start (_record_mode_selector, false, false, 3);
+	_table.attach (*punch_box, TCOL, 0, 1 , FILL, SHRINK, hpadding, vpadding);
+	++col;
+
+	_table.attach (_latency_spacer, TCOL, 0, 1 , SHRINK, EXPAND|FILL, 3, 0);
+	++col;
+
+	HBox* latency_box = manage (new HBox);
+	latency_box->set_spacing (PX_SCALE(4));
+	latency_box->pack_start (_latency_disable_button, false, false);
+	latency_box->pack_start (_route_latency_value, false, false);
+	_table.attach (*latency_box, TCOL, 0, 1 , FILL, SHRINK, hpadding, vpadding);
 	++col;
 
 	_route_latency_value.set_alignment (Gtk::ALIGN_END, Gtk::ALIGN_CENTER);
 
+	_table.attach (_cuectrl_spacer, TCOL, 0, 1 , SHRINK, EXPAND|FILL, 3, 0);
+	++col;
+
+	HBox* cue_box = manage (new HBox);
+	cue_box->set_spacing (PX_SCALE(2));
+	cue_box->pack_start (_cue_rec_enable, false, false);
+	cue_box->pack_start (_cue_play_enable, false, false);
+	_table.attach (*cue_box, TCOL, 0, 1 , FILL, SHRINK, 3, 0);
+	++col;
+
+	/* filler, used when the mini-timeline is not shown */
 	_left_hbox.set_spacing (3);
-	_table.attach (_left_hbox, TCOL, 0, 2, EXPAND|FILL, EXPAND|FILL, hpadding, 0);
-	++col;
-
-	_table.attach (_primary_clock_spacer, TCOL, 0, 2 , SHRINK, EXPAND|FILL, 3, 0);
-	++col;
-
-	_table.attach (_primary_clock,                col,     col + 2, 0, 1 , FILL, SHRINK, hpadding, 0);
-	_table.attach (*(_primary_clock.left_btn()),  col,     col + 1, 1, 2 , FILL, SHRINK, hpadding, 0);
-	_table.attach (*(_primary_clock.right_btn()), col + 1, col + 2, 1, 2 , FILL, SHRINK, hpadding, 0);
-	col += 2;
-
-	if (!ARDOUR::Profile->get_small_screen()) {
-		_table.attach (_secondary_clock_spacer, TCOL, 0, 2 , SHRINK, EXPAND|FILL, 3, 0);
-		++col;
-
-		_table.attach (_secondary_clock,                col,     col + 2, 0, 1 , FILL, SHRINK, hpadding, 0);
-		_table.attach (*(_secondary_clock.left_btn()),  col,     col + 1, 1, 2 , FILL, SHRINK, hpadding, 0);
-		_table.attach (*(_secondary_clock.right_btn()), col + 1, col + 2, 1, 2 , FILL, SHRINK, hpadding, 0);
-		(ARDOUR_UI::instance()->secondary_clock)->set_no_show_all (true);
-		(ARDOUR_UI::instance()->secondary_clock)->left_btn()->set_no_show_all (true);
-		(ARDOUR_UI::instance()->secondary_clock)->right_btn()->set_no_show_all (true);
-		col += 2;
-	}
-
-	_table.attach (_cuectrl_spacer, TCOL, 0, 2 , SHRINK, EXPAND|FILL, 3, 0);
-	++col;
-
-	_table.attach (_cue_rec_enable, TCOL, 0, 1 , FILL, FILL, 3, 0);
-	_table.attach (_cue_play_enable, TCOL, 1, 2 , FILL, FILL, 3, 0);
+	_table.attach (_left_hbox, TCOL, 0, 1, EXPAND|FILL, EXPAND|FILL, hpadding, 0);
 	++col;
 
 	/* editor-meter, mini-timeline and selection clock are options in the transport_hbox */
 	_transport_hbox.set_spacing (3);
-	_table.attach (_transport_hbox, TCOL, 0, 2, EXPAND|FILL, EXPAND|FILL, hpadding, 0);
+	_table.attach (_transport_hbox, TCOL, 0, 1, EXPAND|FILL, EXPAND|FILL, hpadding, 0);
 	++col;
 
-	_table.attach (*monitor_box, TCOL, 0, 2 , SHRINK, EXPAND|FILL, 3, 0);
+	_table.attach (*monitor_box, TCOL, 0, 1 , SHRINK, SHRINK, 3, 0);
 	++col;
 
-	_table.attach (*alert_box, TCOL, 0, 2, SHRINK, EXPAND|FILL, hpadding, 0);
+	_table.attach (*alert_box, TCOL, 0, 1, SHRINK, SHRINK, hpadding, 0);
 	++col;
 
-	_table.attach (*(manage (new ArdourVSpacer ())), TCOL, 0, 2 , SHRINK, EXPAND|FILL, 3, 0);
-	++col;
-
-	/* lua script action buttons */
+	/* lua script action buttons, only assigned ones are shown
+	 * (see update_action_script_visibility) */
+	HBox* script_box = manage (new HBox);
+	script_box->set_spacing (PX_SCALE(2));
 	for (int i = 0; i < MAX_LUA_ACTION_BUTTONS; ++i) {
-		const int r = i % 2;
-		const int c = col + i / 2;
-		_table.attach (_action_script_call_btn[i], c, c + 1, r, r + 1, FILL, SHRINK, 1, vpadding);
+		script_box->pack_start (_action_script_call_btn[i], false, false);
 		_action_script_call_btn[i].set_no_show_all ();
 	}
-	col += MAX_LUA_ACTION_BUTTONS / 2;
-
-	_table.attach (_scripts_spacer, TCOL, 0, 2 , SHRINK, EXPAND|FILL, 3, 0);
+	_table.attach (*script_box, TCOL, 0, 1, SHRINK, SHRINK, 3, vpadding);
 	++col;
 
 	_table.set_spacings (0);
-	_table.set_row_spacings (4);
 	_table.set_border_width (1);
 
 	/* mark any optional widgets as no-show, so they don't expand the toolbar on load */
@@ -312,6 +339,7 @@ ApplicationBar::on_parent_changed (Gtk::Widget*)
 	_route_latency_value.set_no_show_all ();
 	_primary_clock_spacer.set_no_show_all ();
 	_secondary_clock_spacer.set_no_show_all ();
+	_punch_label.set_no_show_all ();
 	_monitor_dim_button.set_no_show_all ();
 	_monitor_mono_button.set_no_show_all ();
 	_monitor_mute_button.set_no_show_all ();
@@ -338,11 +366,8 @@ ApplicationBar::on_parent_changed (Gtk::Widget*)
 		button_height_size_group->add_widget (_action_script_call_btn[i]);
 	}
 
-	/* clock button size groups */
-	button_height_size_group->add_widget (*_primary_clock.left_btn());
-	button_height_size_group->add_widget (*_primary_clock.right_btn());
-	button_height_size_group->add_widget (*_secondary_clock.left_btn());
-	button_height_size_group->add_widget (*_secondary_clock.right_btn());
+	/* the clocks' tempo/meter buttons are stacked next to the clock and
+	 * are therefore not part of the button height size-group */
 
 	Glib::RefPtr<SizeGroup> punch_button_size_group = SizeGroup::create (Gtk::SIZE_GROUP_HORIZONTAL);
 	punch_button_size_group->add_widget (_punch_in_button);
@@ -387,11 +412,10 @@ ApplicationBar::on_parent_changed (Gtk::Widget*)
 	_auditioning_alert_button.set_elements (ArdourButton::Element(ArdourButton::Body|ArdourButton::Text));
 	_feedback_alert_button.set_elements (ArdourButton::Element(ArdourButton::Body|ArdourButton::Text));
 
-	_solo_alert_button.set_layout_font (UIConfiguration::instance().get_SmallerFont());
-	_auditioning_alert_button.set_layout_font (UIConfiguration::instance().get_SmallerFont());
-	_feedback_alert_button.set_layout_font (UIConfiguration::instance().get_SmallerFont());
-
-	_feedback_alert_button.set_sizing_text (_("Feedgeek")); //< longest of "Feedback" and "No Align", include descender
+	_solo_alert_button.set_layout_font (UIConfiguration::instance().get_NormalFont());
+	_auditioning_alert_button.set_layout_font (UIConfiguration::instance().get_NormalFont());
+	_feedback_alert_button.set_layout_font (UIConfiguration::instance().get_NormalFont());
+	_feedback_alert_button.set_sizing_text (_("Feedback loop")); //< longest of "Feedback loop" and "No alignment"
 
 	_cue_rec_enable.set_name ("record enable button");
 	_cue_play_enable.set_name ("transport option button");
@@ -486,6 +510,8 @@ ApplicationBar::ui_actions_ready ()
 		_action_script_call_btn[i].set_sizing_text ("88");
 	}
 
+	update_action_script_visibility ();
+
 	if (_session && _have_layout) {
 		repack_transport_hbox();
 	}
@@ -543,17 +569,21 @@ ApplicationBar::repack_transport_hbox ()
 		}
 	}
 
+	if (UIConfiguration::instance().get_show_toolbar_shuttle ()) {
+		_shuttle_hbox.show ();
+	} else {
+		_shuttle_hbox.hide ();
+	}
+
 	bool show_rec = UIConfiguration::instance().get_show_toolbar_recpunch ();
 	if (show_rec) {
 		_punch_label.show ();
-		_layered_label.show ();
 		_punch_in_button.show ();
 		_punch_out_button.show ();
 		_record_mode_selector.show ();
 		_recpunch_spacer.show ();
 	} else {
 		_punch_label.hide ();
-		_layered_label.hide ();
 		_punch_in_button.hide ();
 		_punch_out_button.hide ();
 		_record_mode_selector.hide ();
@@ -680,14 +710,14 @@ ApplicationBar::feedback_blink (bool onoff)
 {
 	if (_feedback_exists) {
 		_feedback_alert_button.set_active (true);
-		_feedback_alert_button.set_text (_("Feedback"));
+		_feedback_alert_button.set_text (_("Feedback loop"));
 		if (onoff) {
 			_feedback_alert_button.reset_fixed_colors ();
 		} else {
 			_feedback_alert_button.set_active_color (UIConfigurationBase::instance().color ("feedback alert: alt active", NULL));
 		}
 	} else if (_ambiguous_latency) {
-		_feedback_alert_button.set_text (_("No Align"));
+		_feedback_alert_button.set_text (_("No alignment"));
 		_feedback_alert_button.set_active (true);
 		if (onoff) {
 			_feedback_alert_button.reset_fixed_colors ();
@@ -695,7 +725,7 @@ ApplicationBar::feedback_blink (bool onoff)
 			_feedback_alert_button.set_active_color (UIConfigurationBase::instance().color ("feedback alert: alt active", NULL));
 		}
 	} else {
-		_feedback_alert_button.set_text (_("Feedback"));
+		_feedback_alert_button.set_text (_("Feedback loop"));
 		_feedback_alert_button.reset_fixed_colors ();
 		_feedback_alert_button.set_active (false);
 	}
@@ -754,6 +784,7 @@ ApplicationBar::action_script_changed (int i, const std::string& n)
 		act->set_tooltip (string_compose (_("%1\n\nClick to run\nRight-click to re-assign\nShift+right-click to unassign"), n));
 		act->set_sensitive (true);
 	}
+	update_action_script_visibility ();
 	KeyEditor::UpdateBindings ();
 }
 
@@ -974,6 +1005,8 @@ ApplicationBar::parameter_changed (std::string p)
 		repack_transport_hbox ();
 	} else if (p == "show-toolbar-latency") {
 		repack_transport_hbox ();
+	} else if (p == "show-toolbar-shuttle") {
+		repack_transport_hbox ();
 	} else if (p == "show-toolbar-cuectrl") {
 		repack_transport_hbox ();
 	} else if (p == "show-toolbar-monitor-info") {
@@ -983,20 +1016,7 @@ ApplicationBar::parameter_changed (std::string p)
 	} else if (p == "show-secondary-clock") {
 		update_clock_visibility ();
 	} else if (p == "action-table-columns") {
-		const uint32_t cols = UIConfiguration::instance().get_action_table_columns ();
-		for (int i = 0; i < MAX_LUA_ACTION_BUTTONS; ++i) {
-			const int col = i / 2;
-			if (cols & (1<<col)) {
-				_action_script_call_btn[i].show();
-			} else {
-				_action_script_call_btn[i].hide();
-			}
-		}
-		if (cols == 0) {
-			_scripts_spacer.hide ();
-		} else {
-			_scripts_spacer.show ();
-		}
+		update_action_script_visibility ();
 	} else if (p == "cue-behavior") {
 		CueBehavior cb (_session->config.get_cue_behavior());
 		_cue_play_enable.set_active (cb & ARDOUR::FollowCues);
@@ -1116,6 +1136,34 @@ ApplicationBar::blink_handler (bool blink_on)
 	solo_blink (blink_on);
 	audition_blink (blink_on);
 	feedback_blink (blink_on);
+
+	update_alert_visibility ();
+}
+
+void
+ApplicationBar::update_alert_visibility ()
+{
+	/* alerts take no space until there is something to report */
+	const bool soloing  = _session && (_session->soloing () || _session->listening ());
+	const bool auditing = _session && _session->is_auditioning ();
+	const bool feedback = _feedback_exists || _ambiguous_latency;
+
+	_solo_alert_button.set_visible (soloing);
+	_auditioning_alert_button.set_visible (auditing);
+	_feedback_alert_button.set_visible (feedback);
+}
+
+void
+ApplicationBar::update_action_script_visibility ()
+{
+	/* only show assigned script buttons, in the columns enabled in the preferences */
+	const uint32_t cols = UIConfiguration::instance().get_action_table_columns ();
+	LuaInstance* li = LuaInstance::instance ();
+	for (int i = 0; i < MAX_LUA_ACTION_BUTTONS; ++i) {
+		std::string name;
+		const bool assigned = li->lua_action_name (i, name);
+		_action_script_call_btn[i].set_visible (assigned && (cols & (1 << (i / 2))));
+	}
 }
 
 void

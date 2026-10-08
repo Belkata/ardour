@@ -77,7 +77,24 @@ render with `src/render.js` (Playwright + preinstalled Chromium; commands in `RE
 | Clips page plain-language labels/tooltips | `trigger_ui.cc`, `slot_properties_box.cc` |
 | QA tools | `tools/ui-qa/` |
 
+### Round 5 (branch `ccr-d562df24-x2zqd5`, not merged yet)
+
+| Area | Files |
+|---|---|
+| Top bar draft `09-topbar-redesign.png` | `ui-drafts/src/topbar.html` |
+| Top bar in one row: transport grouped (locate · stop/play/range/record · loop/click), auto return beside it, tempo/meter stacked next to the clock, Punch In/Out + record mode in one row, pane toggles in one row | `application_bar.{h,cc}`, `transport_control_ui.cc`, `libs/widgets/tabbable.cc` |
+| Sync/shuttle/varispeed hidden by default: new pref `show-toolbar-shuttle` (Appearance › Application Bar) | `ui_config_vars.inc.h`, `rc_option_editor.cc`, `application_bar.cc` |
+| MIDI panic no longer on the bar (Transport menu only, also affects the Big Transport window) | `transport_control_ui.cc` |
+| Solo / Audition / Feedback alerts shown only while active ("Solo active", "Auditioning", "Feedback loop" / "No alignment") | `application_bar.cc` (`update_alert_visibility`) |
+| Only assigned Lua action buttons shown (still limited by `action-table-columns`) | `application_bar.cc` (`update_action_script_visibility`) |
+| Quick Add "Record from" picker: Automatic / No input / hardware input (pairs for stereo, "Input 3 + 4"); several audio tracks take consecutive inputs, MIDI tracks share the device; passes `input_auto_connect=false` when an input is chosen | `quick_add_route.{h,cc}` |
+
 ## Current state / where it stopped
+
+Round 5 (top bar + Quick Add "Record from") builds; `run_static.sh` and `run_gui.sh` pass.
+Picker verified headless: choosing "Input 3 + 4" connects the new track to exactly
+`system:capture_3/4`. Screenshots: `screenshots/after/`, `screenshots/topbar-before-after.png`.
+Menu labels from port names must escape `_` (GTK mnemonics) — see `refill_inputs`.
 
 A working prototype, merged. Iteration loop (screenshot → QA → fix → rebuild), rounds 1–4:
 
@@ -104,7 +121,8 @@ the queued state immediately.
    - mixer plugin "cards", send bars, fader restyle (`processor_box.cc`, `mixer_strip.cc`)
    - region drawing ("region cards")
    - follow actions as one sentence; named scenes; clip library BPM/length
-   - Quick Add "Record from" input picker; bottom status bar
+   - bottom status bar
+   - editor tool row (Edit mode, tools, Snap) merged into the top bar as in draft 02 (not requested yet)
    - Windows Inter registration (`bundle_env_mingw.cc`; falls back to the system font)
 2. For any change: build, `tools/ui-qa/run_static.sh`, `tools/ui-qa/run_gui.sh`, and
    compare screenshots with `ui-drafts/screenshots/after/` (`visual_diff.sh`). Refresh
