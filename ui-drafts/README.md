@@ -90,6 +90,10 @@ Scope agreed: colors + layout, with Inter as the UI font.
 | Round 9: editor affordances | Done | track-header faders drawn as a slider (groove, translucent track-color fill, handle line); "Rec: Layered" record-mode label; editor list headers Cue / On / In / RTA with plain tooltips |
 | Round 9: command palette | Done | Help › Find Command… (Ctrl+Shift+P): search every action, shows group and shortcut, Enter runs it |
 | Round 9: contrast QA | Done | `tools/ui-qa/check_contrast.py`: WCAG 4.5:1 text / 3:1 non-text for the modern theme (113 pairs); palette tweaks for ruler labels, active icons on green, red pills, panner letters |
+| Round 10: bottom status bar | Done | status labels moved from the menu-bar row to a bar at the bottom; health pills "● DSP 12%", "● 0 xruns", "● Disk OK" (green/amber/red); same visibility menu |
+| Round 10: region cards | Done | name bar on by default (`show-name-highlight`), opaque in the region color with contrasting text, rounded border in the region color; bar stays at the bottom of the region |
+| Round 10: mixer plugin cards / sends | Partly | rounder processor rows, flat dim "fader" row, sends "→ Bus" with a thin level bar; no green send tint yet (needs a new button style) |
+| Round 10: strip I/O, meter row, rulers | Done | "IN In 1+2" / "OUT Master" / "No input"; meter point + RTA row hideable (hidden by default); marker ruler `< + >` buttons only on hover |
 | Round 6: menus and dialogs (from a tour of every menu and window) | Done | readable disabled items; visible empty checkboxes, plain check marks in menus; clipped time fields fixed; drop-downs in Preferences match their labels; highlighted main dialog action, no stock icons on dialog buttons; "Create" in New Session; plainer labels; View menu lists only the visible pages' pane toggles; common region actions at the top of the region menu; larger Locations window; selected regions keep their track tint; muted Recorder lanes; outline star for non-favorite plugins, Insert works without "Add" — see `screenshots/menus-dialogs-before-after.png` |
 
 ## Screenshots and handoff
@@ -101,6 +105,7 @@ Scope agreed: colors + layout, with Inter as the UI font.
 - `screenshots/before-after.png` – the three pages side by side.
 - `screenshots/topbar-before-after.png` – the top bar before/after round 5.
 - `screenshots/menus-dialogs-before-after.png` – menus and dialogs before/after round 6.
+- `screenshots/round10-before-after.png` – editor and mixer before/after round 10; single shots in `screenshots/round10/`.
 - `screenshots/round9-before-after.png` – mixer, editor, command palette, track fader (round 9); single shots in `screenshots/round9/`.
 
 Rebuild `before-after.png` after refreshing `screenshots/after/`:

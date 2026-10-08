@@ -151,7 +151,7 @@ behaviour). The Alt+P shortcut works but isn't shown next to the context-menu it
 Testing tips: drive the app on `:96` with `xdotool`; `ArdourButton::set_icon (NoIcon)`
 also removes the text element (use `set_icon (0, 0)`).
 
-### Round 9 (branch `claude/mixer-round`, not merged)
+### Round 9 (pushed to `master` as `99791618`)
 
 After a UX best-practice review (Nielsen heuristics, progressive disclosure, WCAG contrast)
 the user said "go ahead with what you think are the prios" and asked for **parallel Sonnet 5.5
@@ -180,6 +180,28 @@ bar; region cards; mixer plugin cards / send bars. Advisory contrast pairs (stoc
 fill/groove, button outlines) need rc/drawing changes, not theme colors.
 QA gotcha: source `~/.cache/xroot/env.sh` first, then put `~/.local/bin` first in PATH,
 otherwise `run_gui.sh` starts the unpatched Xvfb and every check fails ("cannot open display").
+
+### Round 10 (branch `claude/round10`, pushed to `master`)
+
+Same worker setup as round 9 (four Sonnet 5.5 workers). The region-cards worker hit the
+account's spend limit mid-task; its partial version moved the name bar to the *top* of the
+region, which shifts waveforms, fades, xfades, gain lines, sync marks and MIDI notes (and
+changed `MidiRegionView::drag_group`). That was dropped as too risky: the bar stays at the
+bottom (Ardour's existing name-highlight layout), only restyled.
+Result: `screenshots/round10-before-after.png`. `run_static.sh` and `run_gui.sh` pass.
+
+| Area | Files |
+|---|---|
+| Bottom status bar + health pills (DSP / xruns / disk), `reset_health_counters()` | `ardour_ui_ed.cc`, `ardour_ui.cc`, `ardour_ui.h` |
+| Region cards: opaque name bar, contrasting text, rounded border in region color; `show-name-highlight` default on | `time_axis_view_item.cc`, `ui_config_vars.inc.h` |
+| Processor rows: corner radius 6, dim "fader" row (+ flat `processor fader: fill`), sends "→ name", 5 px send-level bar | `processor_box.cc`, `modern-ardour.colors` |
+| I/O button labels "IN In 1+2" / "OUT Master" / "No input" (also I/O plugin buttons) | `io_button.cc` |
+| Meter point + RTA in their own row, visibility id `MeterPoint` (not in the default list → hidden) | `mixer_strip.{h,cc}`, `rc_option_editor.cc` |
+| Marker ruler `< + >` buttons blank until hover | `editor.cc` |
+
+Follow-ups: editor list (right sidebar) now opens narrower, so In/R/RS columns are scrolled
+off; "DSP  9%" has a padded number; green tint for send rows (new `processor send` style);
+the status bar's left labels still say "Record time left:", "I/O Latency:", "PDC:".
 
 ## Current state / where it stopped
 
