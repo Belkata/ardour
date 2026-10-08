@@ -894,7 +894,14 @@ ARDOUR_UI::build_menu_bar ()
 	ev->set_name ("MainMenuBar");
 	ev->show ();
 
+	/* the status labels live in a thin bar along the bottom of the main window */
+	EventBox* ev_status = manage (new EventBox);
+	ev_status->set_name ("StatusBarBox");
+	ev_status->show ();
+
 	EventBox* ev_dsp = manage (new EventBox);
+	EventBox* ev_xrun = manage (new EventBox);
+	EventBox* ev_disk = manage (new EventBox);
 	EventBox* ev_pdc = manage (new EventBox);
 	EventBox* ev_path = manage (new EventBox);
 	EventBox* ev_name = manage (new EventBox);
@@ -904,6 +911,8 @@ ARDOUR_UI::build_menu_bar ()
 	EventBox* ev_timecode = manage (new EventBox);
 
 	ev_dsp->set_name ("MainMenuBar");
+	ev_xrun->set_name ("MainMenuBar");
+	ev_disk->set_name ("MainMenuBar");
 	ev_pdc->set_name ("MainMenuBar");
 	ev_path->set_name ("MainMenuBar");
 	ev_name->set_name ("MainMenuBar");
@@ -930,7 +939,13 @@ ARDOUR_UI::build_menu_bar ()
 	snapshot_name_label.set_name ("Name");
 	format_label.set_use_markup ();
 
+	dsp_load_label.set_use_markup ();
+	xrun_label.set_use_markup ();
+	disk_health_label.set_use_markup ();
+
 	ev_dsp->add (dsp_load_label);
+	ev_xrun->add (xrun_label);
+	ev_disk->add (disk_health_label);
 	ev_pdc->add (pdc_info_label);
 	ev_path->add (session_path_label);
 	ev_name->add (snapshot_name_label);
@@ -940,12 +955,31 @@ ARDOUR_UI::build_menu_bar ()
 	ev_timecode->add (timecode_format_label);
 
 	ev_dsp->show ();
+	ev_xrun->show ();
+	ev_disk->show ();
 	ev_pdc->show ();
 	ev_path->show ();
+	ev_name->show ();
 	ev_audio->show ();
 	ev_format->show ();
 	ev_latency->show ();
 	ev_timecode->show ();
+
+	/* an event box must not leave a gap when its label is hidden
+	 * through the status bar visibility menu */
+	std::pair<Gtk::Widget*, Gtk::Widget*> const label_boxes[] = {
+		{ &session_path_label, ev_path },
+		{ &snapshot_name_label, ev_name },
+		{ &sample_rate_label, ev_audio },
+		{ &format_label, ev_format },
+		{ &latency_info_label, ev_latency },
+		{ &pdc_info_label, ev_pdc },
+		{ &timecode_format_label, ev_timecode },
+	};
+	for (auto const& lb : label_boxes) {
+		lb.first->signal_show ().connect (sigc::mem_fun (*lb.second, &Gtk::Widget::show));
+		lb.first->signal_hide ().connect (sigc::mem_fun (*lb.second, &Gtk::Widget::hide));
+	}
 
 #ifdef __APPLE__
 	use_menubar_as_top_menubar ();
@@ -953,21 +987,37 @@ ARDOUR_UI::build_menu_bar ()
 	menu_hbox.pack_start (*menu_bar, false, false);
 #endif
 
+	/* top right of the menu bar row: only the log alert LED and the wall clock */
 	hbox->pack_end (error_alert_button, false, false, 2);
 	hbox->pack_end (wall_clock_label, false, false, 10);
 
-	hbox->pack_end (*ev_dsp, false, false, 6);
-	hbox->pack_end (disk_space_label, false, false, 6);
-	hbox->pack_end (*ev_audio, false, false, 6);
-	hbox->pack_end (*ev_timecode, false, false, 6);
-	hbox->pack_end (*ev_pdc, false, false, 6);
-	hbox->pack_end (*ev_latency, false, false, 6);
-	hbox->pack_end (*ev_format, false, false, 6);
-	hbox->pack_end (peak_thread_work_label, false, false, 6);
-	hbox->pack_end (*ev_name, false, false, 6);
-	hbox->pack_end (*ev_path, false, false, 6);
-
 	menu_hbox.pack_end (*ev, true, true, 2);
+
+	/* bottom status bar: plain information on the left, health pills on the right */
+	status_bar_hpacker.set_border_width (3);
+	status_bar_hpacker.set_spacing (0);
+	ev_status->add (status_bar_hpacker);
+
+	Gtk::HBox* health_box = manage (new Gtk::HBox);
+	health_box->set_spacing (0);
+	health_box->pack_start (*ev_dsp, false, false, 8);
+	health_box->pack_start (*ev_xrun, false, false, 8);
+	health_box->pack_start (*ev_disk, false, false, 8);
+	health_box->show ();
+
+	status_bar_hpacker.pack_start (*ev_path, false, false, 10);
+	status_bar_hpacker.pack_start (*ev_name, false, false, 10);
+	status_bar_hpacker.pack_start (*ev_audio, false, false, 10);
+	status_bar_hpacker.pack_start (*ev_format, false, false, 10);
+	status_bar_hpacker.pack_start (*ev_timecode, false, false, 10);
+	status_bar_hpacker.pack_start (disk_space_label, false, false, 10);
+	status_bar_hpacker.pack_start (*ev_latency, false, false, 10);
+	status_bar_hpacker.pack_start (*ev_pdc, false, false, 10);
+	status_bar_hpacker.pack_start (peak_thread_work_label, false, false, 10);
+	status_bar_hpacker.pack_end (*health_box, false, false, 4);
+	status_bar_hpacker.show ();
+
+	main_vpacker.pack_end (*ev_status, false, false);
 
 	menu_bar_base.set_name ("MainMenuBar");
 	menu_bar_base.add (menu_hbox);
@@ -981,16 +1031,19 @@ ARDOUR_UI::build_menu_bar ()
 	_status_bar_visibility.add (&timecode_format_label, X_("TCFormat"),  _("Timecode Format"), false);
 	_status_bar_visibility.add (&sample_rate_label,     X_("Audio"),     _("Audio"), true);
 	_status_bar_visibility.add (&disk_space_label,      X_("Disk"),      _("Disk Space"), !Profile->get_small_screen());
-	_status_bar_visibility.add (&dsp_load_label,        X_("DSP"),       _("DSP"), true);
+	_status_bar_visibility.add (health_box,             X_("DSP"),       _("DSP"), true);
 #ifndef __APPLE__
 	// OSX provides its own wallclock, thank you very much
 	_status_bar_visibility.add (&wall_clock_label,      X_("WallClock"), _("Wall Clock"), false);
 #endif
 
 	ev->signal_button_press_event().connect (sigc::mem_fun (_status_bar_visibility, &VisibilityGroup::button_press_event));
+	ev_status->signal_button_press_event().connect (sigc::mem_fun (_status_bar_visibility, &VisibilityGroup::button_press_event));
 
-	ev_dsp->signal_button_press_event().connect (sigc::mem_fun (*this, &ARDOUR_UI::xrun_button_press));
-	ev_dsp->signal_button_release_event().connect (sigc::mem_fun (*this, &ARDOUR_UI::xrun_button_release));
+	for (EventBox* pill : { ev_dsp, ev_xrun, ev_disk }) {
+		pill->signal_button_press_event().connect (sigc::mem_fun (*this, &ARDOUR_UI::xrun_button_press));
+		pill->signal_button_release_event().connect (sigc::mem_fun (*this, &ARDOUR_UI::xrun_button_release));
+	}
 	ev_path->signal_button_press_event().connect (sigc::mem_fun (*this, &ARDOUR_UI::path_button_press));
 	ev_name->signal_button_press_event().connect (sigc::mem_fun (*this, &ARDOUR_UI::path_button_press));
 	ev_audio->signal_button_press_event().connect (sigc::mem_fun (*this, &ARDOUR_UI::audio_button_press));
@@ -1212,10 +1265,7 @@ ARDOUR_UI::xrun_button_press (GdkEventButton* ev)
 	if (ev->button != 1 || ev->type != GDK_2BUTTON_PRESS) {
 		return false;
 	}
-	if (_session) {
-		_session->reset_xrun_count ();
-		update_cpu_load ();
-	}
+	reset_health_counters ();
 	return true;
 }
 
@@ -1226,10 +1276,7 @@ ARDOUR_UI::xrun_button_release (GdkEventButton* ev)
 		return false;
 	}
 
-	if (_session) {
-		_session->reset_xrun_count ();
-		update_cpu_load ();
-	}
+	reset_health_counters ();
 	return true;
 }
 

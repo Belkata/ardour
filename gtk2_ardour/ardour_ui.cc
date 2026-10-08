@@ -1220,7 +1220,7 @@ ARDOUR_UI::update_sample_rate ()
 			char buf[64];
 			snprintf (buf, sizeof (buf), "%4.1f", (AudioEngine::instance()->usecs_per_cycle() / 1000.0f));
 			const char* const bg = (_session && _session->nominal_sample_rate () != rate) ? " background=\"red\" foreground=\"white\"" : "";
-			sample_rate_label.set_markup (string_compose ("%1 <span%2>%3</span> \u00b7 %4 %5", label, bg, ARDOUR_UI_UTILS::rate_as_string (rate), buf, _("ms buffer")));
+			sample_rate_label.set_markup (string_compose ("<span%1>%2</span> \u00b7 %3 %4", bg, ARDOUR_UI_UTILS::rate_as_string (rate), buf, _("ms buffer")));
 
 		}
 	}
@@ -1300,6 +1300,36 @@ ARDOUR_UI::update_path_label ()
 	session_path_label.set_markup (s.str ());
 }
 
+/* health level of a status bar pill: 0 = fine, 1 = warning, 2 = problem */
+static std::string
+health_dot_markup (int level)
+{
+	static const char* const names[] = { "alert:green", "alert:yellow", "alert:red" };
+	static const uint32_t fallback[] = { 0x5ed07bff, 0xe8cf4aff, 0xf1545eff };
+
+	level = std::max (0, std::min (2, level));
+
+	bool failed = false;
+	uint32_t c = UIConfiguration::instance().color (names[level], &failed);
+	if (failed) {
+		c = fallback[level];
+	}
+
+	char buf[64];
+	snprintf (buf, sizeof (buf), "<span foreground=\"#%06x\">\u25cf</span> ", (c >> 8) & 0xffffff);
+	return buf;
+}
+
+void
+ARDOUR_UI::reset_health_counters ()
+{
+	_disk_problem = false;
+	if (_session) {
+		_session->reset_xrun_count ();
+	}
+	update_cpu_load ();
+}
+
 void
 ARDOUR_UI::update_cpu_load ()
 {
@@ -1307,30 +1337,44 @@ ARDOUR_UI::update_cpu_load ()
 	const bool fw = AudioEngine::instance()->freewheeling ();
 	double const c = AudioEngine::instance()->get_dsp_load ();
 
-	std::string label = string_compose (X_("<span weight=\"ultralight\">%1</span>: "), _("DSP"));
-	const char* const bg = (c > 90 && !fw) ? " background=\"red\" foreground=\"white\"" : "";
-
 	char buf[256];
-	/* spell out xruns instead of a bare "(N)" */
+
+	/* DSP load */
+
+	int const dsp_level = fw ? 0 : (c < 70 ? 0 : (c < 90 ? 1 : 2));
+	snprintf (buf, sizeof (buf), "<span face=\"monospace\">%2.0f%%</span>", c);
+	dsp_load_label.set_markup (health_dot_markup (dsp_level) + string_compose (X_("<span weight=\"ultralight\">%1</span> "), _("DSP")) + buf);
+
+	snprintf (buf, sizeof (buf), "%.1f%%", c);
+	ArdourWidgets::set_tooltip (dsp_load_label, string_compose (_("DSP load: %1"), buf));
+
+	/* xruns: spelled out instead of a bare number */
+
+	std::string xr;
 	if (x > 9999) {
-		snprintf (buf, sizeof (buf), "<span face=\"monospace\"%s>%2.0f%%</span> \u00b7 %s", bg, c, _(">10k xruns"));
-	} else if (x > 0) {
-		snprintf (buf, sizeof (buf), "<span face=\"monospace\"%s>%2.0f%%</span> \u00b7 %s", bg, c, string_compose (P_("%1 xrun", "%1 xruns", x), x).c_str ());
+		xr = _(">10k xruns");
 	} else {
-		snprintf (buf, sizeof (buf), "<span face=\"monospace\"%s>%2.0f%%</span>", bg, c);
+		xr = string_compose (P_("%1 xrun", "%1 xruns", x), x);
+	}
+	xrun_label.set_markup (health_dot_markup (x > 0 ? 1 : 0) + xr);
+
+	if (x > 0) {
+		ArdourWidgets::set_tooltip (xrun_label, string_compose ("%1\n%2", xr, _("Double-click or Shift+Click to clear xruns.")));
+	} else {
+		ArdourWidgets::set_tooltip (xrun_label, _("No xruns (audio dropouts) since the counter was last cleared."));
 	}
 
-	dsp_load_label.set_markup (label + buf);
+	/* disk: reports reads/writes that could not keep up */
 
-	if (x > 9999) {
-		snprintf (buf, sizeof (buf), "%.1f%% X: >10k\n%s", c, _("Shift+Click to clear xruns."));
-	} else if (x > 0) {
-		snprintf (buf, sizeof (buf), "%.1f%% X: %u\n%s", c, x, _("Shift+Click to clear xruns."));
+	if (_disk_problem) {
+		disk_health_label.set_markup (health_dot_markup (2) + _("Disk problem"));
+		ArdourWidgets::set_tooltip (disk_health_label, string_compose ("%1\n%2",
+					_("The disk was too slow to keep up with playback or recording."),
+					_("Double-click or Shift+Click to clear.")));
 	} else {
-		snprintf (buf, sizeof (buf), "%.1f%%", c);
+		disk_health_label.set_markup (health_dot_markup (0) + _("Disk OK"));
+		ArdourWidgets::set_tooltip (disk_health_label, _("The disk keeps up with playback and recording."));
 	}
-
-	ArdourWidgets::set_tooltip (dsp_load_label, label + buf);
 }
 
 void
@@ -2924,6 +2968,9 @@ ARDOUR_UI::disk_overrun_handler ()
 {
 	ENSURE_GUI_THREAD (*this, &ARDOUR_UI::disk_overrun_handler)
 
+	_disk_problem = true;
+	update_cpu_load ();
+
 	if (!have_disk_speed_dialog_displayed) {
 		have_disk_speed_dialog_displayed = true;
 		ArdourMessageDialog* msg = new ArdourMessageDialog (_main_window, string_compose (_("\
@@ -2951,6 +2998,9 @@ void
 ARDOUR_UI::disk_underrun_handler ()
 {
 	ENSURE_GUI_THREAD (*this, &ARDOUR_UI::disk_underrun_handler)
+
+	_disk_problem = true;
+	update_cpu_load ();
 
 	if (!have_disk_speed_dialog_displayed) {
 		have_disk_speed_dialog_displayed = true;
