@@ -9,6 +9,7 @@ PW_MOD=$(npm root -g)/playwright node src/render.js src/editor.html 03-editor-re
 PW_MOD=$(npm root -g)/playwright node src/render.js src/mixer.html 04-mixer-redesign.png
 PW_MOD=$(npm root -g)/playwright node src/render.js "src/editor.html#add" 05-quick-add-track.png 1680 1000 --clean
 PW_MOD=$(npm root -g)/playwright node src/render.js src/palette.html 06-color-palette.png 1680 660
+PW_MOD=$(npm root -g)/playwright node src/render.js src/topbar.html 09-topbar-redesign.png 1680 575   # crops: src/topbar-*.png from screenshots/after/editor.png
 ```
 
 ## Prior art (what others have tried)
