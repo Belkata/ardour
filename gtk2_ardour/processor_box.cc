@@ -158,6 +158,17 @@ static void set_routing_color (cairo_t* cr, bool midi)
 	}
 }
 
+/* The fader row is shown as a quiet, dimmed placeholder; everything else as plain text. */
+static void
+set_entry_button_text (ArdourButton& b, std::string const& txt, bool quiet)
+{
+	if (quiet) {
+		b.set_text (string_compose (X_("<span alpha=\"55%\">%1</span>"), Glib::Markup::escape_text (Glib::ustring (txt).lowercase ())), true);
+	} else {
+		b.set_text (txt, false);
+	}
+}
+
 ProcessorEntry::ProcessorEntry (ProcessorBox* parent, std::shared_ptr<Processor> p, Width w)
 	: _button (ArdourButton::led_default_elements)
 	, _position (PreFader)
@@ -180,7 +191,8 @@ ProcessorEntry::ProcessorEntry (ProcessorBox* parent, std::shared_ptr<Processor>
 	_button.set_fallthrough_to_parent(true);
 	_button.set_led_left (true);
 	_button.signal_led_clicked.connect (sigc::mem_fun (*this, &ProcessorEntry::led_clicked));
-	_button.set_text (name (_width));
+	_button.set_corner_radius (6);
+	set_entry_button_text (_button, name (_width), false);
 
 	if (std::dynamic_pointer_cast<PeakMeter> (_processor)) {
 		_button.set_elements(ArdourButton::Element(_button.elements() & ~ArdourButton::Indicator));
@@ -449,6 +461,8 @@ ProcessorEntry::setup_visuals ()
 		_button.set_name ("processor postfader");
 		break;
 	}
+
+	set_entry_button_text (_button, name (_width), _position == Fader);
 }
 
 std::shared_ptr<Processor>
@@ -464,7 +478,7 @@ void
 ProcessorEntry::set_enum_width (Width w)
 {
 	_width = w;
-	_button.set_text (name (_width));
+	set_entry_button_text (_button, name (_width), _position == Fader);
 }
 
 void
@@ -517,12 +531,12 @@ void
 ProcessorEntry::processor_property_changed (const PropertyChange& what_changed)
 {
 	if (what_changed.contains (ARDOUR::Properties::name)) {
-		_button.set_text (name (_width));
+		set_entry_button_text (_button, name (_width), _position == Fader);
 		setup_tooltip ();
 	} else if (std::dynamic_pointer_cast<Send> (_processor) != 0) {
 		/* Any property change for a send needs to trigger an update.
 		 * e.g. target-bus is updated, panner-link changes, etc */
-		_button.set_text (name (_width));
+		set_entry_button_text (_button, name (_width), false);
 		setup_tooltip ();
 	}
 }
@@ -610,6 +624,8 @@ ProcessorEntry::name (Width w) const
 
 	if ((aux = std::dynamic_pointer_cast<InternalSend> (_processor)) != 0) {
 
+		name_display += (w == Wide) ? "→ " : "→";
+
 		if (aux->has_panner () && !aux->panner_linked_to_route()) {
 			switch (w) {
 				case Wide:
@@ -630,7 +646,7 @@ ProcessorEntry::name (Width w) const
 		}
 
 	} else if ((send = std::dynamic_pointer_cast<Send> (_processor)) != 0) {
-		name_display += '>';
+		name_display += (w == Wide) ? "→ " : "→";
 		std::string send_name;
 		bool pretty_ok = true;
 
@@ -999,7 +1015,7 @@ ProcessorEntry::Control::Control (ProcessorEntry& e, std::shared_ptr<AutomationC
 	: _entry (e)
 	, _control (c)
 	, _adjustment (gain_to_slider_position_with_max (1.0, Config->get_max_gain()), 0, 1, 0.01, 0.1)
-	, _slider (&_adjustment, std::shared_ptr<PBD::Controllable>(), 0, max(13.f, rintf(13.f * UIConfiguration::instance().get_ui_scale())))
+	, _slider (&_adjustment, std::shared_ptr<PBD::Controllable>(), 0, (c && c->parameter().type() == BusSendLevel) ? max(5.f, rintf(5.f * UIConfiguration::instance().get_ui_scale())) : max(13.f, rintf(13.f * UIConfiguration::instance().get_ui_scale())))
 	, _slider_persistant_tooltip (&_slider)
 	, _button (ArdourButton::led_default_elements)
 	, _ignore_ui_adjustment (false)
@@ -1049,7 +1065,10 @@ ProcessorEntry::Control::build_ui ()
 	} else {
 
 		_slider.set_name ("ProcessorControlSlider");
-		_slider.set_text (_name);
+		if (c->parameter().type() != BusSendLevel) {
+			/* send levels are a thin bar without a label; the tooltip names the control and shows its value */
+			_slider.set_text (_name);
+		}
 		_slider.set_controllable (c);
 
 		box.add (_slider);
