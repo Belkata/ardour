@@ -2911,16 +2911,15 @@ Pianoroll::set_session (ARDOUR::Session* s)
 	}
 }
 
-/** Show the whole region (or the zoom the user last chose for it). Used by the
- * Pianoroll window once it has its real size: zooming during construction
- * uses a much narrower canvas and leaves the region in the left third.
+/** Show the whole region. Used by the Pianoroll window once it has its real
+ * size: zooming during construction uses a much narrower canvas, and the
+ * region's saved zoom (samples per pixel) may come from another editor
+ * of a different width, e.g. the bottom pane.
  */
 void
 Pianoroll::zoom_to_region ()
 {
-	if (!_active_view || !maybe_set_from_rsu (_active_view->midi_region()->id())) {
-		zoom_to_show (get_context_extent());
-	}
+	zoom_to_show (get_context_extent());
 }
 
 void
