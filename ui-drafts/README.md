@@ -79,6 +79,9 @@ Scope agreed: colors + layout, with Inter as the UI font.
 | Clips page: follow actions as words | Partly | options read "Play next clip", "Play again", ...; the panel is relabelled ("When the clip ends", "Then act after"), not rebuilt as one sentence |
 | Clips page: column headers in track color | Already in Ardour | |
 | Clips page: named scenes, library BPM/length | Not done | scenes keep their letters; library unchanged |
+| Top bar (draft 09): single row | Done | transport grouped (locate · stop/play/range/record · loop/click/auto return); tempo/meter beside the clock; Punch In/Out + record mode in one row; pane toggles in one row |
+| Top bar: hide cryptic controls | Done | sync "Int.", shuttle, "VS" hidden by default (Preferences › Appearance › Application Bar › "Display Sync Source and Shuttle/Varispeed Controls"); MIDI panic only in the Transport menu; unassigned Lua slots hidden |
+| Top bar: alerts only when active | Done | "Solo active" / "Auditioning" / "Feedback loop" appear only while relevant |
 
 ## Screenshots and handoff
 

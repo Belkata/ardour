@@ -119,18 +119,22 @@ TransportControlUI::setup (TransportControlProvider* ui)
 	_click_button.set_size_request (PX_SCALE(20), PX_SCALE(20));
 	set_spacing (PX_SCALE(2));
 
-#undef PX_SCALE
-
 	if (!ARDOUR::Profile->get_mixbus()) {
-		pack_start (_midi_panic_button, true, true, 0);
-		pack_start (_click_button, true, true, 0);
+		/* grouped by job: locate | stop, play, play range, record | modes.
+		 * MIDI panic is not packed: it looked like an error indicator,
+		 * and remains available in the Transport menu.
+		 */
+		const int gap = PX_SCALE (6);
 		pack_start (_goto_start_button, true, true);
-		pack_start (_goto_end_button, true, true);
-		pack_start (_auto_loop_button, true, true);
-		pack_start (_play_selection_button, true, true);
-		pack_start (_roll_button, true, true);
+		pack_start (_goto_end_button, true, true, 0);
+		pack_start (*manage (new Gtk::Label ("")), false, false, gap / 2);
 		pack_start (_stop_button, true, true);
-		pack_start (_rec_button, true, true, 3);
+		pack_start (_roll_button, true, true);
+		pack_start (_play_selection_button, true, true);
+		pack_start (_rec_button, true, true);
+		pack_start (*manage (new Gtk::Label ("")), false, false, gap / 2);
+		pack_start (_auto_loop_button, true, true);
+		pack_start (_click_button, true, true, 0);
 	}
 
 	_roll_button.set_name ("transport button");
@@ -154,6 +158,7 @@ TransportControlUI::setup (TransportControlProvider* ui)
 	_stop_button.set_active (true);
 
 	show_all ();
+#undef PX_SCALE
 
 	Timers::blink_connect (sigc::mem_fun (*this, &TransportControlUI::blink_rec_enable));
 }

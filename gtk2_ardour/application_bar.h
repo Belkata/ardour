@@ -86,6 +86,8 @@ private:
 	void every_point_zero_something_seconds ();
 
 	void solo_blink (bool);
+	void update_alert_visibility ();
+	void update_action_script_visibility ();
 	void audition_blink (bool);
 	void feedback_blink (bool);
 
@@ -121,6 +123,7 @@ private:
 	Gtk::Table                    _table;
 	TransportControlUI            _transport_ctrl;
 	ShuttleControl                _shuttle_box;
+	Gtk::HBox                     _shuttle_hbox;
 	ArdourWidgets::ArdourButton   _sync_button;
 	Gtk::Label                    _punch_label;
 	Gtk::Label                    _layered_label;
