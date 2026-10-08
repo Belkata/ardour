@@ -86,6 +86,10 @@ Scope agreed: colors + layout, with Inter as the UI font.
 | Top bar (draft 09): single row | Done | transport grouped (locate · stop/play/range/record · loop/click/auto return); tempo/meter beside the clock; Punch In/Out + record mode in one row; pane toggles in one row |
 | Top bar: hide cryptic controls | Done | sync "Int.", shuttle, "VS" hidden by default (Preferences › Appearance › Application Bar › "Display Sync Source and Shuttle/Varispeed Controls"); MIDI panic only in the Transport menu; unassigned Lua slots hidden |
 | Top bar: alerts only when active | Done | "Solo active" / "Auditioning" / "Feedback loop" appear only while relevant |
+| Round 9: mixer plain language | Done | clearer tooltips (Iso/Lock, group, RTA, meter point, gain, peak); solo isolate/safe row and Comments hidden by default (a route with a comment still shows its button); "+ Add plugin" under every processor list; Mixer scenes: "Store current mix", left-click stores — see `screenshots/round9-before-after.png` |
+| Round 9: editor affordances | Done | track-header faders drawn as a slider (groove, translucent track-color fill, handle line); "Rec: Layered" record-mode label; editor list headers Cue / On / In / RTA with plain tooltips |
+| Round 9: command palette | Done | Help › Find Command… (Ctrl+Shift+P): search every action, shows group and shortcut, Enter runs it |
+| Round 9: contrast QA | Done | `tools/ui-qa/check_contrast.py`: WCAG 4.5:1 text / 3:1 non-text for the modern theme (113 pairs); palette tweaks for ruler labels, active icons on green, red pills, panner letters |
 | Round 6: menus and dialogs (from a tour of every menu and window) | Done | readable disabled items; visible empty checkboxes, plain check marks in menus; clipped time fields fixed; drop-downs in Preferences match their labels; highlighted main dialog action, no stock icons on dialog buttons; "Create" in New Session; plainer labels; View menu lists only the visible pages' pane toggles; common region actions at the top of the region menu; larger Locations window; selected regions keep their track tint; muted Recorder lanes; outline star for non-favorite plugins, Insert works without "Add" — see `screenshots/menus-dialogs-before-after.png` |
 
 ## Screenshots and handoff
@@ -97,6 +101,7 @@ Scope agreed: colors + layout, with Inter as the UI font.
 - `screenshots/before-after.png` – the three pages side by side.
 - `screenshots/topbar-before-after.png` – the top bar before/after round 5.
 - `screenshots/menus-dialogs-before-after.png` – menus and dialogs before/after round 6.
+- `screenshots/round9-before-after.png` – mixer, editor, command palette, track fader (round 9); single shots in `screenshots/round9/`.
 
 Rebuild `before-after.png` after refreshing `screenshots/after/`:
 

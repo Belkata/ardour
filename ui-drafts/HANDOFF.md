@@ -151,6 +151,36 @@ behaviour). The Alt+P shortcut works but isn't shown next to the context-menu it
 Testing tips: drive the app on `:96` with `xdotool`; `ArdourButton::set_icon (NoIcon)`
 also removes the text element (use `set_icon (0, 0)`).
 
+### Round 9 (branch `claude/mixer-round`, not merged)
+
+After a UX best-practice review (Nielsen heuristics, progressive disclosure, WCAG contrast)
+the user said "go ahead with what you think are the prios" and asked for **parallel Sonnet 5.5
+workers**. Setup: one git worktree per task, workers run headless via
+`/work/tools/run-worker.sh` (`claude -p --model claude-sonnet-5-5`), never build, only
+syntax-check single files with `/work/tools/check-cc.sh` (flock-serialized; 2 vCPU / 3 GB);
+the orchestrator merges, builds once (`-j2`, 24 min) and runs QA. Shared rules:
+`/work/tools/AGENT_BRIEF.md`. (These live outside the repo, in `/work/tools`.)
+Result: `screenshots/round9-before-after.png`. `run_static.sh` and `run_gui.sh` pass.
+
+| Area | Files |
+|---|---|
+| Mixer strip tooltips (Iso/Lock, group, RTA, meter point, gain, peak); Comments button forced visible when a comment exists | `mixer_strip.{h,cc}`, `gain_meter.cc` |
+| Default strip visibility without `SoloIsoLock,Comments` (fresh configs) | `ui_config_vars.inc.h` |
+| "+ Add plugin" hint under the processor list (same path as double-click) | `processor_box.{h,cc}` |
+| Mixer scenes: "Mixer scenes" label + tooltip, "Store current mix" slot, left-click on a free slot stores | `mixer_ui.cc` |
+| Track-header fader as slider: new `ArdourFader::TrackHeaderStyle` tweak (horizontal only) | `libs/widgets/ardour_fader.cc`, `fader_widget.{h,cc}`, `gain_meter.{h,cc}`, `route_time_axis.cc` |
+| Editor list headers Cue/On/In/RTA + plain tooltips | `route_list_base.cc`, `editor_routes.cc` |
+| "Rec: Layered" record-mode selector + tooltip | `application_bar.cc` |
+| Command palette `Common/command-palette`, Help menu, Ctrl+Shift+P | `command_palette.{h,cc}` (new), `ardour_ui_ed.cc`, `ardour.menus.in`, `ardour.keys.in`, `wscript` |
+| WCAG contrast check + palette fixes | `tools/ui-qa/check_contrast.py`, `QA.md`, `themes/modern-ardour.colors` |
+
+Not done / ideas: dB value beside the header fader (no room at 14 px); input button's bare
+number "1" (`io_button.cc`); meter-point/RTA row is not a visibility group yet; bottom status
+bar; region cards; mixer plugin cards / send bars. Advisory contrast pairs (stock fader
+fill/groove, button outlines) need rc/drawing changes, not theme colors.
+QA gotcha: source `~/.cache/xroot/env.sh` first, then put `~/.local/bin` first in PATH,
+otherwise `run_gui.sh` starts the unpatched Xvfb and every check fails ("cannot open display").
+
 ## Current state / where it stopped
 
 A working prototype, merged. Iteration loop (draft → approve → implement → build →
