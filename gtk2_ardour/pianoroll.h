@@ -130,6 +130,7 @@ class Pianoroll : public CueEditor, public SlipDraggable
 	std::shared_ptr<ARDOUR::Region> region() const { return _region; }
 
 	double max_extents_scale() const { return 1.2; }
+	void zoom_to_region ();
 	void set_samples_per_pixel (samplecnt_t);
 
 	void midi_action (void (MidiView::*method)());
@@ -193,6 +194,8 @@ class Pianoroll : public CueEditor, public SlipDraggable
 		ArdourCanvas::Line* label_separator;
 		ArdourCanvas::Icon* close_x;
 		ArdourCanvas::Button* clear_button;
+		std::vector<std::pair<ArdourCanvas::Text*, int> > velocity_scale; ///< velocity lane: 127 / 64 / 0
+		void position_scale (double lane_height, double header_width);
 	};
 
 	void add_automation_lane (Evoral::Parameter const & param);

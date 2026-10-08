@@ -55,6 +55,7 @@ public:
 
 	void set_outline_color (uint32_t);
 	void set_fill_color (uint32_t);
+	void set_outline_width (double);
 
 	void set_ignore_events (bool);
 

@@ -1560,6 +1560,7 @@ Editor::sensitize_the_right_region_actions (bool because_canvas_crossing)
 		_region_actions->get_action("insert-patch-change-context")->set_sensitive (false);
 		_region_actions->get_action("insert-patch-change")->set_sensitive (false);
 		_region_actions->get_action("transpose-region")->set_sensitive (false);
+		_region_actions->get_action("edit-midi-in-window")->set_sensitive (false);
 	} else {
 		editor_menu_actions->get_action("RegionMenuMIDI")->set_sensitive (true);
 		/* others were already marked sensitive */

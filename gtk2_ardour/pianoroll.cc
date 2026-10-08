@@ -19,6 +19,7 @@
 #include "ytkmm/scrollbar.h"
 
 #include "pbd/stateful_diff_command.h"
+#include "pbd/string_convert.h"
 #include "pbd/unwind.h"
 
 #include "ardour/midi_region.h"
@@ -959,7 +960,8 @@ Pianoroll::partition_height ()
 
 	double timebars = n_timebars * timebar_height;
 	double data_height = _visible_canvas_height - timebars;
-	double note_area_height = automation_lanes.empty() ? data_height : floor (2 * data_height / 3.);
+	/* one lane: a quarter of the height; more lanes share a third */
+	double note_area_height = automation_lanes.empty() ? data_height : floor (data_height * (automation_lanes.size() == 1 ? 0.75 : 2. / 3.));
 	double automation_height = data_height - note_area_height;
 
 	/* We need a wide scroomer if there are any automation lanes shown
@@ -992,6 +994,7 @@ Pianoroll::partition_height ()
 		lane->group->set_position (ArdourCanvas::Duple (0., ay));
 		lane->group->set (ArdourCanvas::Rect (0., 0., ArdourCanvas::COORD_MAX, per_lane));
 		lane->label_group->set_position (ArdourCanvas::Duple (0., ay + timebars));
+		lane->position_scale (per_lane, prh->x1());
 		ay += per_lane;
 	}
 
@@ -2269,7 +2272,31 @@ Pianoroll::AutomationLane::AutomationLane (Evoral::Parameter const & param, Pian
 		label_width -= spacing + clear_button->size().x;
 	}
 
+	if (param.type() == MidiVelocityAutomation) {
+		Gtkmm2ext::Color const c = Gtkmm2ext::change_alpha (UIConfiguration::instance().color (X_("gtk_foreground")), 0.6);
+		for (int v : { 127, 64, 0 }) {
+			ArdourCanvas::Text* t = new ArdourCanvas::Text (label_group);
+			t->set (PBD::to_string (v));
+			t->set_color (c);
+			t->set_font_description (UIConfiguration::instance().get_SmallFont());
+			velocity_scale.push_back (std::make_pair (t, v));
+		}
+		label_width -= spacing + velocity_scale.front().first->width();
+	}
+
 	label->clamp_width (label_width);
+}
+
+void
+Pianoroll::AutomationLane::position_scale (double h, double header_width)
+{
+	double const spacing = 4 * UIConfiguration::instance().get_ui_scale();
+
+	for (auto & [t, v] : velocity_scale) {
+		double y = h - (v / 127.) * h - t->height() / 2.;
+		y = std::max (spacing, std::min (h - t->height() - 1., y));
+		t->set_position (ArdourCanvas::Duple (header_width - t->width() - spacing, y));
+	}
 }
 
 Pianoroll::AutomationLane::~AutomationLane ()
@@ -2880,6 +2907,18 @@ Pianoroll::set_session (ARDOUR::Session* s)
 	}
 
 	if (_session) {
+		zoom_to_show (get_context_extent());
+	}
+}
+
+/** Show the whole region (or the zoom the user last chose for it). Used by the
+ * Pianoroll window once it has its real size: zooming during construction
+ * uses a much narrower canvas and leaves the region in the left third.
+ */
+void
+Pianoroll::zoom_to_region ()
+{
+	if (!_active_view || !maybe_set_from_rsu (_active_view->midi_region()->id())) {
 		zoom_to_show (get_context_extent());
 	}
 }

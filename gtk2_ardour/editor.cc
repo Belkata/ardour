@@ -1902,6 +1902,15 @@ Editor::add_region_context_items (Menu_Helpers::MenuList& edit_items, std::share
 	}
 	edit_items.push_back (SeparatorElem());
 
+	/* MIDI: open the region in the Pianoroll window */
+	{
+		RefPtr<Action> a = ActionManager::get_action (X_("Region"), X_("edit-midi-in-window"), false);
+		if (a && a->get_sensitive ()) {
+			edit_items.push_back (*manage (a->create_menu_item ()));
+			edit_items.push_back (SeparatorElem());
+		}
+	}
+
 	/* the most common region operations, without opening the submenu */
 	char const* common[][2] = {
 		{ X_("Editor"), X_("split-region") },

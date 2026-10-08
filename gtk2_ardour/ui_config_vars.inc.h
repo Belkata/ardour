@@ -135,7 +135,7 @@ UI_CONFIG_VARIABLE (std::string, stripable_color_palette, "stripable-color-palet
 UI_CONFIG_VARIABLE (bool, use_palette_for_new_track, "use-palette-for-new-track", true)
 UI_CONFIG_VARIABLE (bool, use_palette_for_new_bus, "use-palette-for-new-bus", true)
 UI_CONFIG_VARIABLE (bool, use_palette_for_new_vca, "use-palette-for-new-vca", true)
-UI_CONFIG_VARIABLE (bool, use_note_bars_for_velocity, "use-note-bars-for-velocity", true)
+UI_CONFIG_VARIABLE (bool, use_note_bars_for_velocity, "use-note-bars-for-velocity", false)
 UI_CONFIG_VARIABLE (bool, show_snapped_cursor, "show-snapped-cursor", true)
 UI_CONFIG_VARIABLE (uint32_t, snap_threshold, "snap-threshold", 25)
 UI_CONFIG_VARIABLE (uint32_t, ruler_granularity, "ruler-granularity", 25)

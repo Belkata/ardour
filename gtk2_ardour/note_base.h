@@ -97,6 +97,7 @@ class NoteBase : public sigc::trackable
 
 	virtual void set_outline_color(uint32_t c) = 0;
 	virtual void set_fill_color(uint32_t c) = 0;
+	virtual void set_outline_width (double) {}
 
 	virtual void set_ignore_events(bool ignore) = 0;
 

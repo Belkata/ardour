@@ -164,6 +164,7 @@ This mode provides many different operations on both regions and control points,
 @gmark|Common/jump-forward-to-mark|                                    w|to next mark
 @mmode|Editing/set-mouse-mode-content|                                  e|content mode
 @sess|Main/QuickExport|                                     <@PRIMARY@>e|quick export session
+@rop|Region/edit-midi-in-window|                <@SECONDARY@>p|edit MIDI region in the Pianoroll window
 @rop|Region/export-region|                     <@PRIMARY@><@SECONDARY@>e|export selected region(s)
 @sess|Main/ExportAudio|                                   <@SECONDARY@>e|export session
 @sess|Main/StemExport|                        <@SECONDARY@><@TERTIARY@>e|stem export selected tracks
