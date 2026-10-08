@@ -517,6 +517,10 @@ private:
 
 	Gtkmm2ext::DnDVBox<ProcessorEntry> processor_display;
 	Gtk::ScrolledWindow    processor_scroller;
+	Gtk::VBox              processor_scroller_box;
+	ArdourWidgets::ArdourButton add_plugin_hint;
+
+	void add_plugin_hint_clicked ();
 
 	std::shared_ptr<ARDOUR::Processor> find_drop_position (ProcessorEntry* position);
 

@@ -1962,6 +1962,7 @@ ProcessorBox::ProcessorBox (ARDOUR::Session* sess, std::function<PluginSelector*
 	, _placement (-1)
 	, _p_selection(psel)
 	, processor_display (drop_targets())
+	, add_plugin_hint (ArdourButton::Text)
 	, _redisplay_pending (false)
 {
 	if (!processor_box_actions) {
@@ -1985,7 +1986,26 @@ ProcessorBox::ProcessorBox (ARDOUR::Session* sess, std::function<PluginSelector*
 	processor_scroller.set_policy (Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC);
 	processor_scroller.set_name ("ProcessorScroller");
 	processor_scroller.add (processor_display);
-	pack_start (processor_scroller, true, true);
+
+	/* quiet "+ Add plugin" hint, docked below the scrollable processor
+	 * list so it stays reachable even when the list needs to scroll.
+	 * Clicking it opens the same plugin selector as double-clicking the
+	 * empty part of the processor list, or the right-click "New Plugin"
+	 * menu entry.
+	 */
+	add_plugin_hint.set_text (string_compose ("<span foreground=\"#%1\" size=\"small\">%2</span>",
+	                                           UIConfiguration::instance ().color_to_hex_string_no_alpha (
+	                                                   UIConfiguration::instance ().color ("automation line insensitive")),
+	                                           _("+ Add plugin")), true);
+	add_plugin_hint.set_alignment (0.0, 0.5);
+	add_plugin_hint.signal_clicked.connect (sigc::mem_fun (*this, &ProcessorBox::add_plugin_hint_clicked));
+	set_tooltip (add_plugin_hint, _("Add a plugin (double-click empty space, or right-click for sends and inserts)"));
+	add_plugin_hint.show ();
+
+	processor_scroller_box.pack_start (processor_scroller, true, true);
+	processor_scroller_box.pack_start (add_plugin_hint, false, false);
+	processor_scroller_box.show ();
+	pack_start (processor_scroller_box, true, true);
 
 	processor_display.set_can_focus ();
 	processor_display.set_name ("ProcessorList");
@@ -2836,6 +2856,14 @@ void
 ProcessorBox::choose_plugin ()
 {
 	_get_plugin_selector()->set_interested_object (*this);
+}
+
+void
+ProcessorBox::add_plugin_hint_clicked ()
+{
+	/* same as double-clicking the empty part of the processor list */
+	choose_plugin ();
+	_get_plugin_selector()->show_manager ();
 }
 
 /** @return true if an error occurred, otherwise false */

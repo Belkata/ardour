@@ -356,7 +356,10 @@ Mixer_UI::Mixer_UI ()
 
 	_mixer_scene_spacer.set_size_request (-1, 6);
 	_mixer_scene_frame.add(_mixer_scene_vbox);
-	_mixer_scene_frame.set_label (_("Mixer Scenes (F1..F8 to recall)"));
+	_mixer_scene_frame.set_label (_("Mixer scenes"));
+	ArdourWidgets::set_tooltip (_mixer_scene_frame,
+	                            _("Store the current mix (levels, mutes, plugin settings) as a scene and bring it back later.\n"
+	                              "Press F1 to F8 to recall scenes 1 to 8."));
 
 	list_vpacker.pack_start (*tabbox, false, false, 2);
 	list_vpacker.pack_start (_sidebar_notebook);
@@ -4463,7 +4466,12 @@ Mixer_UI::scene_button_release (GdkEventButton* ev, int idx)
 		delete _mixer_scene_release;
 		_mixer_scene_release = 0;
 	} else if (ev->button == 1) {
-		recall_mixer_scene (idx);
+		std::shared_ptr<MixerScene> scn = _session->nth_mixer_scene (idx, false);
+		if (!scn || scn->empty ()) {
+			store_mixer_scene (idx);
+		} else {
+			recall_mixer_scene (idx);
+		}
 	}
 	return false;
 }
@@ -4473,6 +4481,11 @@ Mixer_UI::scene_label_press (GdkEventButton* ev, int idx)
 {
 	std::shared_ptr<MixerScene> scn = _session->nth_mixer_scene (idx);
 	if (!scn || scn->empty()) {
+		if (ev->button == 1 && ev->type == GDK_BUTTON_PRESS) {
+			/* the "Store current mix" hint is clickable */
+			store_mixer_scene (idx);
+			return true;
+		}
 		return false;
 	}
 
@@ -4490,7 +4503,7 @@ Mixer_UI::update_scene_buttons ()
 		/* do not change highlight for momentary scene */
 		return;
 	}
-	bool all_unset = true;
+	bool hint_shown = false;
 	for (size_t idx = 0; idx < _mixer_scene_buttons.size (); ++idx) {
 		std::shared_ptr<MixerScene> scn;
 
@@ -4515,19 +4528,18 @@ Mixer_UI::update_scene_buttons ()
 			} else {
 				l->set_text (scn->name());
 			}
-			all_unset = false;
 		} else {
-			l->set_text((""));
+			ArdourButton* b = _mixer_scene_buttons[idx];
+			ArdourWidgets::set_tooltip (b, _("Click to store the current mix in this slot\n"
+			                                 "Right-Click for more options"));
+			if (_session && !hint_shown) {
+				/* only the first free slot carries the visible hint */
+				l->set_markup (string_compose ("<i>%1</i>", _("Store current mix")));
+				hint_shown = true;
+			} else {
+				l->set_text ((""));
+			}
 		}
-	}
-
-	if (!_session) {
-		return;
-	}
-
-	if (_mixer_scene_buttons.size () > 0 && all_unset) {
-		Gtk::Label* l = _mixer_scene_labels[0];
-		l->set_markup(string_compose ("<i>%1</i>", _("(Right-Click to Store)")));
 	}
 }
 
