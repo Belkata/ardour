@@ -17,6 +17,12 @@ h2 span { color: var(--fg4); font-weight: 400; margin-left: 8px; }
 
 /* icons */
 svg.ic { fill: #e4e6ea; stroke: none; }
+svg.mx { color: #e4e6ea; }
+.new.on svg.mx { color: #17181c; }
+.real { width: 27px; height: 27px; border-radius: 4px; background: #3b3f47; box-shadow: inset 0 0 0 1px #18191d; display: flex; align-items: center; justify-content: center; }
+.real svg { width: 17px; height: 17px; }
+.opt { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.opt .cap { width: auto; }
 svg.st { fill: none; stroke: #e4e6ea; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 
 /* comparison table */
@@ -55,7 +61,9 @@ td.arrow { color: var(--fg4); font-size: 22px; padding-right: 18px; }
     <symbol id="range" viewBox="0 0 24 24"><path d="M8.5 3.6v9.8a.6.6 0 0 0 .9.5l7.3-4.9a.6.6 0 0 0 0-1L9.4 3.1a.6.6 0 0 0-.9.5z"/><rect x="3" y="16" width="2.2" height="6" rx=".5"/><rect x="18.8" y="16" width="2.2" height="6" rx=".5"/><rect x="3" y="18" width="18" height="2.2" rx=".5"/></symbol>
     <!-- stroked shapes -->
     <symbol id="loop" viewBox="0 0 24 24"><path d="M17 2.5l3.5 3.5L17 9.5"/><path d="M3.5 11.5V10a4 4 0 0 1 4-4h13"/><path d="M7 21.5L3.5 18 7 14.5"/><path d="M20.5 12.5V14a4 4 0 0 1-4 4h-13"/></symbol>
-    <symbol id="ret" viewBox="0 0 24 24"><path d="M4 4.5v15"/><path d="M11 8.5L7.5 12l3.5 3.5"/><path d="M7.5 12h8a4 4 0 0 0 4-4V5"/></symbol>
+    <!-- auto return: playhead (line + triangle cap, as on the timeline) with an arrow back to it -->
+    <symbol id="retA" viewBox="0 0 24 24"><path d="M2.5 3h8l-4 4.5z" fill="currentColor"/><path d="M6.5 6v15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M14.5 10l-4 4 4 4M10.5 14h10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="retB" viewBox="0 0 24 24"><path d="M1.5 3h7.5l-3.75 4.2z" fill="currentColor"/><path d="M5.25 6v15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><g opacity=".45"><path d="M16.5 3h7l-3.5 4z" fill="currentColor"/><path d="M20 6v15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="2.2 2.6"/></g><path d="M15.5 13.5H9M12 10.5l-3 3 3 3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   </defs>
 </svg>
 
@@ -73,7 +81,7 @@ td.arrow { color: var(--fg4); font-size: 22px; padding-right: 18px; }
   <div class="cover" style="left:34px"><svg class="ic"><use href="#end"/></svg></div>
   <div class="cover" style="left:133px"><svg class="ic"><use href="#range"/></svg></div>
   <div class="cover" style="left:203px"><svg class="st"><use href="#loop"/></svg></div>
-  <div class="cover" style="left:261px"><svg class="st"><use href="#ret"/></svg></div>
+  <div class="cover" style="left:261px"><svg class="mx"><use href="#retA"/></svg></div>
   <div class="gone" style="left:1276px;width:60px"></div>
 </div>
 
@@ -103,8 +111,11 @@ td.arrow { color: var(--fg4); font-size: 22px; padding-right: 18px; }
     <td class="name">3 · Auto return<small>on stop, jump back to where play started</small></td>
     <td><div class="big now" style="background-position:-777px -33px"></div></td>
     <td class="arrow">→</td>
-    <td><div class="pair"><span class="cap">A</span><div class="big new"><svg class="st"><use href="#ret"/></svg></div><span class="cap" style="margin-left:14px">B</span><div class="textbtn">Return</div></div></td>
-    <td class="why">Today a curved arrow that looks exactly like <i>Undo</i>. <b style="color:var(--fg)">A</b>: an arrow going back to a start line ("back to where you started"). <b style="color:var(--fg)">B</b>: a small text toggle — wider, but impossible to misread. <i>Pick one.</i>
+    <td><div class="pair">
+      <div class="opt"><div class="pair"><div class="big new"><svg class="mx"><use href="#retA"/></svg></div><div class="big new on"><svg class="mx"><use href="#retA"/></svg></div></div><div class="pair"><span class="cap">A</span><div class="real"><svg class="mx"><use href="#retA"/></svg></div><span class="cap">real size</span></div></div>
+      <div class="opt" style="margin-left:22px"><div class="big new"><svg class="mx"><use href="#retB"/></svg></div><div class="pair"><span class="cap">B</span><div class="real"><svg class="mx"><use href="#retB"/></svg></div><span class="cap">real size</span></div></div>
+    </div></td>
+    <td class="why">Today a curved arrow that looks exactly like <i>Undo</i>. Proposed: show the thing that moves — the <i>playhead</i> (line with a triangle on top, as on the timeline) and an arrow back to it. <b style="color:var(--fg)">A</b>: playhead + arrow (shown in the bar above, off / on). <b style="color:var(--fg)">B</b>: also a faded playhead where playback stopped. <i>Pick one.</i>
       <div class="tip">Auto return: on stop, go back to where playback started <kbd>7</kbd></div></td>
   </tr>
 

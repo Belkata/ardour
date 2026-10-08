@@ -32,7 +32,7 @@ Nobody has published a fork that restyles or reorganizes the GTK UI itself, so t
 - `04-mixer-redesign` – mixer strips
 - `05-quick-add-track` – inline add-track popover
 - `06-color-palette` – current vs proposed palette
-- `10-topbar-icons` – top-bar icons: play range, loop, auto return (option A icon / B text), Lua example buttons; today vs proposed
+- `10-topbar-icons` – top-bar icons: play range, loop, auto return (playhead icon, options A/B), Lua example buttons; today vs proposed
 
 ## Feasibility (from reading the code)
 
