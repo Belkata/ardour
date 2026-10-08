@@ -13,6 +13,8 @@ to build, run headless and test.
 | [#3](https://github.com/Belkata/ardour/pull/3) | `79d6274` | round 5: top bar in one row, Quick Add "Record from" |
 | [#4](https://github.com/Belkata/ardour/pull/4) | `b53c75f` | handoff after round 5; Quick Add input picker QA script |
 | [#5](https://github.com/Belkata/ardour/pull/5) | (squash) | round 6: menus, dialogs and windows; this handoff update |
+| [#6](https://github.com/Belkata/ardour/pull/6) | `b9ae27d2` | round 7: top-bar icons |
+| — | `63a377ec` | round 8: MIDI editor (merge of `claude/midi-editor`) |
 
 It sits on top of upstream `608f15a4` (the fork point); `git diff 608f15a4 master`
 shows the whole redesign.
@@ -104,7 +106,7 @@ The user found the top bar "confusing and a bit messy"; draft 09 was approved as
 | Quick Add "Record from" picker: Automatic / No input / hardware input (pairs for stereo, "Input 3 + 4"); several audio tracks take consecutive inputs, MIDI tracks share the device; passes `input_auto_connect=false` when an input is chosen | `quick_add_route.{h,cc}` |
 | QA: `quick_add_input.sh` (picker connects exactly the chosen inputs; solo pill screenshot), added to `run_gui.sh` | `tools/ui-qa/` |
 
-### Round 7 (branch `claude/topbar-icons`, not merged yet)
+### Round 7 (PR #6, merged)
 
 The user found the top-bar icons confusing and asked for more standard ones. Draft
 `10-topbar-icons.png` (approved; auto return option **B** chosen: playhead + arrow +
@@ -125,7 +127,7 @@ symlink in `~/.local/bin`, missing jpeg/curl dev headers in `~/.cache/devroot` (
 `~/.local/share/fonts`. Full `-j2` build: 1 h 10 min. Button text renders slightly smaller
 here than in the round-6 screenshots (different system libraries), so compare icons, not text size.
 
-### Round 8 (branch `claude/midi-editor`, on top of `claude/topbar-icons`, not merged)
+### Round 8 (merged into `master` as `63a377ec`)
 
 The user asked to rework the MIDI editor (bottom pane / Pianoroll window); review in
 `screenshots/midi-before/`, draft `11-midi-editor.png` ("go ahead in this order": 1–4),
