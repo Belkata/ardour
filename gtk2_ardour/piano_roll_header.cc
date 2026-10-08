@@ -130,13 +130,8 @@ PianoRollHeader::on_leave_notify_event (GdkEventCrossing* ev)
 void
 PianoRollHeader::on_size_request (Gtk::Requisition* r)
 {
-	if (show_scroomer()) {
-		_scroomer_size = 60.f * UIConfiguration::instance().get_ui_scale();
-	} else {
-		_scroomer_size = 20.f * UIConfiguration::instance().get_ui_scale();
-	}
-
-	r->width = _scroomer_size + 20.f * UIConfiguration::instance().get_ui_scale();
+	compute_layout ();
+	r->width = _scroomer_size + _keys_width;
 }
 
 double

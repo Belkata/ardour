@@ -93,6 +93,14 @@ PianorollWindow::on_key_press_event (GdkEventKey* ev)
 	return ARDOUR_UI::instance()->key_event_handler (ev, this);
 }
 
+void
+PianorollWindow::on_map ()
+{
+	ArdourWindow::on_map ();
+	/* after the first allocation at the window's real size */
+	Glib::signal_timeout().connect_once ([this]() { pianoroll->zoom_to_region (); }, 250);
+}
+
 bool
 PianorollWindow::on_delete_event (GdkEventAny*)
 {

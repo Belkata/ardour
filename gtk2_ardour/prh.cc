@@ -96,13 +96,14 @@ PianoRollHeader::size_request (double& w, double& h) const
 {
 	h = _midi_context.contents_height();
 
-	if (show_scroomer()) {
-		_scroomer_size = 120.f * UIConfiguration::instance().get_ui_scale();
-	} else {
-		_scroomer_size = kbd_width * UIConfiguration::instance().get_ui_scale();
+	compute_layout ();
+
+	if (_force_show_scroomer) {
+		/* automation lanes are shown: leave room for their labels */
+		_keys_width = std::max (_keys_width, 100. * UIConfiguration::instance().get_ui_scale());
 	}
 
-	w = _scroomer_size + (kbd_width * UIConfiguration::instance().get_ui_scale());
+	w = _scroomer_size + _keys_width;
 }
 
 bool

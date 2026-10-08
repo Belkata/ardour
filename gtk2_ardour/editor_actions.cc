@@ -1441,6 +1441,8 @@ Editor::register_region_actions ()
 
 	/* Edit the region in a separate region pianoroll window */
 	register_region_action (_region_actions, RegionActionTarget (SelectedRegions), "edit-region-dedicated-window", _("Edit in separate window..."), sigc::mem_fun (*this, &Editor::edit_region_in_dedicated_window));
+	/* the same for MIDI regions, under a name that says what it does; top of the region context menu */
+	register_region_action (_region_actions, RegionActionTarget (SelectedRegions), "edit-midi-in-window", _("Edit MIDI in Window..."), sigc::mem_fun (*this, &Editor::edit_region_in_dedicated_window));
 
 	register_region_action (_region_actions, RegionActionTarget (SelectedRegions|EnteredRegions), "play-selected-regions", _("Play Selected Regions"), sigc::mem_fun(*this, &Editor::play_selected_region));
 	register_region_action (_region_actions, RegionActionTarget (SelectedRegions|EnteredRegions), "tag-selected-regions", _("Tag Selected Regions"), sigc::mem_fun(*this, &Editor::tag_selected_region));

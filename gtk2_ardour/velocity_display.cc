@@ -23,6 +23,7 @@
 #include "ardour/automation_control.h"
 #include "ardour/event_type_map.h"
 #include "ardour/midi_automation_list_binder.h"
+#include "ardour/midi_model.h"
 #include "ardour/midi_region.h"
 #include "ardour/midi_track.h"
 #include "ardour/session.h"
@@ -215,7 +216,21 @@ VelocityDisplay::set_size_and_position (GhostEvent& gev)
 		/* compare to Hit::points , offset by w/2 */
 		l->set (ArdourCanvas::Duple (gev.event->x0() + (gev.event->x1() - gev.event->x0()) / 2, base.y1() - actual_height), actual_height, lollipop_radius * scale);
 	} else {
-		l->set (ArdourCanvas::Duple (gev.event->x0(), base.y1() - actual_height), actual_height, lollipop_radius * scale);
+		/* notes that start together (chords): side by side, lowest pitch first,
+		 * so one lollipop does not hide the others */
+		int nth = 0;
+		std::shared_ptr<ARDOUR::MidiModel> model (view.model ());
+		NoteBase::NoteType const & note (*gev.event->note ());
+
+		if (model) {
+			for (auto i = model->note_lower_bound (note.time ()); i != model->notes ().end () && (*i)->time () == note.time (); ++i) {
+				if ((*i)->note () < note.note ()) {
+					++nth;
+				}
+			}
+		}
+
+		l->set (ArdourCanvas::Duple (gev.event->x0() + nth * 1.5 * lollipop_radius * scale, base.y1() - actual_height), actual_height, lollipop_radius * scale);
 	}
 }
 

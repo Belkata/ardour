@@ -125,6 +125,30 @@ symlink in `~/.local/bin`, missing jpeg/curl dev headers in `~/.cache/devroot` (
 `~/.local/share/fonts`. Full `-j2` build: 1 h 10 min. Button text renders slightly smaller
 here than in the round-6 screenshots (different system libraries), so compare icons, not text size.
 
+### Round 8 (branch `claude/midi-editor`, on top of `claude/topbar-icons`, not merged)
+
+The user asked to rework the MIDI editor (bottom pane / Pianoroll window); review in
+`screenshots/midi-before/`, draft `11-midi-editor.png` ("go ahead in this order": 1–4),
+result `screenshots/midi-before-after.png` and `screenshots/midi-after/`. Demo session:
+`tools/ui-qa/screenshots/make_demo_midi.py` + `midi_demo_session.lua` (4 imported MIDI tracks).
+
+| Area | Files |
+|---|---|
+| 1 Toolbar in words ("Tools", "Grid", "Note length", "Velocity", "Channel", "Drums", "Lanes: Velocity", "Colors: Track", "View" menu with zoom focus + editing policy); active tool shows its name; region list only with >1 region | `pianoroll.{h,cc}`, `cue_editor.cc`, `editing_context.cc` (labels shared with the main editor's Draw mode) |
+| 1 Toolbar row never forces the window wider (`ToolbarClip`: requests 1 px width, clips) — fixed the window growing past the screen when the MIDI tools panel opens | `cue_editor.cc` |
+| 2 Keyboard: note names on the keys; the "scroomer" (scroll+zoom over 0–127, formerly a wide name column with a red handle) is a 10 px range bar; header 140 → 54 px (100 px while lanes are shown) | `prh_base.{h,cc}`, `prh.cc`, `piano_roll_header.cc`, `themes/modern-ardour.colors` |
+| 3 Velocity = brightness of an opaque note color (60–100 %); "note bars for velocity" off by default; selected notes 2 px outline | `note_base.{h,cc}`, `note.{h,cc}`, `hit.{h,cc}`, `ui_config_vars.inc.h` |
+| 3 Velocity lane: 127/64/0 scale, chord notes side by side, one lane = ¼ height | `pianoroll.{h,cc}`, `velocity_display.cc` |
+| 4 Region › "Edit MIDI in Window…" (Alt+P), top of a MIDI region's context menu; the window zooms to the region after it has its size | `editor_actions.cc`, `editor_selection.cc`, `editor.cc`, `ardour.keys.in`, `pianoroll_window.{h,cc}` |
+
+Not done / known: beat grid inside MIDI regions in the editor (needs new per-track
+canvas drawing; editor grid lines are global and follow the grid setting). Ardour shares
+a region's saved zoom (samples per pixel) between all its editors, so after using the
+Pianoroll window the bottom pane can restore a zoom meant for another width (upstream
+behaviour). The Alt+P shortcut works but isn't shown next to the context-menu item.
+Testing tips: drive the app on `:96` with `xdotool`; `ArdourButton::set_icon (NoIcon)`
+also removes the text element (use `set_icon (0, 0)`).
+
 ## Current state / where it stopped
 
 A working prototype, merged. Iteration loop (draft → approve → implement → build →

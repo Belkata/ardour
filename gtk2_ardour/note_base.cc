@@ -20,6 +20,7 @@
  */
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 
 #include "pbd/strsplit.h"
@@ -233,6 +234,8 @@ NoteBase::set_selected(bool selected)
 	set_fill_color (base_col);
 
 	set_outline_color(calculate_outline (base_col, (_flags == Selected)));
+	/* selected notes: a clearly visible (2px) light outline */
+	set_outline_width ((_flags == Selected) ? 2. : 1.);
 }
 
 #define SCALE_USHORT_TO_UINT8_T(x) ((x) / 257)
@@ -248,16 +251,21 @@ NoteBase::base_color (int pitch, int velocity, ARDOUR::ColorMode color_mode, Gtk
 {
 	using namespace ARDOUR;
 
-	const uint8_t min_opacity = 15;
-	uint8_t       opacity = std::max(min_opacity, uint8_t(velocity + velocity));
+	/* Track and channel colors: velocity sets the brightness, from a dim
+	 * version of the color (soft notes) to a light one (loud notes).
+	 * Opaque, so a note looks the same on every row background.
+	 */
+	const double v      = std::max (0, std::min (127, velocity)) / 127.0;
+	const double bright = 0.6 + 0.4 * pow (v, 1.3); /* soft notes stay lighter than the track background */
+	const uint32_t dim  = UIConfiguration::instance().color ("neutral:backgroundest");
 
 	switch (color_mode) {
 	case TrackColor:
-		return UINT_INTERPOLATE (UINT_RGBA_CHANGE_A (track_color, opacity), _selected_col, 0.5);
+		return UINT_RGBA_CHANGE_A (UINT_INTERPOLATE (dim, UINT_INTERPOLATE (track_color, _selected_col, 0.5), bright), 0xff);
 
 	case ChannelColors:
 		channel = channel % (sizeof (midi_channel_colors) / sizeof (midi_channel_colors[0]));
-		return UINT_INTERPOLATE (UINT_RGBA_CHANGE_A (NoteBase::midi_channel_colors[channel], opacity), _selected_col, 0.5);
+		return UINT_RGBA_CHANGE_A (UINT_INTERPOLATE (dim, UINT_INTERPOLATE (NoteBase::midi_channel_colors[channel], _selected_col, 0.5), bright), 0xff);
 
 	case PitchColors:
 		pitch = pitch % pitch_colors.size();

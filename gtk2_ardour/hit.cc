@@ -61,6 +61,12 @@ Hit::set_outline_color (uint32_t color)
 }
 
 void
+Hit::set_outline_width (double w)
+{
+	_polygon->set_outline_width (w);
+}
+
+void
 Hit::set_fill_color (uint32_t color)
 {
 	_polygon->set_fill_color (color);

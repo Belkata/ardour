@@ -79,6 +79,12 @@ Note::set_outline_color (uint32_t color)
 }
 
 void
+Note::set_outline_width (double w)
+{
+	_visual_note->set_outline_width (w);
+}
+
+void
 Note::set_fill_color (uint32_t color)
 {
 	_visual_note->set_fill_color (color);

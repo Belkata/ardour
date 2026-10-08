@@ -55,7 +55,8 @@ PianoRollHeaderBase::PianoRollHeaderBase (MidiViewBackground& bg)
 	, _highlighted_note (NO_MIDI_NOTE)
 	, _clicked_note (NO_MIDI_NOTE)
 	, _dragging (false)
-	, _scroomer_size (60.f)
+	, _scroomer_size (range_bar_width)
+	, _keys_width (kbd_width)
 	, _scroomer_drag (false)
 	, _old_y (0.0)
 	, _fract (0.0)
@@ -168,7 +169,6 @@ PianoRollHeaderBase::render (ArdourCanvas::Rect const & self, ArdourCanvas::Rect
 	Gtkmm2ext::Color black           = UIConfiguration::instance().color (X_("piano key black"));
 	Gtkmm2ext::Color white_highlight = UIConfiguration::instance().color (X_("piano key highlight"));
 	Gtkmm2ext::Color black_highlight = UIConfiguration::instance().color (X_("piano key highlight"));
-	Gtkmm2ext::Color textc           = UIConfiguration::instance().color (X_("gtk_foreground"));
 
 	std::vector<int> numbers;
 	std::vector<double> positions;
@@ -198,67 +198,13 @@ PianoRollHeaderBase::render (ArdourCanvas::Rect const & self, ArdourCanvas::Rect
 
 	cr->translate (origin_x, origin_y);
 
-	// Render the MIDNAM text or its equivalent.  First, set up a clip
-	// region so that the text doesn't spill, regardless of its length.
+	/* The range bar (scroll + zoom over the whole 0..127 range) at the
+	 * left; note names are drawn on the keys further down.
+	 */
 
 	cr->save ();
 	cr->rectangle (0,0,_scroomer_size, height ());
 	cr->clip();
-
-	if (show_scroomer()) {
-
-		/* Draw the actual text */
-
-		for (std::vector<int>::size_type n = 0; n < numbers.size(); ++n) {
-
-			int size_x, size_y;
-			double y = positions[n];
-			double h = heights[n];
-
-			/* Ignore separators */
-			if (h == 1.) continue;
-
-
-			NoteName const & note (note_names[numbers[n]]);
-
-			_layout->set_text (note.name);
-			pango_layout_get_pixel_size (_layout->gobj (), &size_x, &size_y);
-
-			set_source_rgba (cr, textc);
-			cr->move_to (4.f,  y + context_note_height / 2 - size_y / 2);
-			if (!_mini_map_display) {
-				_layout->show_in_cairo_context (cr);
-			} else {
-				/* Too small for text, just show a thing rect where the
-				   text would have been.
-				*/
-				if (!note.from_midnam) {
-					set_source_rgba (cr, textc);
-				}
-				cr->move_to (4.f, y + h / 2);
-				cr->line_to (4.f + size_x, y + h / 2);
-				cr->set_line_width (context_note_height * 0.2);
-				cr->stroke ();
-			}
-		}
-
-		/* Add a gradient over the text, to act as a sort of "visual
-		   elision". This avoids using text elision with "..." which takes up too
-		   much space.
-		*/
-		Gtkmm2ext::Color bg = UIConfiguration::instance().color (X_("gtk_background"));
-		double r,g,b,a;
-		Gtkmm2ext::color_to_rgba(bg,r,g,b,a);
-		double fade_width = 30.;
-		auto gradient_ptr = Cairo::LinearGradient::create (_scroomer_size - fade_width, 0, _scroomer_size, 0);
-		gradient_ptr->add_color_stop_rgba (0,r,g,b,0);
-		gradient_ptr->add_color_stop_rgba (1,r,g,b,1);
-		cr->set_source (gradient_ptr);
-		cr->rectangle (_scroomer_size - fade_width, 0, fade_width, height ());
-		cr->fill();
-	}
-
-	/* Now draw the semi-transparent scroomer over the top */
 
 	render_scroomer (cr);
 
@@ -313,13 +259,13 @@ PianoRollHeaderBase::render (ArdourCanvas::Rect const & self, ArdourCanvas::Rect
 		}
 
 
-		double x = _scroomer_size;
+		double x = _scroomer_size + 1.;
 		double y = positions[n];
 		double h = heights[n];
 
 
 		Gtkmm2ext::set_source_rgba (cr, bg);
-		cr->rectangle (x, y, kbd_width * ui_scale, heights[n]);
+		cr->rectangle (x, y, _keys_width - 1., heights[n]);
 		cr->fill ();
 
 		if ((oct_rel == 4 || oct_rel == 11) && y > 0 && h > 3) {
@@ -331,9 +277,46 @@ PianoRollHeaderBase::render (ArdourCanvas::Rect const & self, ArdourCanvas::Rect
 			   which are rects
 			*/
 			cr->move_to (x, y + 0.5);
-			cr->line_to (x + kbd_width * ui_scale, y + 0.5);
+			cr->line_to (x + _keys_width - 1., y + 0.5);
 			cr->stroke ();
 		}
+	}
+
+	/* note names on the keys, when the rows are tall enough */
+
+	const bool names_on_keys = show_scroomer () && !_mini_map_display;
+
+	if (names_on_keys) {
+		cr->save ();
+		cr->rectangle (_scroomer_size + 1., 0, _keys_width - 1., height ());
+		cr->clip ();
+
+		for (std::vector<int>::size_type n = 0; n < numbers.size(); ++n) {
+
+			double h = heights[n];
+
+			if (h == 1.) {
+				continue; /* separator */
+			}
+
+			int const i = numbers[n];
+			int const oct_rel = i % 12;
+			bool const black_key = (oct_rel == 1 || oct_rel == 3 || oct_rel == 6 || oct_rel == 8 || oct_rel == 10);
+			int size_x, size_y;
+
+			_layout->set_text (note_names[i].name);
+			pango_layout_get_pixel_size (_layout->gobj (), &size_x, &size_y);
+
+			if (i == _highlighted_note) {
+				set_source_rgba (cr, UIConfiguration::instance().color (X_("gtk_foreground")));
+			} else {
+				set_source_rgba (cr, black_key ? white : black);
+			}
+			cr->move_to (std::max (_scroomer_size + 3., _scroomer_size + _keys_width - size_x - 4.), positions[n] + h / 2 - size_y / 2);
+			_layout->show_in_cairo_context (cr);
+		}
+
+		cr->restore ();
 	}
 
 	/* render the C<N> of the key, when key is too small to contain text we
@@ -352,6 +335,10 @@ PianoRollHeaderBase::render (ArdourCanvas::Rect const & self, ArdourCanvas::Rect
 		double y = positions[n];
 		int oct_rel = numbers[n] % 12;
 
+		if (names_on_keys) {
+			break;
+		}
+
 		if (oct_rel == 0 || (oct_rel == 7 && _adj.get_page_size() <=10)) {
 
 			std::stringstream str;
@@ -363,24 +350,14 @@ PianoRollHeaderBase::render (ArdourCanvas::Rect const & self, ArdourCanvas::Rect
 				str << 'G' << cn;
 			}
 
-			if (context_note_height > font_size){
-				/* Cn text shown in keys */
-				set_source_rgba (cr, black);
-				_layout->set_text (str.str());
+			/* Cn text inside the (white) key, right-aligned */
+			set_source_rgba (cr, black);
+			_layout->set_text (str.str());
 
-				pango_layout_get_pixel_size (_layout->gobj(), &c_width, &c_height);
+			pango_layout_get_pixel_size (_layout->gobj(), &c_width, &c_height);
 
-				cr->move_to (x + kbd_width * ui_scale / 2 - c_width / 2, y + h / 2 - c_height / 2);
-				_layout->show_in_cairo_context (cr);
-			} else {
-				/* Cn text shown to left of keys */
-				set_source_rgba (cr, textc);
-				_layout->set_text (str.str());
-
-				pango_layout_get_pixel_size (_layout->gobj(), &c_width, &c_height);
-				 cr->move_to (x - c_width - 4, y + h / 2 - c_height / 2);
-				_layout->show_in_cairo_context (cr);
-			}
+			cr->move_to (std::max (x + 1., x + _keys_width - c_width - 3.), y + h / 2 - c_height / 2);
+			_layout->show_in_cairo_context (cr);
 		}
 	}
 
@@ -394,32 +371,48 @@ PianoRollHeaderBase::render_scroomer (Cairo::RefPtr<Cairo::Context> cr) const
 	double scroomer_bottom = (1.0 - (_adj.get_value () / 127.0)) * height ();
 
 	Gtkmm2ext::Color c = UIConfiguration::instance().color_mod (X_("scroomer"), X_("scroomer alpha"));
-	Gtkmm2ext::Color save_color (c);
+	Gtkmm2ext::Color const outline = UIConfiguration::instance().color (X_("scroomer"));
 
-	if (entered) {
+	/* trough: the whole note range, like a scrollbar */
+	set_source_rgba (cr, UIConfiguration::instance().color (X_("neutral:backgroundest")));
+	cr->rectangle (0, 0, _scroomer_size, height ());
+	cr->fill ();
+
+	if (entered || _scroomer_drag) {
 		c = HSV (c).lighter (0.25).color();
 	}
 
-	set_source_rgba (cr, c);
-	cr->move_to (1.f, scroomer_top);
-	cr->line_to (_scroomer_size - 1.f, scroomer_top);
-	cr->line_to (_scroomer_size - 1.f, scroomer_bottom);
-	cr->line_to (1.f, scroomer_bottom);
-	cr->line_to (1.f, scroomer_top);
-	cr->fill();
+	/* handle: the visible part of the range; drag to scroll, drag its ends to zoom */
+	double const x0 = 1.5;
+	double const w  = _scroomer_size - 3.;
+	double const r  = std::min (w / 2., 3.);
+	scroomer_bottom = std::max (scroomer_bottom, scroomer_top + 2. * r);
 
-	if (entered || _scroomer_drag) {
-		cr->save ();
-		c = HSV (save_color).lighter (0.9).color();
-		set_source_rgba (cr, c);
-		cr->set_line_width (4.);
-		cr->move_to (1.f, scroomer_top + 2.);
-		cr->line_to (_scroomer_size - 1.f, scroomer_top + 2.);
-		cr->stroke ();
-		cr->line_to (_scroomer_size - 1.f, scroomer_bottom - 2.);
-		cr->line_to (1.f, scroomer_bottom - 2.);
-		cr->stroke ();
-		cr->restore ();
+	cr->begin_new_sub_path ();
+	cr->arc (x0 + w - r, scroomer_top + r, r, -M_PI / 2., 0);
+	cr->arc (x0 + w - r, scroomer_bottom - r, r, 0, M_PI / 2.);
+	cr->arc (x0 + r, scroomer_bottom - r, r, M_PI / 2., M_PI);
+	cr->arc (x0 + r, scroomer_top + r, r, M_PI, 1.5 * M_PI);
+	cr->close_path ();
+	set_source_rgba (cr, c);
+	cr->fill_preserve ();
+	set_source_rgba (cr, outline);
+	cr->set_line_width (1.);
+	cr->stroke ();
+}
+
+void
+PianoRollHeaderBase::compute_layout () const
+{
+	double const scale = UIConfiguration::instance().get_ui_scale();
+
+	_scroomer_size = range_bar_width * scale;
+
+	if (show_scroomer ()) {
+		/* note names on the keys: wide enough for "C#-1", or for a MIDNAM name */
+		_keys_width = (have_note_names ? 110. : 44.) * scale;
+	} else {
+		_keys_width = kbd_width * scale;
 	}
 }
 

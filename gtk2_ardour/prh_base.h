@@ -81,7 +81,8 @@ class PianoRollHeaderBase : virtual public sigc::trackable {
 	uint8_t _clicked_note;
 	double _grab_y;
 	bool _dragging;
-	mutable double _scroomer_size;
+	mutable double _scroomer_size; ///< width of the range bar (scroll + zoom) at the left
+	mutable double _keys_width;    ///< width of the piano keys right of it
 	bool _scroomer_drag;
 	double _old_y;
 	double _fract;
@@ -95,6 +96,8 @@ class PianoRollHeaderBase : virtual public sigc::trackable {
 	mutable bool _mini_map_display;
 	bool entered;
 	static const int kbd_width = 20;
+	static const int range_bar_width = 10;
+	void compute_layout () const;
 
 	// void on_size_request(Gtk::Requisition*);
 

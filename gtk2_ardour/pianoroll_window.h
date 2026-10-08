@@ -43,6 +43,7 @@ public:
 	void remove_regions ();
 	bool on_key_press_event (GdkEventKey*);
 	bool on_delete_event (GdkEventAny*);
+	void on_map ();
 	void set_show_source (bool);
 
 private:
