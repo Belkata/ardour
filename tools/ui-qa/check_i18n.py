@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 """Check that user-visible strings added on this branch are translatable.
 
-Scans the lines added to gtk2_ardour/ and libs/widgets/ since --base (the
-upstream commit the redesign started from) for user-visible text passed as a
+Scans the lines added to gtk2_ardour/ and libs/widgets/ since --base for
+user-visible text passed as a
 bare string literal, i.e. not wrapped in _(), S_(), P_() or X_() (X_ marks
 deliberately untranslated strings).
 
-usage: check_i18n.py [--base 608f15a4] [--root .]
+--base defaults to the upstream commit the fork is based on: the merge base
+with upstream/master if that remote exists (stays right after syncing with
+upstream Ardour), else the fork-point tag, else 608f15a4 (the original fork point).
+
+usage: check_i18n.py [--base <rev>] [--root .]
 """
 
 import argparse
@@ -43,12 +47,27 @@ def added_lines(root, base):
             lineno += 1
 
 
+def default_base(root):
+    def git(*a):
+        r = subprocess.run(["git", "-C", root] + list(a), capture_output=True, text=True)
+        return r.stdout.strip() if r.returncode == 0 else ""
+    if git("rev-parse", "--verify", "-q", "upstream/master"):
+        mb = git("merge-base", "HEAD", "upstream/master")
+        if mb:
+            return mb[:8]
+    if git("rev-parse", "--verify", "-q", "fork-point^{commit}"):
+        return "fork-point"
+    return "608f15a4"
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--base", default="608f15a4")
+    ap.add_argument("--base", default=None, help="upstream revision to diff against (default: see above)")
     ap.add_argument("--root", default=os.path.join(os.path.dirname(__file__), "..", ".."))
     args = ap.parse_args()
     root = os.path.abspath(args.root)
+    if args.base is None:
+        args.base = default_base(root)
 
     problems = []
     for path, n, text in added_lines(root, args.base):

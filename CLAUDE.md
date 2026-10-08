@@ -15,6 +15,21 @@ the status, decisions and next steps.
 - `ui-drafts/` – redesign mockups (HTML → PNG), status table, before/after screenshots.
 - `tools/ui-qa/` – QA scripts for the redesign (see below).
 
+## Fork point / diff against upstream
+
+The redesign starts from upstream commit `608f15a4` (tag `fork-point`). After merging
+into `master`, see our changes with:
+
+```sh
+git remote add upstream https://github.com/Ardour/ardour.git   # once
+git fetch upstream master
+git diff upstream/master...master   # only this fork's changes, also after syncing upstream
+git diff fork-point master          # vs the original fork point
+```
+
+Use a tag, not a branch, for the fork point (branches move). `check_i18n.py` picks its
+base the same way (upstream merge base → `fork-point` → `608f15a4`).
+
 ## Build (Linux, this cloud container)
 
 ```sh
