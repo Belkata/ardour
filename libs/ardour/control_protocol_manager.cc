@@ -642,11 +642,18 @@ ControlProtocolManager::midi_connectivity_established (bool yn)
 void
 ControlProtocolManager::probe_midi_control_protocols ()
 {
-	PBD::RWLock::ReaderLock lm (_protocols_lock);
+	std::list<ControlProtocolInfo*> protocols;
+	{
+		PBD::RWLock::ReaderLock lm (_protocols_lock);
+		protocols = _control_protocol_info;
+	}
+	/* activate() and deactivate() take the (non-recursive) writer lock, so
+	 * the reader lock must not be held while calling them.
+	 */
 	if (!Config->get_auto_enable_surfaces ()) {
 		return;
 	}
-	for (auto const& cpi : _control_protocol_info) {
+	for (auto const& cpi : protocols) {
 		/* Note: manual teardown deletes the descriptor */
 		if (!cpi->descriptor) {
 			cpi->automatic = false;
