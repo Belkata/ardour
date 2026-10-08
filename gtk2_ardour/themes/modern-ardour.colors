@@ -351,6 +351,9 @@
     <ColorAlias name="processor prefader: led active" alias="alert:green"/>
     <ColorAlias name="processor sidechain: fill" alias="alert:orange"/>
     <ColorAlias name="processor sidechain: led active" alias="alert:green"/>
+    <ColorAlias name="processor send: fill" alias="widget:green"/>
+    <ColorAlias name="processor send: fill active" alias="widget:green"/>
+    <ColorAlias name="processor send: led active" alias="alert:green"/>
     <ColorAlias name="processor stub: fill" alias="neutral:background2"/>
     <ColorAlias name="processor stub: fill active" alias="neutral:background2"/>
     <ColorAlias name="punch button: fill" alias="widget:bg"/>

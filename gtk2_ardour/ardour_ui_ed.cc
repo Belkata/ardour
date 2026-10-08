@@ -940,6 +940,7 @@ ARDOUR_UI::build_menu_bar ()
 	format_label.set_use_markup ();
 
 	dsp_load_label.set_use_markup ();
+	dsp_load_label.set_width_chars (9); /* fixed width: "DSP 9%" .. "DSP 100%" must not jitter */
 	xrun_label.set_use_markup ();
 	disk_health_label.set_use_markup ();
 
@@ -953,6 +954,8 @@ ARDOUR_UI::build_menu_bar ()
 	ev_format->add (format_label);
 	ev_latency->add (latency_info_label);
 	ev_timecode->add (timecode_format_label);
+	ArdourWidgets::set_tooltip (*ev_latency, _("Total I/O latency (capture plus playback) reported by the audio engine."));
+	ArdourWidgets::set_tooltip (*ev_pdc, _("Plugin delay compensation: the latency of the slowest route, caused by plugins."));
 
 	ev_dsp->show ();
 	ev_xrun->show ();

@@ -713,6 +713,11 @@ Editor::Editor ()
 	 */
 	content_app_bar.add (_application_bar);
 	content_att_right.add (_editor_list_vbox);
+
+	/* default sidebar width: wide enough for the Name column plus all the
+	 * state columns (In/R/RS/M/S ...). A saved session/instant.xml position
+	 * overrides this when the state is restored. */
+	content_right_pane.set_divider (0, 0.78);
 	content_att_bottom.add (_bottom_hbox);
 	content_main_top.add (global_vpacker);
 	content_main.add (editor_summary_pane);

@@ -1342,7 +1342,7 @@ ARDOUR_UI::update_cpu_load ()
 	/* DSP load */
 
 	int const dsp_level = fw ? 0 : (c < 70 ? 0 : (c < 90 ? 1 : 2));
-	snprintf (buf, sizeof (buf), "<span face=\"monospace\">%2.0f%%</span>", c);
+	snprintf (buf, sizeof (buf), "%.0f%%", c);
 	dsp_load_label.set_markup (health_dot_markup (dsp_level) + string_compose (X_("<span weight=\"ultralight\">%1</span> "), _("DSP")) + buf);
 
 	snprintf (buf, sizeof (buf), "%.1f%%", c);
@@ -1419,7 +1419,7 @@ ARDOUR_UI::format_disk_space_label (float remain_sec)
 	snprintf (buf, sizeof(buf), _("%02dh:%02dm:%02ds"), hrs, mins, secs);
 	ArdourWidgets::set_tooltip (disk_space_label, string_compose ("%1: %2", _("Available record time"), buf));
 
-	std::string label = string_compose (X_("<span weight=\"ultralight\">%1</span>: "), _("Record time left"));
+	std::string label = string_compose (X_("<span weight=\"ultralight\">%1</span> "), _("Rec"));
 
 	if (_session && FLAC == _session->config.get_native_file_header_format () && remain_sec <= 86400) {
 		label += u8"\u2265"; // Greater-Than or Equal To
@@ -1516,19 +1516,19 @@ ARDOUR_UI::session_latency_updated (bool for_playback)
 	}
 
 	if (!_session) {
-		pdc_info_label.set_text (string_compose (_("PDC: %1"), "--"));
-		latency_info_label.set_text (string_compose (_("I/O Latency: %1"), "--"));
+		pdc_info_label.set_text (string_compose (_("PDC %1"), "--"));
+		latency_info_label.set_text (string_compose (_("Latency %1"), "--"));
 	} else {
 		samplecnt_t wrl = _session->worst_route_latency ();
 		samplecnt_t iol = _session->io_latency ();
 		float rate      = _session->nominal_sample_rate ();
 
-		pdc_info_label.set_text (string_compose (_("PDC: %1"), samples_as_time_string (wrl, rate)));
+		pdc_info_label.set_text (string_compose (_("PDC %1"), samples_as_time_string (wrl, rate)));
 
 		if (_session->engine().check_for_ambiguous_latency (true)) {
-			latency_info_label.set_markup (string_compose (_("I/O Latency: %1%2%3"), "<span background=\"red\" foreground=\"white\">", _("ambiguous"), "</span>"));
+			latency_info_label.set_markup (string_compose (_("Latency %1%2%3"), "<span background=\"red\" foreground=\"white\">", _("ambiguous"), "</span>"));
 		} else {
-			latency_info_label.set_text (string_compose (_("I/O Latency: %1"), samples_as_time_string (iol, rate)));
+			latency_info_label.set_text (string_compose (_("Latency %1"), samples_as_time_string (iol, rate)));
 		}
 	}
 }

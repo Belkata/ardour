@@ -156,8 +156,9 @@ RouteListBase::add_name_column ()
 	cell->signal_editing_started ().connect (sigc::mem_fun (*this, &RouteListBase::name_edit_started));
 	tvc->set_sizing (TREE_VIEW_COLUMN_FIXED);
 	tvc->set_expand (true);
-	/* room for a typical track name ("Drum bus", "Master") next to the state columns */
-	tvc->set_min_width (rint (90 * UIConfiguration::instance ().get_ui_scale ()));
+	/* keep the Name column small: the narrow sidebar must still show the
+	 * In/R/RS/M/S state columns next to it. The name expands into spare room. */
+	tvc->set_min_width (rint (50 * UIConfiguration::instance ().get_ui_scale ()));
 	cell->property_editable () = true;
 	cell->signal_editing_started ().connect (sigc::mem_fun (*this, &RouteListBase::name_edit_started));
 	cell->signal_edited ().connect (sigc::mem_fun (*this, &RouteListBase::name_edit));

@@ -446,6 +446,18 @@ ProcessorEntry::setup_visuals ()
 		}
 	}
 
+	if (send) {
+		/* green tint for send rows; themes without a "processor send"
+		 * style fall back to the pre/post-fader colors */
+		bool no_send_color = false;
+		UIConfiguration::instance ().color (X_("processor send: fill"), &no_send_color);
+		if (!no_send_color) {
+			_button.set_name ("processor send");
+			set_entry_button_text (_button, name (_width), false);
+			return;
+		}
+	}
+
 	switch (_position) {
 	case PreFader:
 		if (_plugin_display) { _plugin_display->set_name ("processor prefader"); }
