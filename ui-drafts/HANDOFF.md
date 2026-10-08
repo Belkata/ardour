@@ -216,6 +216,12 @@ creation, freehand automation draw, MIDI CC (automation) regions, ghost regions.
 Possible edge case: on tracks shorter than `NAME_HIGHLIGHT_THRESH` regions have no bar
 (offset 0) but `MidiStreamView::y_position ()` still adds the bar height.
 
+QA on the user's local machine (Arch, 12 cores): needs `xorg-server-xvfb` and `xdotool`
+(installed). Incremental builds take seconds; reuse the main checkout's `build/` instead
+of fresh worktree builds. `shoot.sh` caches the demo session (~20 s per run, `SHOTS=mixer`
+~12 s). `check_cue_states.py` is flaky here: the unchanged script fails both checks most
+runs (clips play and meters move, but the launch icons are not green in the shot).
+
 ## Current state / where it stopped
 
 A working prototype, merged. Iteration loop (draft → approve → implement → build →
