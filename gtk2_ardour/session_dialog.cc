@@ -65,6 +65,7 @@
 #include "ardour_message.h"
 #include "ardour_ui.h"
 #include "context_menu_helper.h"
+#include "dialog_buttons.h"
 #include "session_dialog.h"
 #include "opts.h"
 #include "engine_dialog.h"
@@ -110,7 +111,7 @@ SessionDialog::SessionDialog (DialogTab initial_tab, const std::string& session_
 	Searchpath rc (ARDOUR::ardour_data_search_path());
 	rc.add_subdirectory_to_paths ("resources");
 
-	new_button.set_text (_("NEW"));
+	new_button.set_text (_("New"));
 	new_button.set_name ("tab button");
 	new_button.set_tweaks(ArdourButton::Tweaks(ArdourButton::ForceFlat));
 	if (Config->get_demo_session_index_url ().empty ()) {
@@ -121,7 +122,7 @@ SessionDialog::SessionDialog (DialogTab initial_tab, const std::string& session_
 	new_button.set_can_focus (true);
 	new_button.set_related_action (new_session_action);
 
-	recent_button.set_text (_("RECENT"));
+	recent_button.set_text (_("Recent"));
 	recent_button.set_name ("tab button");
 	recent_button.set_tweaks(ArdourButton::Tweaks(ArdourButton::ForceFlat));
 	recent_button.set_corner_mask(ArdourButton::TOP);
@@ -129,7 +130,7 @@ SessionDialog::SessionDialog (DialogTab initial_tab, const std::string& session_
 	recent_button.set_can_focus (true);
 	recent_button.set_related_action (recent_session_action);
 
-	existing_button.set_text (_("OPEN"));
+	existing_button.set_text (_("Open"));
 	existing_button.set_name ("tab button");
 	existing_button.set_tweaks(ArdourButton::Tweaks(ArdourButton::ForceFlat));
 	existing_button.set_corner_mask(ArdourButton::NONE);
@@ -137,7 +138,7 @@ SessionDialog::SessionDialog (DialogTab initial_tab, const std::string& session_
 	existing_button.set_can_focus (true);
 	existing_button.set_related_action (existing_session_action);
 
-	demo_button.set_text (_("DEMO\nSessions"));
+	demo_button.set_text (_("Demo\nSessions"));
 	demo_button.set_name ("tab button");
 	demo_button.set_tweaks(ArdourButton::Tweaks(ArdourButton::ForceFlat));
 	demo_button.set_corner_mask(ArdourButton::BOTTOM);
@@ -145,7 +146,7 @@ SessionDialog::SessionDialog (DialogTab initial_tab, const std::string& session_
 	demo_button.set_can_focus (true);
 	demo_button.set_related_action (demo_session_action);
 
-	prefs_button.set_text(_("SETTINGS"));
+	prefs_button.set_text(_("Settings"));
 	prefs_button.set_name ("tab button");
 	prefs_button.signal_button_press_event().connect (sigc::mem_fun (*this, &SessionDialog::prefs_button_pressed), false);
 	prefs_button.set_tweaks(ArdourButton::Tweaks(ArdourButton::ForceFlat));
@@ -237,6 +238,7 @@ SessionDialog::SessionDialog (DialogTab initial_tab, const std::string& session_
 	cancel_button->signal_button_press_event().connect (sigc::mem_fun (*this, &SessionDialog::cancel_button_pressed), false);
 
 	open_button = add_button (Stock::OPEN, RESPONSE_ACCEPT);
+	ArdourDialogButtons::set_primary (*open_button);
 	open_button->signal_button_press_event().connect (sigc::mem_fun (*this, &SessionDialog::open_button_pressed), false);
 
 	_disable_plugins.set_label (_("Safe Mode: Disable all Plugins"));
@@ -330,6 +332,11 @@ SessionDialog::tab_page_switched(GtkNotebookPage*, guint page_number)
 	demo_button.set_active_state     (page_number==3 ? Gtkmm2ext::ExplicitActive : Gtkmm2ext::Off);
 	prefs_button.set_active_state    (page_number==4 ? Gtkmm2ext::ExplicitActive : Gtkmm2ext::Off);
 	/* clang-format on */
+
+	/* the main button creates a session on the "New" page */
+	open_button->set_use_stock (false);
+	open_button->set_use_underline (true);
+	open_button->set_label (page_number == 0 ? _("_Create") : _("_Open"));
 
 	//check the status of each tab and sensitize the 'open' button appropriately
 	open_button->set_sensitive(false);

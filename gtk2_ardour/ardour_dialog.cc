@@ -27,6 +27,7 @@
 
 #include "ardour_dialog.h"
 #include "ardour_ui.h"
+#include "dialog_buttons.h"
 #include "keyboard.h"
 #include "splash.h"
 #include "ui_config.h"
@@ -138,6 +139,8 @@ void
 ArdourDialog::on_show ()
 {
 	Dialog::on_show ();
+
+	ArdourDialogButtons::plain_buttons (*get_action_area ());
 
 	// never allow the splash screen to obscure any dialog
 

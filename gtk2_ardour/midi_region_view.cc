@@ -561,6 +561,10 @@ MidiRegionView::get_fill_color() const
 
 	if (_selected && (mm != Editing::MouseDraw && mm != Editing::MouseContent)) {
 		c = UIConfiguration::instance().color ("selected region base");
+		if (UIConfiguration::instance().get_color_regions_using_track_color()) {
+			/* keep the track color recognizable, tinted towards the selection */
+			c = UINT_INTERPOLATE (fill_color, c, 0.55);
+		}
 	} else if ((!UIConfiguration::instance().get_show_name_highlight() || high_enough_for_name) && !UIConfiguration::instance().get_color_regions_using_track_color()) {
 		c = UIConfiguration::instance().color (fill_color_name);
 	} else {

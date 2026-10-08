@@ -2376,6 +2376,13 @@ AudioClock::on_style_changed (const Glib::RefPtr<Gtk::Style>& old_style)
 	Gtk::Requisition req;
 	set_clock_dimensions (req);
 
+	if (first_width) {
+		/* the font changed after realize: ask for the new size, or the
+		 * text overflows the (cached) old one and is clipped */
+		first_width = req.width;
+		first_height = req.height;
+	}
+
 	/* set-colors also sets up font-attributes */
 	set_colors ();
 }

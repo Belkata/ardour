@@ -17,6 +17,7 @@
  */
 
 #include "ardour_message.h"
+#include "dialog_buttons.h"
 #include "splash.h"
 #include "ui_config.h"
 
@@ -71,6 +72,7 @@ int
 ArdourMessageDialog::run ()
 {
 	push_splash ();
+	ArdourDialogButtons::plain_buttons (*get_action_area ());
 	int rv = Gtk::MessageDialog::run ();
 	pop_splash ();
 	return rv;
@@ -80,6 +82,7 @@ void
 ArdourMessageDialog::show ()
 {
 	push_splash ();
+	ArdourDialogButtons::plain_buttons (*get_action_area ());
 	Gtk::MessageDialog::show ();
 }
 

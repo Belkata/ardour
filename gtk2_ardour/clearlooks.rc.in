@@ -117,7 +117,7 @@ style "default" = "medium_text"
   fg[NORMAL]          = @foreground
   fg[PRELIGHT]        = @foreground
   fg[ACTIVE]          = shade(0.9, @foreground)
-  fg[INSENSITIVE]     = shade(0.7, @background)
+  fg[INSENSITIVE]     = mix(0.45, @foreground, @background)  /* readable, but clearly dimmed */
   fg[SELECTED]        = @fg_selected
 
   # These base and text colors will be used by treeviews and some other widgets.
@@ -1075,6 +1075,18 @@ style "ardour_button" ="default_button"
 	ythickness = 1
 }
 
+/* the main action of a dialog (Create, Add, Export, Insert ...) */
+style "primary_dialog_button" = "ardour_button"
+{
+	bg[NORMAL]   = @bright_color
+	bg[PRELIGHT] = shade (1.15, @bright_color)
+	bg[ACTIVE]   = shade (0.85, @bright_color)
+	bg[SELECTED] = @bright_color
+	fg[NORMAL]   = @lightest
+	fg[PRELIGHT] = @lightest
+	fg[ACTIVE]   = @lightest
+}
+
 style "tooltip" = "medium_text"
 {
 	fg[NORMAL] = @fg_tooltip
@@ -1133,6 +1145,7 @@ class "GtkEntry" style "entry"                          # not :highest to allow 
 class "GtkScrollbar" style:highest "ardour_adjusters"
 class "GtkLabel" style:highest "default_generic"
 class "GtkButton" style:highest "ardour_button"
+widget "*PrimaryDialogButton*" style:highest "primary_dialog_button"
 class "GtkCheckButton" style:highest "ardour_button"
 class "GtkArrow" style:highest "tearoff_arrow"
 class "GtkProgressBar" style:highest "ardour_progressbars"
@@ -1142,6 +1155,9 @@ widget "*MarkerText" style:highest "marker_text"
 widget "*ArdourContextMenu*" style:highest "default_menu"
 
 widget "*mixer strip button" style:highest "very_small_button"
+widget "*solo isolate" style:highest "very_small_button"
+widget "*solo safe" style:highest "very_small_button"
+widget "*comment button" style:highest "very_small_button"
 widget "*editor ruler button" style:highest "very_small_button"
 
 widget "*AddRouteDialogSpinner" style:highest "ardour_adjusters"

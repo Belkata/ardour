@@ -989,7 +989,7 @@ MixerStrip::setup_comment_button ()
 	set_tooltip (_comment_button, comment.empty() ? _("Click to add/edit comments") : _route->comment());
 
 	if (comment.empty ()) {
-		_comment_button.set_name ("generic button");
+		_comment_button.set_name ("mixer strip button");
 		_comment_button.set_text (_width  == Wide ? _("Comments") : _("Cmt"));
 		return;
 	}

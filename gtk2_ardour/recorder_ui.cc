@@ -84,8 +84,8 @@ RecorderUI::RecorderUI ()
 	, _btn_rec_none (_("None"))
 	, _btn_rec_forget (_("Discard Last Take"))
 	, _btn_peak_reset (_("Reset Peak Hold"))
-	, _monitor_in_button (_("All In"))
-	, _monitor_disk_button (_("All Disk"))
+	, _monitor_in_button (_("Monitor In"))
+	, _monitor_disk_button (_("Monitor Disk"))
 	, _btn_new_plist (_("New Playlist for All Tracks"))
 	, _btn_new_plist_rec (_("New Playlist for Rec-Armed"))
 	, _auto_input_button (_("Auto-Input"), ArdourButton::led_default_elements)
@@ -112,7 +112,7 @@ RecorderUI::RecorderUI ()
 	_monitor_disk_button.set_name ("monitor button");
 
 	/* rec all/none */
-	_recs_label.set_text(_("Arm Tracks:"));
+	_recs_label.set_text(_("Arm for Recording:"));
 	_btn_rec_all.set_name ("generic button");
 	_btn_rec_all.set_related_action (ActionManager::get_action (X_("Recorder"), X_("arm-all")));
 

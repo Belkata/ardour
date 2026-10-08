@@ -52,6 +52,7 @@
 
 #include "add_route_dialog.h"
 #include "ardour_ui.h"
+#include "dialog_buttons.h"
 #include "route_group_dialog.h"
 #include "ui_config.h"
 
@@ -353,7 +354,7 @@ AddRouteDialog::AddRouteDialog ()
 	 * this dialog is shown, via ::on_show()
 	 */
 
-	add_button (_("Add and Close"), AddAndClose);
+	ArdourDialogButtons::set_primary (*add_button (_("Add and Close"), AddAndClose));
 	set_response_sensitive (AddAndClose, true);
 	set_default_response (AddAndClose);
 

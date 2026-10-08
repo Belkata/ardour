@@ -166,6 +166,7 @@ private:
 	int name_sorter (Gtk::TreeModel::iterator a, Gtk::TreeModel::iterator b) const;
 	void added_row_clicked(GdkEventButton* event);
 	void display_selection_changed();
+	void update_insert_sensitivity ();
 	void btn_apply_clicked();
 	ARDOUR::PluginPtr load_plugin (ARDOUR::PluginInfoPtr);
 	bool show_this_plugin (const ARDOUR::PluginInfoPtr&, const std::string&);

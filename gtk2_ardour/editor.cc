@@ -1901,6 +1901,23 @@ Editor::add_region_context_items (Menu_Helpers::MenuList& edit_items, std::share
 		edit_items.push_back (*manage (_region_actions->get_action ("choose-top-region-context-menu")->create_menu_item ()));
 	}
 	edit_items.push_back (SeparatorElem());
+
+	/* the most common region operations, without opening the submenu */
+	char const* common[][2] = {
+		{ X_("Editor"), X_("split-region") },
+		{ X_("Region"), X_("duplicate-region") },
+		{ X_("Region"), X_("toggle-region-mute") },
+		{ X_("Region"), X_("normalize-region") },
+		{ X_("Region"), X_("rename-region") },
+		{ X_("Region"), X_("remove-region") },
+	};
+	for (auto const& c : common) {
+		RefPtr<Action> a = ActionManager::get_action (c[0], c[1], false);
+		if (a) {
+			edit_items.push_back (*manage (a->create_menu_item ()));
+		}
+	}
+	edit_items.push_back (SeparatorElem());
 }
 
 /** Add context menu items relevant to selection ranges.

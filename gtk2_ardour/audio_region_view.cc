@@ -388,6 +388,10 @@ AudioRegionView::get_fill_color () const
 
 	if (_selected) {
 		c = UIConfiguration::instance().color ("selected region base");
+		if (UIConfiguration::instance().get_color_regions_using_track_color()) {
+			/* keep the track color recognizable, tinted towards the selection */
+			c = UINT_INTERPOLATE (fill_color, c, 0.55);
+		}
 	} else if (_recregion) {
 		return UIConfiguration::instance().color ("recording rect");
 	} else if (!UIConfiguration::instance().get_color_regions_using_track_color()) {
@@ -1712,7 +1716,11 @@ AudioRegionView::set_some_waveform_colors (vector<ArdourWaveView::WaveView*>& wa
 		fill = UINT_RGBA_CHANGE_A(fill, 0xC0);
 	} else if (_selected) {
 		outline = UINT_RGBA_CHANGE_A(UIConfiguration::instance().color ("selected waveform outline"), 0xC0);
-		fill = UINT_RGBA_CHANGE_A(UIConfiguration::instance().color ("selected waveform fill"), 0xC0);
+		if (UIConfiguration::instance().get_color_regions_using_track_color()) {
+			fill = UINT_RGBA_CHANGE_A(UINT_INTERPOLATE (fill, UIConfiguration::instance().color ("selected waveform fill"), 0.6), 0xC0);
+		} else {
+			fill = UINT_RGBA_CHANGE_A(UIConfiguration::instance().color ("selected waveform fill"), 0xC0);
+		}
 	} else if (_region->muted()) {
 		outline = UINT_RGBA_CHANGE_A(outline, 0x40);
 		fill = UINT_RGBA_CHANGE_A (UINT_INTERPOLATE(fill_color, UIConfiguration::instance().color ("covered region"), 0.7), 0x40);
