@@ -102,6 +102,7 @@ public:
 	void set_fader_bg (uint32_t);
 	void unset_fader_fg ();
 	void unset_fader_bg ();
+	void set_fader_track_header_style ();
 
 	virtual void setup_meters (int len=0);
 

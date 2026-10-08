@@ -42,6 +42,11 @@ public:
 		NoButtonForward = 0x2,
 		NoVerticalScroll = 0x4,
 		DoubleClickReset = 0x8,
+		/* draw a thin groove with a translucent fill and a handle
+		 * line instead of a solid block, so a track-colored fader
+		 * reads as a slider rather than a color swatch (used by the
+		 * track-header gain fader; horizontal orientation only) */
+		TrackHeaderStyle = 0x10,
 	};
 
 	enum Orientation {

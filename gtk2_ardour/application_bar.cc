@@ -172,7 +172,14 @@ ApplicationBar::on_parent_changed (Gtk::Widget*)
 	_record_mode_selector.add_menu_elem (MenuElem (_record_mode_strings[(int)RecLayered], sigc::bind (sigc::mem_fun (*this, &ApplicationBar::set_record_mode), RecLayered)));
 	_record_mode_selector.add_menu_elem (MenuElem (_record_mode_strings[(int)RecNonLayered], sigc::bind (sigc::mem_fun (*this, &ApplicationBar::set_record_mode), RecNonLayered)));
 	_record_mode_selector.add_menu_elem (MenuElem (_record_mode_strings[(int)RecSoundOnSound], sigc::bind (sigc::mem_fun (*this, &ApplicationBar::set_record_mode), RecSoundOnSound)));
-	_record_mode_selector.set_sizing_texts (_record_mode_strings);
+	{
+		/* the selector reads "Rec: Layered" etc, so it says what it controls */
+		std::vector<std::string> sizing;
+		for (auto const& m : _record_mode_strings) {
+			sizing.push_back (string_compose (_("Rec: %1"), m));
+		}
+		_record_mode_selector.set_sizing_texts (sizing);
+	}
 
 	_latency_disable_button.set_text (_("Disable PDC"));
 
@@ -451,7 +458,7 @@ void
 ApplicationBar::setup_tooltips ()
 {
 	/* tooltips -- after actions have been set */
-	Gtkmm2ext::UI::instance()->set_tip (_record_mode_selector, _("<b>Layered</b>: New recordings will be added as regions on a layer atop existing regions.\n<b>Non Layered</b>: The underlying region will be spliced and replaced with the newly recorded region.\n<b>SoundOnSound</b>: Behaves like <i>Layered</i>, except underlying regions will be audible."));
+	Gtkmm2ext::UI::instance()->set_tip (_record_mode_selector, _("<b>Record mode</b>: what happens to existing material when you record over it.\n<b>Layered</b>: New recordings will be added as regions on a layer atop existing regions.\n<b>Non-Layered</b>: The underlying region will be spliced and replaced with the newly recorded region.\n<b>Sound on Sound</b>: Behaves like <i>Layered</i>, except underlying regions will be audible."));
 	Gtkmm2ext::UI::instance()->set_tip (_latency_disable_button, _("Disable all Plugin Delay Compensation. This results in the shortest delay from live input to output, but any paths with delay-causing plugins will sound later than those without."));
 	Gtkmm2ext::UI::instance()->set_tip (_primary_clock, _("<b>Primary Clock</b> right-click to set display mode. Click to edit, click+drag a digit or mouse-over+scroll wheel to modify.\nText edits: right-to-left overwrite <tt>Esc</tt>: cancel; <tt>Enter</tt>: confirm; postfix the edit with '+' or '-' to enter delta times.\n"));
 	Gtkmm2ext::UI::instance()->set_tip (_secondary_clock, _("<b>Secondary Clock</b> right-click to set display mode. Click to edit, click+drag a digit or mouse-over+scroll wheel to modify.\nText edits: right-to-left overwrite <tt>Esc</tt>: cancel; <tt>Enter</tt>: confirm; postfix the edit with '+' or '-' to enter delta times.\n"));
@@ -1023,7 +1030,7 @@ ApplicationBar::parameter_changed (std::string p)
 	} else if (p == "record-mode") {
 		size_t m = _session->config.get_record_mode ();
 		assert (m < _record_mode_strings.size ());
-		_record_mode_selector.set_active (_record_mode_strings[m]);
+		_record_mode_selector.set_text (string_compose (_("Rec: %1"), _record_mode_strings[m]));
 	}
 }
 

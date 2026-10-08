@@ -54,7 +54,7 @@ void
 FaderWidget::set_tweaks (Tweaks t)
 {
 	bool need_redraw = false;
-	if ((_tweaks & NoShowUnityLine) ^ (t & NoShowUnityLine)) {
+	if ((_tweaks ^ t) & (NoShowUnityLine | TrackHeaderStyle)) {
 		need_redraw = true;
 	}
 	_tweaks = t;

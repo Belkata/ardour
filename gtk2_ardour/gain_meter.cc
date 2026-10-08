@@ -690,6 +690,12 @@ GainMeterBase::unset_fader_bg ()
 }
 
 void
+GainMeterBase::set_fader_track_header_style ()
+{
+	gain_slider->set_tweaks (ArdourFader::Tweaks (gain_slider->tweaks () | ArdourFader::TrackHeaderStyle));
+}
+
+void
 GainMeterBase::update_gain_sensitive ()
 {
 	bool x = !(_control->alist()->automation_state() & Play);
